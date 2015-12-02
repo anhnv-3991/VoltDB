@@ -1,0 +1,524 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AbstractExecutor	abstractexecutor.h	/^    AbstractExecutor(VoltDBEngine* engine, AbstractPlanNode* abstractNode) {$/;"	f	class:voltdb::AbstractExecutor
+AbstractExecutor	abstractexecutor.h	/^class AbstractExecutor {$/;"	c	namespace:voltdb
+Agg	aggregateexecutor.h	/^    Agg() : m_haveAdvanced(false)$/;"	f	class:voltdb::Agg
+Agg	aggregateexecutor.h	/^class Agg$/;"	c	namespace:voltdb
+AggregateExecutorBase	aggregateexecutor.h	/^    AggregateExecutorBase(VoltDBEngine* engine, AbstractPlanNode* abstract_node) :$/;"	f	class:voltdb::AggregateExecutorBase
+AggregateExecutorBase	aggregateexecutor.h	/^class AggregateExecutorBase : public AbstractExecutor$/;"	c	namespace:voltdb
+AggregateHashExecutor	aggregateexecutor.h	/^    AggregateHashExecutor(VoltDBEngine* engine, AbstractPlanNode* abstract_node) :$/;"	f	class:voltdb::AggregateHashExecutor
+AggregateHashExecutor	aggregateexecutor.h	/^class AggregateHashExecutor : public AggregateExecutorBase$/;"	c	namespace:voltdb
+AggregateNValueSetType	aggregateexecutor.cpp	/^                             NValue::equal_to> AggregateNValueSetType;$/;"	t	namespace:voltdb	file:
+AggregatePartialExecutor	aggregateexecutor.h	/^    AggregatePartialExecutor(VoltDBEngine* engine, AbstractPlanNode* abstract_node) :$/;"	f	class:voltdb::AggregatePartialExecutor
+AggregatePartialExecutor	aggregateexecutor.h	/^class AggregatePartialExecutor : public AggregateExecutorBase$/;"	c	namespace:voltdb
+AggregateRow	aggregateexecutor.h	/^struct AggregateRow$/;"	s	namespace:voltdb
+AggregateSerialExecutor	aggregateexecutor.h	/^    AggregateSerialExecutor(VoltDBEngine* engine, AbstractPlanNode* abstract_node) :$/;"	f	class:voltdb::AggregateSerialExecutor
+AggregateSerialExecutor	aggregateexecutor.h	/^class AggregateSerialExecutor : public AggregateExecutorBase$/;"	c	namespace:voltdb
+AvgAgg	aggregateexecutor.cpp	/^    AvgAgg() : m_count(0) {}$/;"	f	class:voltdb::AvgAgg
+AvgAgg	aggregateexecutor.cpp	/^class AvgAgg : public Agg$/;"	c	namespace:voltdb	file:
+BLOCK_SIZE_X	GPUTUPLE.h	11;"	d
+BLOCK_SIZE_X	tuple.h	4;"	d
+BLOCK_SIZE_Y	GPUTUPLE.h	12;"	d
+BUCKET	tuple.h	/^} BUCKET;$/;"	t	typeref:struct:_BUCKET
+COLUMNDATA	GPUTUPLE.h	/^} COLUMNDATA __attribute__((aligned(32)));$/;"	t	namespace:voltdb	typeref:struct:voltdb::_COLUMNDATA
+CountAgg	aggregateexecutor.cpp	/^    CountAgg() : m_count(0) {}$/;"	f	class:voltdb::CountAgg
+CountAgg	aggregateexecutor.cpp	/^class CountAgg : public Agg$/;"	c	namespace:voltdb	file:
+CountStarAgg	aggregateexecutor.cpp	/^    CountStarAgg() : m_count(0) {}$/;"	f	class:voltdb::CountStarAgg
+CountStarAgg	aggregateexecutor.cpp	/^class CountStarAgg : public Agg$/;"	c	namespace:voltdb	file:
+DeleteExecutor	deleteexecutor.h	/^    DeleteExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::DeleteExecutor
+DeleteExecutor	deleteexecutor.h	/^class DeleteExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+Distinct	aggregateexecutor.cpp	/^struct Distinct : public AggregateNValueSetType {$/;"	s	namespace:voltdb	file:
+ExceptIntersectSetOperator	unionexecutor.cpp	/^    ExceptIntersectSetOperator(const std::vector<TableReference>& input_tablerefs,$/;"	f	struct:voltdb::detail::ExceptIntersectSetOperator
+ExceptIntersectSetOperator	unionexecutor.cpp	/^struct ExceptIntersectSetOperator : public SetOperator {$/;"	s	namespace:voltdb::detail	file:
+FALSE	scan_common.h	24;"	d
+GPU	GPU.h	/^    GPU(){$/;"	f	class:GPU
+GPU	GPU.h	/^class GPU{$/;"	c
+GPUH	GPU.h	3;"	d
+GPUNIJ	GPUNIJ.cpp	/^GPUNIJ::GPUNIJ(){$/;"	f	class:GPUNIJ
+GPUNIJ	GPUNIJ.h	/^class GPUNIJ{$/;"	c
+GPUNIJ_H	GPUNIJ.h	10;"	d
+GPUSCAN	scan_common.h	/^        GPUSCAN(){};$/;"	f	class:voltdb::GPUSCAN
+GPUSCAN	scan_common.h	/^        class GPUSCAN{$/;"	c	namespace:voltdb
+GPUSHJ	GPUSHJ.cpp	/^GPUSHJ::GPUSHJ(){$/;"	f	class:GPUSHJ
+GPUSHJ	GPUSHJ.h	/^class GPUSHJ{$/;"	c
+GPUSHJ_H	GPUSHJ.h	10;"	d
+GPUTUPLE_H	GPUTUPLE.h	3;"	d
+HSTOREAGGREGATEEXECUTOR_H	aggregateexecutor.h	47;"	d
+HSTOREDELETEEXECUTOR_H	deleteexecutor.h	47;"	d
+HSTOREEXECUTORUTIL_H	executorutil.h	47;"	d
+HSTOREINDEXCOUNTEXECUTOR_H	indexcountexecutor.h	20;"	d
+HSTOREINDEXSCANEXECUTOR_H	indexscanexecutor.h	47;"	d
+HSTOREINSERTEXECUTOR_H	insertexecutor.h	47;"	d
+HSTORELIMITEXECUTOR_H	limitexecutor.h	47;"	d
+HSTOREMATERIALIZEEXECUTOR_H	materializeexecutor.h	47;"	d
+HSTORENESTLOOPEXECUTOR_H	nestloopexecutor.h	47;"	d
+HSTORENESTLOOPINDEXEXECUTOR_H	nestloopindexexecutor.h	47;"	d
+HSTOREORDERBYEXECUTOR_H	orderbyexecutor.h	47;"	d
+HSTOREPROJECTIONEXECUTOR_H	projectionexecutor.h	47;"	d
+HSTORERECEIVEEXECUTOR_H	receiveexecutor.h	47;"	d
+HSTORESENDEXECUTOR_H	sendexecutor.h	47;"	d
+HSTORESEQSCANEXECUTOR_H	seqscanexecutor.h	47;"	d
+HSTORETABLECOUNTEXECUTOR_H	tablecountexecutor.h	20;"	d
+HSTOREUNIONEXECUTOR_H	unionexecutor.h	47;"	d
+HSTOREUPDATEEXECUTOR_H	updateexecutor.h	47;"	d
+HashAggregateMapType	aggregateexecutor.h	/^                             TableTupleEqualityChecker> HashAggregateMapType;$/;"	t	namespace:voltdb
+IndexCountExecutor	indexcountexecutor.h	/^    IndexCountExecutor(VoltDBEngine* engine, AbstractPlanNode* abstractNode)$/;"	f	class:voltdb::IndexCountExecutor
+IndexCountExecutor	indexcountexecutor.h	/^class IndexCountExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+IndexScanExecutor	indexscanexecutor.h	/^    IndexScanExecutor(VoltDBEngine* engine, AbstractPlanNode* abstractNode)$/;"	f	class:voltdb::IndexScanExecutor
+IndexScanExecutor	indexscanexecutor.h	/^class IndexScanExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+InsertExecutor	insertexecutor.h	/^    InsertExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::InsertExecutor
+InsertExecutor	insertexecutor.h	/^class InsertExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+JOIN_SHARED	GPUTUPLE.h	22;"	d
+JOIN_SHARED	tuple.h	46;"	d
+JT_SIZE	tuple.h	35;"	d
+LimitExecutor	limitexecutor.h	/^        LimitExecutor(VoltDBEngine* engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::LimitExecutor
+LimitExecutor	limitexecutor.h	/^    class LimitExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+MATCH_RATE	tuple.h	33;"	d
+MATERIALIZEDSCANEXECUTOR_H	materializedscanexecutor.h	20;"	d
+MAX_BATCH_ELEMENTS	scan_common.h	/^    extern "C" const uint MAX_BATCH_ELEMENTS;$/;"	m	namespace:voltdb
+MAX_LARGE_ARRAY_SIZE	scan_common.h	/^    extern "C" const uint MAX_LARGE_ARRAY_SIZE;$/;"	m	namespace:voltdb
+MAX_LL_SIZE	scan_common.h	/^    extern "C" const uint MAX_LL_SIZE;$/;"	m	namespace:voltdb
+MAX_SHORT_ARRAY_SIZE	scan_common.h	/^    extern "C" const uint MAX_SHORT_ARRAY_SIZE;$/;"	m	namespace:voltdb
+MIN_LARGE_ARRAY_SIZE	scan_common.h	/^    extern "C" const uint MIN_LARGE_ARRAY_SIZE;$/;"	m	namespace:voltdb
+MIN_LL_SIZE	scan_common.h	/^    extern "C" const uint MIN_LL_SIZE;$/;"	m	namespace:voltdb
+MIN_SHORT_ARRAY_SIZE	scan_common.h	/^    extern "C" const uint MIN_SHORT_ARRAY_SIZE;$/;"	m	namespace:voltdb
+MaterializeExecutor	materializeexecutor.h	/^    MaterializeExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node) :$/;"	f	class:voltdb::MaterializeExecutor
+MaterializeExecutor	materializeexecutor.h	/^class MaterializeExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+MaterializedScanExecutor	materializedscanexecutor.h	/^        MaterializedScanExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::MaterializedScanExecutor
+MaterializedScanExecutor	materializedscanexecutor.h	/^    class MaterializedScanExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+MaxAgg	aggregateexecutor.cpp	/^    MaxAgg(Pool* memoryPool)$/;"	f	class:voltdb::MaxAgg
+MaxAgg	aggregateexecutor.cpp	/^class MaxAgg : public Agg$/;"	c	namespace:voltdb	file:
+MinAgg	aggregateexecutor.cpp	/^    MinAgg(Pool* memoryPool)$/;"	f	class:voltdb::MinAgg
+MinAgg	aggregateexecutor.cpp	/^class MinAgg : public Agg$/;"	c	namespace:voltdb	file:
+NestLoopExecutor	nestloopexecutor.h	/^        NestLoopExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node) :$/;"	f	class:voltdb::NestLoopExecutor
+NestLoopExecutor	nestloopexecutor.h	/^class NestLoopExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+NestLoopIndexExecutor	nestloopindexexecutor.h	/^    NestLoopIndexExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::NestLoopIndexExecutor
+NestLoopIndexExecutor	nestloopindexexecutor.h	/^class NestLoopIndexExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+NotDistinct	aggregateexecutor.cpp	/^struct NotDistinct {$/;"	s	namespace:voltdb	file:
+OrderByExecutor	orderbyexecutor.h	/^        OrderByExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::OrderByExecutor
+OrderByExecutor	orderbyexecutor.h	/^    class OrderByExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+PART	GPUNIJ.h	/^    int PART;$/;"	m	class:GPUNIJ
+PARTITION	GPUTUPLE.h	14;"	d
+PARTITION	tuple.h	38;"	d
+PART_C_NUM	GPUTUPLE.h	16;"	d
+PART_C_NUM	tuple.h	40;"	d
+PART_STANDARD	GPUTUPLE.h	21;"	d
+PART_STANDARD	tuple.h	45;"	d
+ProjectionExecutor	projectionexecutor.h	/^        ProjectionExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node) : AbstractExecutor(engine, abstract_node) {$/;"	f	class:voltdb::ProjectionExecutor
+ProjectionExecutor	projectionexecutor.h	/^class ProjectionExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+RADIX	GPUTUPLE.h	15;"	d
+RADIX	tuple.h	39;"	d
+RESULT	GPUTUPLE.h	/^} RESULT;$/;"	t	namespace:voltdb	typeref:struct:voltdb::_RESULT
+RESULT	tuple.h	/^} RESULT;$/;"	t	typeref:struct:_RESULT
+RIGHT_PER_TH	GPUTUPLE.h	19;"	d
+RIGHT_PER_TH	tuple.h	43;"	d
+ReceiveExecutor	receiveexecutor.h	/^    ReceiveExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::ReceiveExecutor
+ReceiveExecutor	receiveexecutor.h	/^class ReceiveExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+SCAN_COMMON_H	scan_common.h	13;"	d
+SELECTIVITY	tuple.h	36;"	d
+SHARED_MAX	GPUTUPLE.h	17;"	d
+SHARED_MAX	tuple.h	41;"	d
+SUCCESS	scan_common.h	23;"	d
+SendExecutor	sendexecutor.h	/^    SendExecutor(VoltDBEngine *engine, AbstractPlanNode* abstractNode)$/;"	f	class:voltdb::SendExecutor
+SendExecutor	sendexecutor.h	/^class SendExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+SeqScanExecutor	seqscanexecutor.h	/^        SeqScanExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::SeqScanExecutor
+SeqScanExecutor	seqscanexecutor.h	/^    class SeqScanExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+SetOperator	unionexecutor.cpp	/^    SetOperator(const std::vector<TableReference>& input_tablerefs,$/;"	f	struct:voltdb::detail::SetOperator
+SetOperator	unionexecutor.cpp	/^struct SetOperator {$/;"	s	namespace:voltdb::detail	file:
+SumAgg	aggregateexecutor.cpp	/^    SumAgg() {}$/;"	f	class:voltdb::SumAgg
+SumAgg	aggregateexecutor.cpp	/^class SumAgg : public Agg$/;"	c	namespace:voltdb	file:
+TUPLE	tuple.h	/^} TUPLE;$/;"	t	typeref:struct:_TUPLE
+TableCountExecutor	tablecountexecutor.h	/^        TableCountExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::TableCountExecutor
+TableCountExecutor	tablecountexecutor.h	/^    class TableCountExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+TableReference	unionexecutor.cpp	/^    typedef AbstractPlanNode::TableReference TableReference;$/;"	t	struct:voltdb::detail::SetOperator	file:
+TableSizeLess	unionexecutor.cpp	/^struct TableSizeLess {$/;"	s	namespace:voltdb::detail	file:
+TupleComparer	orderbyexecutor.cpp	/^    TupleComparer(const vector<AbstractExpression*>& keys,$/;"	f	class:TupleComparer
+TupleComparer	orderbyexecutor.cpp	/^class TupleComparer$/;"	c	file:
+TupleMap	unionexecutor.cpp	/^        TupleMap;$/;"	t	struct:voltdb::detail::SetOperator	file:
+TupleSet	unionexecutor.cpp	/^        TupleSet;$/;"	t	struct:voltdb::detail::SetOperator	file:
+UnionExecutor	unionexecutor.cpp	/^UnionExecutor::UnionExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::UnionExecutor
+UnionExecutor	unionexecutor.h	/^class UnionExecutor : public AbstractExecutor {$/;"	c	namespace:voltdb
+UnionSetOperator	unionexecutor.cpp	/^    UnionSetOperator(const std::vector<TableReference>& input_tablerefs,$/;"	f	struct:voltdb::detail::UnionSetOperator
+UnionSetOperator	unionexecutor.cpp	/^struct UnionSetOperator : public SetOperator {$/;"	s	namespace:voltdb::detail	file:
+UpdateExecutor	updateexecutor.h	/^    UpdateExecutor(VoltDBEngine *engine, AbstractPlanNode* abstract_node)$/;"	f	class:voltdb::UpdateExecutor
+UpdateExecutor	updateexecutor.h	/^class UpdateExecutor : public AbstractExecutor$/;"	c	namespace:voltdb
+VOLTDBNODEABSTRACTEXECUTOR_H	abstractexecutor.h	47;"	d
+_BUCKET	tuple.h	/^typedef struct _BUCKET {$/;"	s
+_COLUMNDATA	GPUTUPLE.h	/^typedef struct _COLUMNDATA{$/;"	s	namespace:voltdb
+_RESULT	GPUTUPLE.h	/^typedef struct _RESULT {$/;"	s	namespace:voltdb
+_RESULT	tuple.h	/^typedef struct _RESULT {$/;"	s
+_TUPLE	tuple.h	/^typedef struct _TUPLE {$/;"	s
+adr	tuple.h	/^    int adr;$/;"	m	struct:_BUCKET
+advance	aggregateexecutor.cpp	/^    virtual void advance(const NValue& val)$/;"	f	class:voltdb::AvgAgg
+advance	aggregateexecutor.cpp	/^    virtual void advance(const NValue& val)$/;"	f	class:voltdb::CountAgg
+advance	aggregateexecutor.cpp	/^    virtual void advance(const NValue& val)$/;"	f	class:voltdb::CountStarAgg
+advance	aggregateexecutor.cpp	/^    virtual void advance(const NValue& val)$/;"	f	class:voltdb::MaxAgg
+advance	aggregateexecutor.cpp	/^    virtual void advance(const NValue& val)$/;"	f	class:voltdb::MinAgg
+advance	aggregateexecutor.cpp	/^    virtual void advance(const NValue& val)$/;"	f	class:voltdb::SumAgg
+advanceAggs	aggregateexecutor.cpp	/^inline void AggregateExecutorBase::advanceAggs(AggregateRow* aggregateRow, const TableTuple& tuple)$/;"	f	class:voltdb::AggregateExecutorBase
+all_param_array	materializeexecutor.h	/^    int* all_param_array;$/;"	m	class:voltdb::MaterializeExecutor
+all_param_array	projectionexecutor.h	/^        int* all_param_array;$/;"	m	class:voltdb::ProjectionExecutor
+all_param_array_ptr	materializeexecutor.h	/^    boost::shared_array<int> all_param_array_ptr;$/;"	m	class:voltdb::MaterializeExecutor
+all_param_array_ptr	projectionexecutor.h	/^        boost::shared_array<int> all_param_array_ptr;$/;"	m	class:voltdb::ProjectionExecutor
+all_tuple_array	projectionexecutor.h	/^        int* all_tuple_array;$/;"	m	class:voltdb::ProjectionExecutor
+all_tuple_array_ptr	projectionexecutor.h	/^        boost::shared_array<int> all_tuple_array_ptr;$/;"	m	class:voltdb::ProjectionExecutor
+batched	materializeexecutor.h	/^    bool batched;$/;"	m	class:voltdb::MaterializeExecutor
+c_function	GPUNIJ.h	/^    CUfunction function,c_function;$/;"	m	class:GPUNIJ
+c_function	GPUSHJ.h	/^    CUfunction function,c_function,p_function,pc_function,sp_function;$/;"	m	class:GPUSHJ
+c_module	GPUNIJ.h	/^    CUmodule module,c_module;$/;"	m	class:GPUNIJ
+cleanupInputTempTable	abstractexecutor.h	/^    inline void cleanupInputTempTable(Table * input_table) {$/;"	f	class:voltdb::AbstractExecutor
+cleanupMemoryPool	abstractexecutor.h	/^    virtual void cleanupMemoryPool() {$/;"	f	class:voltdb::AbstractExecutor
+cleanupTempOutputTable	abstractexecutor.h	/^    inline void cleanupTempOutputTable()$/;"	f	class:voltdb::AbstractExecutor
+clear	aggregateexecutor.cpp	/^    void clear() { }$/;"	f	struct:voltdb::NotDistinct
+collectTuples	unionexecutor.cpp	/^void ExceptIntersectSetOperator::collectTuples(Table& input_table, TupleMap& tuple_map)$/;"	f	class:voltdb::detail::ExceptIntersectSetOperator
+constructGroupBySchema	aggregateexecutor.cpp	/^inline TupleSchema* AggregateExecutorBase::constructGroupBySchema(bool partial) {$/;"	f	class:voltdb::AggregateExecutorBase
+countNulls	indexcountexecutor.cpp	/^static long countNulls(TableIndex * tableIndex, AbstractExpression * countNULLExpr,$/;"	f	file:
+ctx	GPU.h	/^    CUcontext ctx;$/;"	m	class:GPU
+ctx	GPUNIJ.h	/^    CUcontext ctx;$/;"	m	class:GPUNIJ
+ctx	GPUSHJ.h	/^    CUcontext ctx;$/;"	m	class:GPUSHJ
+d_Buf	scan_common.h	/^        T *d_Buf;$/;"	m	class:voltdb::GPUSCAN
+detail	unionexecutor.cpp	/^namespace detail {$/;"	n	namespace:voltdb	file:
+detail	unionexecutor.h	/^namespace detail {$/;"	n	namespace:voltdb
+dev	GPU.h	/^    CUdevice dev;$/;"	m	class:GPU
+dev	GPUNIJ.h	/^    CUdevice dev;$/;"	m	class:GPUNIJ
+dev	GPUSHJ.h	/^    CUdevice dev;$/;"	m	class:GPUSHJ
+e_Buf	scan_common.h	/^        T *e_Buf;$/;"	m	class:voltdb::GPUSCAN
+engine	materializeexecutor.h	/^    VoltDBEngine *engine;$/;"	m	class:voltdb::MaterializeExecutor
+engine	receiveexecutor.h	/^    VoltDBEngine *engine;$/;"	m	class:voltdb::ReceiveExecutor
+exceptTupleMaps	unionexecutor.cpp	/^void ExceptIntersectSetOperator::exceptTupleMaps(TupleMap& map_a, TupleMap& map_b)$/;"	f	class:voltdb::detail::ExceptIntersectSetOperator
+excludeValue	aggregateexecutor.cpp	/^    bool excludeValue(const NValue& val)$/;"	f	struct:voltdb::Distinct
+excludeValue	aggregateexecutor.cpp	/^    bool excludeValue(const NValue& val)$/;"	f	struct:voltdb::NotDistinct
+execute	abstractexecutor.h	/^inline bool AbstractExecutor::execute(const NValueArray& params)$/;"	f	class:voltdb::AbstractExecutor
+executeAggBase	aggregateexecutor.cpp	/^inline void AggregateExecutorBase::executeAggBase(const NValueArray& params)$/;"	f	class:voltdb::AggregateExecutorBase
+executePurgeFragmentIfNeeded	insertexecutor.cpp	/^bool InsertExecutor::executePurgeFragmentIfNeeded(PersistentTable** ptrToTable) {$/;"	f	class:InsertExecutor
+expression	GPUNIJ.h	/^    GComparisonExpression *expression;$/;"	m	class:GPUNIJ
+expression	GPUSHJ.h	/^    GComparisonExpression *expression;$/;"	m	class:GPUSHJ
+expression_array	materializeexecutor.h	/^    AbstractExpression** expression_array;$/;"	m	class:voltdb::MaterializeExecutor
+expression_array	projectionexecutor.h	/^        AbstractExpression** expression_array;$/;"	m	class:voltdb::ProjectionExecutor
+expression_array_ptr	materializeexecutor.h	/^    boost::shared_array<AbstractExpression*> expression_array_ptr;$/;"	m	class:voltdb::MaterializeExecutor
+expression_array_ptr	projectionexecutor.h	/^        boost::shared_array<AbstractExpression*> expression_array_ptr;$/;"	m	class:voltdb::ProjectionExecutor
+finalize	aggregateexecutor.cpp	/^    virtual NValue finalize()$/;"	f	class:voltdb::AvgAgg
+finalize	aggregateexecutor.cpp	/^    virtual NValue finalize()$/;"	f	class:voltdb::CountAgg
+finalize	aggregateexecutor.cpp	/^    virtual NValue finalize()$/;"	f	class:voltdb::CountStarAgg
+finalize	aggregateexecutor.cpp	/^    virtual NValue finalize()$/;"	f	class:voltdb::SumAgg
+finalize	aggregateexecutor.h	/^    virtual NValue finalize() { return m_value; }$/;"	f	class:voltdb::Agg
+finish	GPUNIJ.cpp	/^void GPUNIJ::finish(){$/;"	f	class:GPUNIJ
+finish	GPUSHJ.cpp	/^void GPUSHJ::finish(){$/;"	f	class:GPUSHJ
+function	GPUNIJ.h	/^    CUfunction function,c_function;$/;"	m	class:GPUNIJ
+function	GPUSHJ.h	/^    CUfunction function,c_function,p_function,pc_function,sp_function;$/;"	m	class:GPUSHJ
+getAggInstance	aggregateexecutor.cpp	/^inline Agg* getAggInstance(Pool& memoryPool, ExpressionType agg_type, bool isDistinct)$/;"	f	namespace:voltdb
+getInlineAggregateExecutor	aggregateexecutor.h	/^inline AggregateExecutorBase* getInlineAggregateExecutor(const AbstractPlanNode* node) {$/;"	f	namespace:voltdb
+getNewExecutor	executorutil.cpp	/^AbstractExecutor* getNewExecutor(VoltDBEngine *engine,$/;"	f	namespace:voltdb
+getPlanNode	abstractexecutor.h	/^    inline AbstractPlanNode* getPlanNode() { return m_abstractNode; }$/;"	f	class:voltdb::AbstractExecutor
+getResult	GPUNIJ.h	/^    RESULT *getResult(){$/;"	f	class:GPUNIJ
+getResult	GPUSHJ.h	/^    RESULT *getResult(){$/;"	f	class:GPUSHJ
+getResultSize	GPUNIJ.h	/^    int getResultSize(){$/;"	f	class:GPUNIJ
+getResultSize	GPUSHJ.h	/^    int getResultSize(){$/;"	f	class:GPUSHJ
+getSetOperator	unionexecutor.cpp	/^SetOperator* SetOperator::getSetOperator(UnionPlanNode* node)$/;"	f	class:voltdb::detail::SetOperator
+getValue	scan_common.h	/^        uint GPUSCAN<T,S>::getValue(CUdeviceptr d_Input , uint loc , T *res){$/;"	f	class:voltdb::GPUSCAN
+gn	GPUTUPLE.h	/^    GNValue gn;$/;"	m	struct:voltdb::_COLUMNDATA
+iDivUp	GPUNIJ.cpp	/^uint GPUNIJ::iDivUp(uint dividend, uint divisor)$/;"	f	class:GPUNIJ
+iDivUp	GPUSHJ.cpp	/^uint GPUSHJ::iDivUp(uint dividend, uint divisor)$/;"	f	class:GPUSHJ
+iDivUp	scan_common.h	/^        uint iDivUp(uint dividend, uint divisor)$/;"	f	class:voltdb::GPUSCAN
+ifDistinct	aggregateexecutor.cpp	/^    D ifDistinct;$/;"	m	class:voltdb::AvgAgg	file:
+ifDistinct	aggregateexecutor.cpp	/^    D ifDistinct;$/;"	m	class:voltdb::CountAgg	file:
+ifDistinct	aggregateexecutor.cpp	/^    D ifDistinct;$/;"	m	class:voltdb::SumAgg	file:
+init	abstractexecutor.cpp	/^bool AbstractExecutor::init(VoltDBEngine* engine,$/;"	f	class:AbstractExecutor
+initAggInstances	aggregateexecutor.cpp	/^inline void AggregateExecutorBase::initAggInstances(AggregateRow* aggregateRow)$/;"	f	class:voltdb::AggregateExecutorBase
+initGPU	GPUNIJ.cpp	/^bool GPUNIJ::initGPU(){ $/;"	f	class:GPUNIJ
+initGPU	GPUSHJ.cpp	/^bool GPUSHJ::initGPU(){ $/;"	f	class:GPUSHJ
+initGroupByKeyTuple	aggregateexecutor.cpp	/^void AggregateExecutorBase::initGroupByKeyTuple(const TableTuple& nextTuple)$/;"	f	class:voltdb::AggregateExecutorBase
+initPartialHashGroupByKeyTuple	aggregateexecutor.cpp	/^inline void AggregatePartialExecutor::initPartialHashGroupByKeyTuple(const TableTuple& nextTuple)$/;"	f	class:voltdb::AggregatePartialExecutor
+insertOutputTuple	aggregateexecutor.cpp	/^inline bool AggregateExecutorBase::insertOutputTuple(AggregateRow* aggregateRow)$/;"	f	class:voltdb::AggregateExecutorBase
+intersectTupleMaps	unionexecutor.cpp	/^void ExceptIntersectSetOperator::intersectTupleMaps(TupleMap& map_a, TupleMap& map_b)$/;"	f	class:voltdb::detail::ExceptIntersectSetOperator
+join	GPUNIJ.cpp	/^bool GPUNIJ::join()$/;"	f	class:GPUNIJ
+join	GPUSHJ.cpp	/^bool GPUSHJ::join(){$/;"	f	class:GPUSHJ
+jt	GPUNIJ.h	/^    RESULT *jt;$/;"	m	class:GPUNIJ
+jt	GPUSHJ.h	/^    RESULT *jt;$/;"	m	class:GPUSHJ
+key	tuple.h	/^  int key;$/;"	m	struct:_TUPLE
+left	GPUNIJ.h	/^    uint left,right;$/;"	m	class:GPUNIJ
+left	GPUSHJ.h	/^    uint left,right;$/;"	m	class:GPUSHJ
+left	tuple.h	/^int right,left;$/;"	v
+left_CD	GPUNIJ.h	/^    COLUMNDATA *left_CD;$/;"	m	class:GPUNIJ
+left_CD	GPUSHJ.h	/^    COLUMNDATA *left_CD;$/;"	m	class:GPUSHJ
+limit_node	orderbyexecutor.h	/^        LimitPlanNode *limit_node;$/;"	m	class:voltdb::OrderByExecutor
+lkey	GPUTUPLE.h	/^    int lkey;$/;"	m	struct:voltdb::_RESULT
+lkey	tuple.h	/^  int lkey;$/;"	m	struct:_RESULT
+lval	tuple.h	/^  int lval;$/;"	m	struct:_RESULT
+m_abstractNode	abstractexecutor.h	/^    AbstractPlanNode* m_abstractNode;$/;"	m	class:voltdb::AbstractExecutor
+m_aggExec	indexscanexecutor.h	/^    AggregateExecutorBase* m_aggExec;$/;"	m	class:voltdb::IndexScanExecutor
+m_aggExec	nestloopexecutor.h	/^        AggregateExecutorBase* m_aggExec;$/;"	m	class:voltdb::NestLoopExecutor
+m_aggExec	nestloopindexexecutor.h	/^    AggregateExecutorBase* m_aggExec;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_aggExec	seqscanexecutor.h	/^        AggregateExecutorBase* m_aggExec;$/;"	m	class:voltdb::SeqScanExecutor
+m_aggTypes	aggregateexecutor.h	/^    std::vector<ExpressionType> m_aggTypes;$/;"	m	class:voltdb::AggregateExecutorBase
+m_aggregateOutputColumns	aggregateexecutor.h	/^    std::vector<int> m_aggregateOutputColumns;$/;"	m	class:voltdb::AggregateExecutorBase
+m_aggregateRow	aggregateexecutor.h	/^    AggregateRow * m_aggregateRow;$/;"	m	class:voltdb::AggregateSerialExecutor
+m_aggregates	aggregateexecutor.h	/^    Agg* m_aggregates[0];$/;"	m	struct:voltdb::AggregateRow
+m_atTheFirstRow	aggregateexecutor.h	/^    bool m_atTheFirstRow;$/;"	m	class:voltdb::AggregatePartialExecutor
+m_columnCount	materializeexecutor.h	/^    int m_columnCount;$/;"	m	class:voltdb::MaterializeExecutor
+m_columnCount	projectionexecutor.h	/^        int m_columnCount;$/;"	m	class:voltdb::ProjectionExecutor
+m_count	aggregateexecutor.cpp	/^    int64_t m_count;$/;"	m	class:voltdb::AvgAgg	file:
+m_count	aggregateexecutor.cpp	/^    int64_t m_count;$/;"	m	class:voltdb::CountAgg	file:
+m_count	aggregateexecutor.cpp	/^    int64_t m_count;$/;"	m	class:voltdb::CountStarAgg	file:
+m_dirs	orderbyexecutor.cpp	/^    const vector<SortDirectionType>& m_dirs;$/;"	m	class:TupleComparer	file:
+m_distinctAggs	aggregateexecutor.h	/^    std::vector<bool> m_distinctAggs;$/;"	m	class:voltdb::AggregateExecutorBase
+m_earlyReturn	aggregateexecutor.h	/^    bool m_earlyReturn;$/;"	m	class:voltdb::AggregateExecutorBase
+m_endKeyArray	indexcountexecutor.h	/^    AbstractExpression** m_endKeyArray;$/;"	m	class:voltdb::IndexCountExecutor
+m_endKeyArrayPtr	indexcountexecutor.h	/^    boost::shared_array<AbstractExpression*> m_endKeyArrayPtr;$/;"	m	class:voltdb::IndexCountExecutor
+m_endKeyBackingStore	indexcountexecutor.h	/^    char* m_endKeyBackingStore;$/;"	m	class:voltdb::IndexCountExecutor
+m_endType	indexcountexecutor.h	/^    IndexLookupType m_endType;$/;"	m	class:voltdb::IndexCountExecutor
+m_engine	abstractexecutor.h	/^    VoltDBEngine* m_engine;$/;"	m	class:voltdb::AbstractExecutor
+m_engine	deleteexecutor.h	/^    VoltDBEngine* m_engine;$/;"	m	class:voltdb::DeleteExecutor
+m_engine	sendexecutor.h	/^    VoltDBEngine *m_engine;$/;"	m	class:voltdb::SendExecutor
+m_engine	updateexecutor.h	/^    VoltDBEngine* m_engine;$/;"	m	class:voltdb::UpdateExecutor
+m_failPrePredicateOnFirstRow	aggregateexecutor.h	/^    bool m_failPrePredicateOnFirstRow;$/;"	m	class:voltdb::AggregateSerialExecutor
+m_groupByExpressions	aggregateexecutor.h	/^    std::vector<AbstractExpression*> m_groupByExpressions;$/;"	m	class:voltdb::AggregateExecutorBase
+m_groupByKeyPartialHashSchema	aggregateexecutor.h	/^    TupleSchema* m_groupByKeyPartialHashSchema;$/;"	m	class:voltdb::AggregateExecutorBase
+m_groupByKeySchema	aggregateexecutor.h	/^    TupleSchema* m_groupByKeySchema;$/;"	m	class:voltdb::AggregateExecutorBase
+m_hasPurgeFragment	insertexecutor.h	/^        bool m_hasPurgeFragment;$/;"	m	class:voltdb::InsertExecutor
+m_hash	aggregateexecutor.h	/^    HashAggregateMapType m_hash;$/;"	m	class:voltdb::AggregateHashExecutor
+m_hash	aggregateexecutor.h	/^    HashAggregateMapType m_hash;$/;"	m	class:voltdb::AggregatePartialExecutor
+m_haveAdvanced	aggregateexecutor.h	/^    bool m_haveAdvanced;$/;"	m	class:voltdb::Agg
+m_inProgressGroupByKeyTuple	aggregateexecutor.h	/^    TableTuple m_inProgressGroupByKeyTuple;$/;"	m	class:voltdb::AggregateExecutorBase
+m_indexNode	nestloopindexexecutor.h	/^    IndexScanPlanNode* m_indexNode;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_indexValues	nestloopindexexecutor.h	/^    StandAloneTupleStorage m_indexValues;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_inputExpressions	aggregateexecutor.h	/^    std::vector<AbstractExpression*> m_inputExpressions;$/;"	m	class:voltdb::AggregateExecutorBase
+m_inputSchema	aggregateexecutor.h	/^    const TupleSchema * m_inputSchema;$/;"	m	class:voltdb::AggregateExecutorBase
+m_inputTable	deleteexecutor.h	/^    TempTable* m_inputTable;$/;"	m	class:voltdb::DeleteExecutor
+m_inputTable	insertexecutor.h	/^        TempTable* m_inputTable;$/;"	m	class:voltdb::InsertExecutor
+m_inputTable	updateexecutor.h	/^    TempTable* m_inputTable;$/;"	m	class:voltdb::UpdateExecutor
+m_inputTargetMap	updateexecutor.h	/^    std::vector<std::pair<int, int> > m_inputTargetMap;$/;"	m	class:voltdb::UpdateExecutor
+m_inputTargetMapSize	updateexecutor.h	/^    int m_inputTargetMapSize;$/;"	m	class:voltdb::UpdateExecutor
+m_inputTuple	deleteexecutor.h	/^    TableTuple m_inputTuple;$/;"	m	class:voltdb::DeleteExecutor
+m_inputTuple	updateexecutor.h	/^    TableTuple m_inputTuple;$/;"	m	class:voltdb::UpdateExecutor
+m_input_tablerefs	unionexecutor.cpp	/^    const std::vector<TableReference>& m_input_tablerefs;$/;"	m	struct:voltdb::detail::SetOperator	file:
+m_input_tables	unionexecutor.cpp	/^    std::vector<Table*> m_input_tables;$/;"	m	struct:voltdb::detail::ExceptIntersectSetOperator	file:
+m_isStreamed	insertexecutor.h	/^        bool m_isStreamed;$/;"	m	class:voltdb::InsertExecutor
+m_isUpsert	insertexecutor.h	/^        bool m_isUpsert;$/;"	m	class:voltdb::InsertExecutor
+m_is_all	unionexecutor.cpp	/^    bool const m_is_all;$/;"	m	struct:voltdb::detail::SetOperator	file:
+m_is_except	unionexecutor.cpp	/^    bool const m_is_except;$/;"	m	struct:voltdb::detail::ExceptIntersectSetOperator	file:
+m_joinType	nestloopindexexecutor.h	/^    JoinType m_joinType;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_keyCount	orderbyexecutor.cpp	/^    size_t m_keyCount;$/;"	m	class:TupleComparer	file:
+m_keys	orderbyexecutor.cpp	/^    const vector<AbstractExpression*>& m_keys;$/;"	m	class:TupleComparer	file:
+m_limit	aggregateexecutor.h	/^    int m_limit;$/;"	m	class:voltdb::AggregateExecutorBase
+m_lookupType	indexcountexecutor.h	/^    IndexLookupType m_lookupType;$/;"	m	class:voltdb::IndexCountExecutor
+m_lookupType	indexscanexecutor.h	/^    IndexLookupType m_lookupType;$/;"	m	class:voltdb::IndexScanExecutor
+m_lookupType	nestloopindexexecutor.h	/^    IndexLookupType m_lookupType;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_memoryPool	aggregateexecutor.cpp	/^    Pool* m_memoryPool;$/;"	m	class:voltdb::MaxAgg	file:
+m_memoryPool	aggregateexecutor.cpp	/^    Pool* m_memoryPool;$/;"	m	class:voltdb::MinAgg	file:
+m_memoryPool	aggregateexecutor.h	/^    Pool m_memoryPool;$/;"	m	class:voltdb::AggregateExecutorBase
+m_memoryPool	insertexecutor.h	/^        Pool m_memoryPool;$/;"	m	class:voltdb::InsertExecutor
+m_multiPartition	insertexecutor.h	/^        bool m_multiPartition;$/;"	m	class:voltdb::InsertExecutor
+m_nextGroupByKeyStorage	aggregateexecutor.h	/^    PoolBackedTupleStorage m_nextGroupByKeyStorage;$/;"	m	class:voltdb::AggregateExecutorBase
+m_nextPartialGroupByKeyStorage	aggregateexecutor.h	/^    PoolBackedTupleStorage m_nextPartialGroupByKeyStorage;$/;"	m	class:voltdb::AggregatePartialExecutor
+m_noInputRows	aggregateexecutor.h	/^    bool m_noInputRows;$/;"	m	class:voltdb::AggregateSerialExecutor
+m_node	deleteexecutor.h	/^    DeletePlanNode* m_node;$/;"	m	class:voltdb::DeleteExecutor
+m_node	indexcountexecutor.h	/^    IndexCountPlanNode *m_node;$/;"	m	class:voltdb::IndexCountExecutor
+m_node	indexscanexecutor.h	/^    IndexScanPlanNode *m_node;$/;"	m	class:voltdb::IndexScanExecutor
+m_node	insertexecutor.h	/^        InsertPlanNode* m_node;$/;"	m	class:voltdb::InsertExecutor
+m_node	updateexecutor.h	/^    UpdatePlanNode* m_node;$/;"	m	class:voltdb::UpdateExecutor
+m_nowFields	insertexecutor.h	/^        std::vector<int> m_nowFields;$/;"	m	class:voltdb::InsertExecutor
+m_null_tuple	nestloopexecutor.h	/^        StandAloneTupleStorage m_null_tuple;$/;"	m	class:voltdb::NestLoopExecutor
+m_null_tuple	nestloopindexexecutor.h	/^    StandAloneTupleStorage m_null_tuple;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_numOfColumns	indexcountexecutor.h	/^    int m_numOfColumns;$/;"	m	class:voltdb::IndexCountExecutor
+m_numOfColumns	indexscanexecutor.h	/^    int m_numOfColumns;$/;"	m	class:voltdb::IndexScanExecutor
+m_numOfEndkeys	indexcountexecutor.h	/^    int m_numOfEndkeys;$/;"	m	class:voltdb::IndexCountExecutor
+m_numOfSearchkeys	indexcountexecutor.h	/^    int m_numOfSearchkeys;$/;"	m	class:voltdb::IndexCountExecutor
+m_numOfSearchkeys	indexscanexecutor.h	/^    int m_numOfSearchkeys;$/;"	m	class:voltdb::IndexScanExecutor
+m_offset	aggregateexecutor.h	/^    int m_offset;$/;"	m	class:voltdb::AggregateExecutorBase
+m_outputColumnExpressions	aggregateexecutor.h	/^    std::vector<AbstractExpression*> m_outputColumnExpressions;$/;"	m	class:voltdb::AggregateExecutorBase
+m_outputExpressions	nestloopindexexecutor.h	/^    std::vector<AbstractExpression*> m_outputExpressions;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_outputTable	indexcountexecutor.h	/^    TempTable* m_outputTable;$/;"	m	class:voltdb::IndexCountExecutor
+m_outputTable	indexscanexecutor.h	/^    TempTable* m_outputTable;$/;"	m	class:voltdb::IndexScanExecutor
+m_output_table	unionexecutor.cpp	/^    TempTable* const m_output_table;$/;"	m	struct:voltdb::detail::SetOperator	file:
+m_partialHashGroupByColumns	aggregateexecutor.h	/^    std::vector<int> m_partialHashGroupByColumns;$/;"	m	class:voltdb::AggregateExecutorBase
+m_partialSerialGroupByColumns	aggregateexecutor.h	/^    std::vector<int> m_partialSerialGroupByColumns;$/;"	m	class:voltdb::AggregateExecutorBase
+m_partitionColumn	insertexecutor.h	/^        int m_partitionColumn;$/;"	m	class:voltdb::InsertExecutor
+m_partitionColumn	updateexecutor.h	/^    int m_partitionColumn;$/;"	m	class:voltdb::UpdateExecutor
+m_partitionColumnIsString	updateexecutor.h	/^    bool m_partitionColumnIsString;$/;"	m	class:voltdb::UpdateExecutor
+m_passThroughColumns	aggregateexecutor.h	/^    std::vector<int> m_passThroughColumns;$/;"	m	class:voltdb::AggregateExecutorBase
+m_passThroughTuple	aggregateexecutor.h	/^    TableTuple m_passThroughTuple;$/;"	m	struct:voltdb::AggregateRow
+m_passThroughTupleSource	aggregateexecutor.h	/^    TableTuple m_passThroughTupleSource;$/;"	m	class:voltdb::AggregateSerialExecutor
+m_pmp	aggregateexecutor.h	/^    ProgressMonitorProxy* m_pmp;$/;"	m	class:voltdb::AggregateExecutorBase
+m_postPredicate	aggregateexecutor.h	/^    AbstractExpression* m_postPredicate;$/;"	m	class:voltdb::AggregateExecutorBase
+m_prePredicate	aggregateexecutor.h	/^    AbstractExpression* m_prePredicate;    \/\/ ENG-1565: for enabling max() using index purpose only$/;"	m	class:voltdb::AggregateExecutorBase
+m_projectionAllTupleArray	indexscanexecutor.h	/^    int* m_projectionAllTupleArray; \/\/ projection_all_tuple_array_ptr[]$/;"	m	class:voltdb::IndexScanExecutor
+m_projectionAllTupleArrayPtr	indexscanexecutor.h	/^    boost::shared_array<int> m_projectionAllTupleArrayPtr;$/;"	m	class:voltdb::IndexScanExecutor
+m_projectionExpressions	indexscanexecutor.h	/^    AbstractExpression** m_projectionExpressions;$/;"	m	class:voltdb::IndexScanExecutor
+m_projectionNode	indexscanexecutor.h	/^    ProjectionPlanNode* m_projectionNode;$/;"	m	class:voltdb::IndexScanExecutor
+m_searchKeyArray	indexcountexecutor.h	/^    AbstractExpression** m_searchKeyArray;$/;"	m	class:voltdb::IndexCountExecutor
+m_searchKeyArray	indexscanexecutor.h	/^    AbstractExpression** m_searchKeyArray;$/;"	m	class:voltdb::IndexScanExecutor
+m_searchKeyArrayPtr	indexcountexecutor.h	/^    boost::shared_array<AbstractExpression*> m_searchKeyArrayPtr;$/;"	m	class:voltdb::IndexCountExecutor
+m_searchKeyArrayPtr	indexscanexecutor.h	/^    boost::shared_array<AbstractExpression*> m_searchKeyArrayPtr;$/;"	m	class:voltdb::IndexScanExecutor
+m_searchKeyBackingStore	indexcountexecutor.h	/^    char* m_searchKeyBackingStore;$/;"	m	class:voltdb::IndexCountExecutor
+m_searchKeyBackingStore	indexscanexecutor.h	/^    char* m_searchKeyBackingStore;$/;"	m	class:voltdb::IndexScanExecutor
+m_setOperator	unionexecutor.h	/^        boost::shared_ptr<detail::SetOperator> m_setOperator;$/;"	m	class:voltdb::UnionExecutor
+m_sortDirection	indexscanexecutor.h	/^    SortDirectionType m_sortDirection;$/;"	m	class:voltdb::IndexScanExecutor
+m_sortDirection	nestloopindexexecutor.h	/^    SortDirectionType m_sortDirection;$/;"	m	class:voltdb::NestLoopIndexExecutor
+m_sourceIsPartitioned	insertexecutor.h	/^        bool m_sourceIsPartitioned;$/;"	m	class:voltdb::InsertExecutor
+m_templateTuple	insertexecutor.h	/^        StandAloneTupleStorage m_templateTuple;$/;"	m	class:voltdb::InsertExecutor
+m_tmpOutputTable	abstractexecutor.h	/^    TempTable* m_tmpOutputTable;$/;"	m	class:voltdb::AbstractExecutor
+m_truncate	deleteexecutor.h	/^    bool m_truncate;$/;"	m	class:voltdb::DeleteExecutor
+m_tupleSkipped	aggregateexecutor.h	/^    int m_tupleSkipped;$/;"	m	class:voltdb::AggregateExecutorBase
+m_value	aggregateexecutor.h	/^    NValue m_value;$/;"	m	class:voltdb::Agg
+module	GPUNIJ.h	/^    CUmodule module,c_module;$/;"	m	class:GPUNIJ
+module	GPUSHJ.h	/^    CUmodule module,pmodule;$/;"	m	class:GPUSHJ
+needToInsert	unionexecutor.cpp	/^    bool needToInsert(const TableTuple& tuple, TupleSet& tuples)$/;"	f	struct:voltdb::detail::UnionSetOperator	file:
+needs_substitute	materializeexecutor.h	/^    bool *needs_substitute;$/;"	m	class:voltdb::MaterializeExecutor
+needs_substitute	projectionexecutor.h	/^        bool *needs_substitute;$/;"	m	class:voltdb::ProjectionExecutor
+needs_substitute_ptr	materializeexecutor.h	/^    boost::shared_array<bool> needs_substitute_ptr;$/;"	m	class:voltdb::MaterializeExecutor
+needs_substitute_ptr	projectionexecutor.h	/^        boost::shared_array<bool> needs_substitute_ptr;$/;"	m	class:voltdb::ProjectionExecutor
+node	materializeexecutor.h	/^    MaterializePlanNode* node;$/;"	m	class:voltdb::MaterializeExecutor
+num	GPUTUPLE.h	/^    int num;$/;"	m	struct:voltdb::_COLUMNDATA
+operator ()	orderbyexecutor.cpp	/^    bool operator()(TableTuple ta, TableTuple tb)$/;"	f	class:TupleComparer
+operator ()	unionexecutor.cpp	/^    bool operator()(const Table* t1, const Table* t2) const$/;"	f	struct:voltdb::detail::TableSizeLess
+operator delete	aggregateexecutor.h	/^    void operator delete(void*) { \/* NOOP -- deallocate wholesale with pool *\/ }$/;"	f	class:voltdb::Agg
+operator delete	aggregateexecutor.h	/^    void operator delete(void*) { \/* NOOP -- deallocate wholesale with pool *\/ }$/;"	f	struct:voltdb::AggregateRow
+operator delete	aggregateexecutor.h	/^    void operator delete(void*, Pool& memoryPool) { \/* NOOP -- on alloc error unroll nothing *\/ }$/;"	f	class:voltdb::Agg
+operator delete	aggregateexecutor.h	/^    void operator delete(void*, Pool& memoryPool, size_t nAggs) { \/* NOOP -- on alloc error unroll *\/ }$/;"	f	struct:voltdb::AggregateRow
+operator new	aggregateexecutor.h	/^    void* operator new(size_t size, Pool& memoryPool) { return memoryPool.allocate(size); }$/;"	f	class:voltdb::Agg
+operator new	aggregateexecutor.h	/^    void* operator new(size_t size, Pool& memoryPool, size_t nAggs)$/;"	f	struct:voltdb::AggregateRow
+output_table	materializeexecutor.h	/^    TempTable* output_table;$/;"	m	class:voltdb::MaterializeExecutor
+output_table	projectionexecutor.h	/^        TempTable* output_table;$/;"	m	class:voltdb::ProjectionExecutor
+p_execute	aggregateexecutor.cpp	/^bool AggregateHashExecutor::p_execute(const NValueArray& params)$/;"	f	class:voltdb::AggregateHashExecutor
+p_execute	aggregateexecutor.cpp	/^bool AggregatePartialExecutor::p_execute(const NValueArray& params)$/;"	f	class:voltdb::AggregatePartialExecutor
+p_execute	aggregateexecutor.cpp	/^bool AggregateSerialExecutor::p_execute(const NValueArray& params)$/;"	f	class:voltdb::AggregateSerialExecutor
+p_execute	deleteexecutor.cpp	/^bool DeleteExecutor::p_execute(const NValueArray &params) {$/;"	f	class:DeleteExecutor
+p_execute	indexcountexecutor.cpp	/^bool IndexCountExecutor::p_execute(const NValueArray &params)$/;"	f	class:IndexCountExecutor
+p_execute	indexscanexecutor.cpp	/^bool IndexScanExecutor::p_execute(const NValueArray &params)$/;"	f	class:IndexScanExecutor
+p_execute	insertexecutor.cpp	/^bool InsertExecutor::p_execute(const NValueArray &params) {$/;"	f	class:InsertExecutor
+p_execute	limitexecutor.cpp	/^LimitExecutor::p_execute(const NValueArray &params)$/;"	f	class:LimitExecutor
+p_execute	materializedscanexecutor.cpp	/^bool MaterializedScanExecutor::p_execute(const NValueArray &params) {$/;"	f	class:MaterializedScanExecutor
+p_execute	materializeexecutor.cpp	/^bool MaterializeExecutor::p_execute(const NValueArray &params) {$/;"	f	class:voltdb::MaterializeExecutor
+p_execute	nestloopexecutor.cpp	/^bool NestLoopExecutor::p_execute(const NValueArray &params) {$/;"	f	class:NestLoopExecutor
+p_execute	nestloopindexexecutor.cpp	/^bool NestLoopIndexExecutor::p_execute(const NValueArray &params)$/;"	f	class:NestLoopIndexExecutor
+p_execute	orderbyexecutor.cpp	/^OrderByExecutor::p_execute(const NValueArray &params)$/;"	f	class:OrderByExecutor
+p_execute	projectionexecutor.cpp	/^bool ProjectionExecutor::p_execute(const NValueArray &params) {$/;"	f	class:voltdb::ProjectionExecutor
+p_execute	receiveexecutor.cpp	/^bool ReceiveExecutor::p_execute(const NValueArray &params) {$/;"	f	class:voltdb::ReceiveExecutor
+p_execute	sendexecutor.cpp	/^bool SendExecutor::p_execute(const NValueArray &params) {$/;"	f	class:voltdb::SendExecutor
+p_execute	seqscanexecutor.cpp	/^bool SeqScanExecutor::p_execute(const NValueArray &params) {$/;"	f	class:SeqScanExecutor
+p_execute	tablecountexecutor.cpp	/^bool TableCountExecutor::p_execute(const NValueArray &params) {$/;"	f	class:TableCountExecutor
+p_execute	unionexecutor.cpp	/^bool UnionExecutor::p_execute(const NValueArray &params) {$/;"	f	class:voltdb::UnionExecutor
+p_execute	updateexecutor.cpp	/^bool UpdateExecutor::p_execute(const NValueArray &params) {$/;"	f	class:UpdateExecutor
+p_execute_finish	aggregateexecutor.cpp	/^void AggregateExecutorBase::p_execute_finish()$/;"	f	class:voltdb::AggregateExecutorBase
+p_execute_finish	aggregateexecutor.cpp	/^void AggregateHashExecutor::p_execute_finish() {$/;"	f	class:voltdb::AggregateHashExecutor
+p_execute_finish	aggregateexecutor.cpp	/^void AggregatePartialExecutor::p_execute_finish()$/;"	f	class:voltdb::AggregatePartialExecutor
+p_execute_finish	aggregateexecutor.cpp	/^void AggregateSerialExecutor::p_execute_finish()$/;"	f	class:voltdb::AggregateSerialExecutor
+p_execute_init	aggregateexecutor.cpp	/^TableTuple AggregateExecutorBase::p_execute_init(const NValueArray& params,$/;"	f	class:voltdb::AggregateExecutorBase
+p_execute_init	aggregateexecutor.cpp	/^TableTuple AggregateHashExecutor::p_execute_init(const NValueArray& params,$/;"	f	class:voltdb::AggregateHashExecutor
+p_execute_init	aggregateexecutor.cpp	/^TableTuple AggregatePartialExecutor::p_execute_init(const NValueArray& params,$/;"	f	class:voltdb::AggregatePartialExecutor
+p_execute_init	aggregateexecutor.cpp	/^TableTuple AggregateSerialExecutor::p_execute_init(const NValueArray& params,$/;"	f	class:voltdb::AggregateSerialExecutor
+p_execute_tuple	aggregateexecutor.cpp	/^bool AggregateHashExecutor::p_execute_tuple(const TableTuple& nextTuple) {$/;"	f	class:voltdb::AggregateHashExecutor
+p_execute_tuple	aggregateexecutor.cpp	/^bool AggregatePartialExecutor::p_execute_tuple(const TableTuple& nextTuple) {$/;"	f	class:voltdb::AggregatePartialExecutor
+p_execute_tuple	aggregateexecutor.cpp	/^bool AggregateSerialExecutor::p_execute_tuple(const TableTuple& nextTuple) {$/;"	f	class:voltdb::AggregateSerialExecutor
+p_function	GPUSHJ.h	/^    CUfunction function,c_function,p_function,pc_function,sp_function;$/;"	m	class:GPUSHJ
+p_init	aggregateexecutor.cpp	/^bool AggregateExecutorBase::p_init(AbstractPlanNode*, TempTableLimits* limits)$/;"	f	class:voltdb::AggregateExecutorBase
+p_init	deleteexecutor.cpp	/^bool DeleteExecutor::p_init(AbstractPlanNode *abstract_node,$/;"	f	class:DeleteExecutor
+p_init	indexcountexecutor.cpp	/^bool IndexCountExecutor::p_init(AbstractPlanNode *abstractNode,$/;"	f	class:IndexCountExecutor
+p_init	indexscanexecutor.cpp	/^bool IndexScanExecutor::p_init(AbstractPlanNode *abstractNode,$/;"	f	class:IndexScanExecutor
+p_init	insertexecutor.cpp	/^bool InsertExecutor::p_init(AbstractPlanNode* abstractNode,$/;"	f	class:InsertExecutor
+p_init	limitexecutor.cpp	/^LimitExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:LimitExecutor
+p_init	materializedscanexecutor.cpp	/^bool MaterializedScanExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:MaterializedScanExecutor
+p_init	materializeexecutor.cpp	/^bool MaterializeExecutor::p_init(AbstractPlanNode* abstractNode,$/;"	f	class:voltdb::MaterializeExecutor
+p_init	nestloopexecutor.cpp	/^bool NestLoopExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:NestLoopExecutor
+p_init	nestloopindexexecutor.cpp	/^bool NestLoopIndexExecutor::p_init(AbstractPlanNode* abstractNode,$/;"	f	class:NestLoopIndexExecutor
+p_init	orderbyexecutor.cpp	/^OrderByExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:OrderByExecutor
+p_init	projectionexecutor.cpp	/^bool ProjectionExecutor::p_init(AbstractPlanNode *abstractNode,$/;"	f	class:voltdb::ProjectionExecutor
+p_init	receiveexecutor.cpp	/^bool ReceiveExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:voltdb::ReceiveExecutor
+p_init	sendexecutor.cpp	/^bool SendExecutor::p_init(AbstractPlanNode* abstractNode,$/;"	f	class:voltdb::SendExecutor
+p_init	seqscanexecutor.cpp	/^bool SeqScanExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:SeqScanExecutor
+p_init	tablecountexecutor.cpp	/^bool TableCountExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:TableCountExecutor
+p_init	unionexecutor.cpp	/^bool UnionExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:voltdb::UnionExecutor
+p_init	updateexecutor.cpp	/^bool UpdateExecutor::p_init(AbstractPlanNode* abstract_node,$/;"	f	class:UpdateExecutor
+pc_function	GPUSHJ.h	/^    CUfunction function,c_function,p_function,pc_function,sp_function;$/;"	m	class:GPUSHJ
+pmodule	GPUSHJ.h	/^    CUmodule module,pmodule;$/;"	m	class:GPUSHJ
+presum	scan_common.h	/^        uint GPUSCAN<T,S>::presum(CUdeviceptr *d_Input, uint arrayLength)$/;"	f	class:voltdb::GPUSCAN
+printDiff	GPUNIJ.cpp	/^GPUNIJ::printDiff(struct timeval begin, struct timeval end)$/;"	f	class:GPUNIJ
+printDiff	GPUSHJ.cpp	/^GPUSHJ::printDiff(struct timeval begin, struct timeval end)$/;"	f	class:GPUSHJ
+printTupleMap	unionexecutor.cpp	/^void SetOperator::printTupleMap(const char* nonce, TupleMap &tuples)$/;"	f	class:voltdb::detail::SetOperator
+printTupleSet	unionexecutor.cpp	/^void SetOperator::printTupleSet(const char* nonce, TupleSet &tuples)$/;"	f	class:voltdb::detail::SetOperator
+processTuples	unionexecutor.cpp	/^bool ExceptIntersectSetOperator::processTuples()$/;"	f	class:voltdb::detail::ExceptIntersectSetOperator
+processTuples	unionexecutor.cpp	/^bool UnionSetOperator::processTuples()$/;"	f	class:voltdb::detail::UnionSetOperator
+qsort	nestloopexecutor.cpp	/^void qsort(RESULT *jt,int p,int q)$/;"	f
+recordPassThroughTuple	aggregateexecutor.h	/^    void recordPassThroughTuple(TableTuple &passThroughTupleSource, const TableTuple &tuple)$/;"	f	struct:voltdb::AggregateRow
+res	GPU.h	/^    CUresult res;$/;"	m	class:GPU
+res	GPUNIJ.h	/^    CUresult res;$/;"	m	class:GPUNIJ
+res	GPUSHJ.h	/^    CUresult res;$/;"	m	class:GPUSHJ
+resetAgg	aggregateexecutor.cpp	/^    virtual void resetAgg()$/;"	f	class:voltdb::AvgAgg
+resetAgg	aggregateexecutor.cpp	/^    virtual void resetAgg()$/;"	f	class:voltdb::CountAgg
+resetAgg	aggregateexecutor.cpp	/^    virtual void resetAgg()$/;"	f	class:voltdb::CountStarAgg
+resetAgg	aggregateexecutor.h	/^    virtual void resetAgg()$/;"	f	class:voltdb::Agg
+resetAggs	aggregateexecutor.h	/^    void resetAggs()$/;"	f	struct:voltdb::AggregateRow
+right	GPUNIJ.h	/^    uint left,right;$/;"	m	class:GPUNIJ
+right	GPUSHJ.h	/^    uint left,right;$/;"	m	class:GPUSHJ
+right	tuple.h	/^int right,left;$/;"	v
+right_CD	GPUNIJ.h	/^    COLUMNDATA *right_CD;$/;"	m	class:GPUNIJ
+right_CD	GPUSHJ.h	/^    COLUMNDATA *right_CD;$/;"	m	class:GPUSHJ
+rkey	GPUTUPLE.h	/^    int rkey;$/;"	m	struct:voltdb::_RESULT
+rkey	tuple.h	/^  int rkey;$/;"	m	struct:_RESULT
+rval	tuple.h	/^  int rval;$/;"	m	struct:_RESULT
+setDMLCountOutputTable	abstractexecutor.cpp	/^void AbstractExecutor::setDMLCountOutputTable(TempTableLimits* limits) {$/;"	f	class:AbstractExecutor
+setGNValue	nestloopexecutor.cpp	/^void setGNValue(COLUMNDATA *cd,NValue NV){$/;"	f
+setTableData	GPUNIJ.h	/^    bool setTableData(COLUMNDATA *oCD,$/;"	f	class:GPUNIJ
+setTableData	GPUSHJ.h	/^    bool setTableData(COLUMNDATA *oCD,$/;"	f	class:GPUSHJ
+setTempOutputTable	abstractexecutor.cpp	/^void AbstractExecutor::setTempOutputTable(TempTableLimits* limits, const string tempTableName) {$/;"	f	class:AbstractExecutor
+sp_function	GPUSHJ.h	/^    CUfunction function,c_function,p_function,pc_function,sp_function;$/;"	m	class:GPUSHJ
+swap	nestloopexecutor.cpp	/^void swap(RESULT *a,RESULT *b)$/;"	f
+swapWithInprogressGroupByKeyTuple	aggregateexecutor.cpp	/^TableTuple& AggregateExecutorBase::swapWithInprogressGroupByKeyTuple() {$/;"	f	class:voltdb::AggregateExecutorBase
+total	GPUNIJ.h	/^    int total;$/;"	m	class:GPUNIJ
+total	GPUSHJ.h	/^    int total;$/;"	m	class:GPUSHJ
+tuple	projectionexecutor.h	/^        TableTuple tuple;$/;"	m	class:voltdb::ProjectionExecutor
+val	tuple.h	/^    int val;$/;"	m	struct:_BUCKET
+val	tuple.h	/^  int val;$/;"	m	struct:_TUPLE
+voltdb	GPUTUPLE.h	/^namespace voltdb{$/;"	n
+voltdb	abstractexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	aggregateexecutor.cpp	/^namespace voltdb {$/;"	n	file:
+voltdb	aggregateexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	deleteexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	executorutil.cpp	/^namespace voltdb {$/;"	n	file:
+voltdb	executorutil.h	/^namespace voltdb {$/;"	n
+voltdb	indexcountexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	indexscanexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	insertexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	limitexecutor.h	/^namespace voltdb$/;"	n
+voltdb	materializedscanexecutor.h	/^namespace voltdb$/;"	n
+voltdb	materializeexecutor.cpp	/^namespace voltdb {$/;"	n	file:
+voltdb	materializeexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	nestloopexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	nestloopindexexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	orderbyexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	projectionexecutor.cpp	/^namespace voltdb {$/;"	n	file:
+voltdb	projectionexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	receiveexecutor.cpp	/^namespace voltdb {$/;"	n	file:
+voltdb	receiveexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	scan_common.h	/^namespace voltdb{$/;"	n
+voltdb	sendexecutor.cpp	/^namespace voltdb {$/;"	n	file:
+voltdb	sendexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	seqscanexecutor.h	/^namespace voltdb$/;"	n
+voltdb	tablecountexecutor.h	/^namespace voltdb$/;"	n
+voltdb	unionexecutor.cpp	/^namespace voltdb {$/;"	n	file:
+voltdb	unionexecutor.h	/^namespace voltdb {$/;"	n
+voltdb	updateexecutor.h	/^namespace voltdb {$/;"	n
+~AbstractExecutor	abstractexecutor.cpp	/^AbstractExecutor::~AbstractExecutor() {}$/;"	f	class:AbstractExecutor
+~Agg	aggregateexecutor.h	/^    virtual ~Agg()$/;"	f	class:voltdb::Agg
+~AggregateExecutorBase	aggregateexecutor.h	/^    ~AggregateExecutorBase()$/;"	f	class:voltdb::AggregateExecutorBase
+~AggregateHashExecutor	aggregateexecutor.cpp	/^AggregateHashExecutor::~AggregateHashExecutor() {}$/;"	f	class:voltdb::AggregateHashExecutor
+~AggregatePartialExecutor	aggregateexecutor.cpp	/^AggregatePartialExecutor::~AggregatePartialExecutor() {}$/;"	f	class:voltdb::AggregatePartialExecutor
+~AggregateRow	aggregateexecutor.h	/^    ~AggregateRow()$/;"	f	struct:voltdb::AggregateRow
+~AggregateSerialExecutor	aggregateexecutor.cpp	/^AggregateSerialExecutor::~AggregateSerialExecutor() {}$/;"	f	class:voltdb::AggregateSerialExecutor
+~GPU	GPU.h	/^    ~GPU(){$/;"	f	class:GPU
+~IndexCountExecutor	indexcountexecutor.cpp	/^IndexCountExecutor::~IndexCountExecutor() {$/;"	f	class:IndexCountExecutor
+~IndexScanExecutor	indexscanexecutor.cpp	/^IndexScanExecutor::~IndexScanExecutor() {$/;"	f	class:IndexScanExecutor
+~LimitExecutor	limitexecutor.h	/^        ~LimitExecutor() {$/;"	f	class:voltdb::LimitExecutor
+~MaterializeExecutor	materializeexecutor.cpp	/^MaterializeExecutor::~MaterializeExecutor() {$/;"	f	class:voltdb::MaterializeExecutor
+~MaterializedScanExecutor	materializedscanexecutor.cpp	/^MaterializedScanExecutor::~MaterializedScanExecutor() {$/;"	f	class:MaterializedScanExecutor
+~NestLoopIndexExecutor	nestloopindexexecutor.cpp	/^NestLoopIndexExecutor::~NestLoopIndexExecutor() { }$/;"	f	class:NestLoopIndexExecutor
+~OrderByExecutor	orderbyexecutor.cpp	/^OrderByExecutor::~OrderByExecutor() {$/;"	f	class:OrderByExecutor
+~ProjectionExecutor	projectionexecutor.cpp	/^ProjectionExecutor::~ProjectionExecutor() {$/;"	f	class:voltdb::ProjectionExecutor
+~ReceiveExecutor	receiveexecutor.cpp	/^ReceiveExecutor::~ReceiveExecutor() {$/;"	f	class:voltdb::ReceiveExecutor
+~SetOperator	unionexecutor.cpp	/^    virtual ~SetOperator() {}$/;"	f	struct:voltdb::detail::SetOperator
+~TableCountExecutor	tablecountexecutor.cpp	/^TableCountExecutor::~TableCountExecutor() {$/;"	f	class:TableCountExecutor

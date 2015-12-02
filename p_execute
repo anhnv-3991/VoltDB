@@ -1,0 +1,4 @@
+src/ee/execution/VoltDBEngine.cpp:                if (!executor->execute(params)) {
+src/ee/execution/VoltDBEngine.cpp:            executor->cleanupTempOutputTable();
+src/ee/execution/VoltDBEngine.cpp:                AbstractPlanNode * node = executor->getPlanNode();
+src/ee/execution/VoltDBEngine.cpp:        if (executor->init(engine, &m_limits)) {

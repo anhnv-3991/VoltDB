@@ -1,0 +1,101 @@
+2015-08-21 09:25:23,509   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 18:27:03,980   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 18:27:05,066   INFO  [main] CSVLOADER: Read 193297 rows from file and successfully inserted 193297 rows (final)
+2015-08-21 18:27:05,067   INFO  [main] CSVLOADER: Elapsed time: 1.198 seconds
+2015-08-21 18:27:05,067   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_invalidrows.csv
+2015-08-21 18:27:05,067   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_log.log
+2015-08-21 18:27:05,067   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_report.log
+2015-08-21 18:27:13,896   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 18:27:14,528   INFO  [main] CSVLOADER: Read 3143 rows from file and successfully inserted 3143 rows (final)
+2015-08-21 18:27:14,528   INFO  [main] CSVLOADER: Elapsed time: 0.741 seconds
+2015-08-21 18:27:14,528   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_invalidrows.csv
+2015-08-21 18:27:14,529   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_log.log
+2015-08-21 18:27:14,529   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_report.log
+2015-08-21 09:27:17,553   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 09:38:06,266   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 09:57:45,713   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 18:59:31,081   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 18:59:31,738   INFO  [main] CSVLOADER: Read 3143 rows from file and successfully inserted 3143 rows (final)
+2015-08-21 18:59:31,738   INFO  [main] CSVLOADER: Elapsed time: 0.766 seconds
+2015-08-21 18:59:31,738   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_invalidrows.csv
+2015-08-21 18:59:31,738   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_log.log
+2015-08-21 18:59:31,738   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_report.log
+2015-08-21 18:59:36,394   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 18:59:37,480   INFO  [main] CSVLOADER: Read 193297 rows from file and successfully inserted 193297 rows (final)
+2015-08-21 18:59:37,480   INFO  [main] CSVLOADER: Elapsed time: 1.195 seconds
+2015-08-21 18:59:37,480   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_invalidrows.csv
+2015-08-21 18:59:37,480   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_log.log
+2015-08-21 18:59:37,480   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_report.log
+2015-08-21 09:59:40,255   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 10:11:12,799   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:11:58,227   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:11:59,341   INFO  [main] CSVLOADER: Read 193297 rows from file and successfully inserted 193297 rows (final)
+2015-08-21 19:11:59,341   INFO  [main] CSVLOADER: Elapsed time: 1.222 seconds
+2015-08-21 19:11:59,341   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_invalidrows.csv
+2015-08-21 19:11:59,341   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_log.log
+2015-08-21 19:11:59,341   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_report.log
+2015-08-21 19:12:03,411   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:12:04,053   INFO  [main] CSVLOADER: Read 3143 rows from file and successfully inserted 3143 rows (final)
+2015-08-21 19:12:04,053   INFO  [main] CSVLOADER: Elapsed time: 0.75 seconds
+2015-08-21 19:12:04,053   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_invalidrows.csv
+2015-08-21 19:12:04,053   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_log.log
+2015-08-21 19:12:04,053   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_report.log
+2015-08-21 10:12:06,343   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 10:30:29,741   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:30:44,556   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:30:45,214   INFO  [main] CSVLOADER: Read 3143 rows from file and successfully inserted 3143 rows (final)
+2015-08-21 19:30:45,215   INFO  [main] CSVLOADER: Elapsed time: 0.766 seconds
+2015-08-21 19:30:45,215   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_invalidrows.csv
+2015-08-21 19:30:45,215   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_log.log
+2015-08-21 19:30:45,215   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_report.log
+2015-08-21 19:30:55,491   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:30:56,578   INFO  [main] CSVLOADER: Read 193297 rows from file and successfully inserted 193297 rows (final)
+2015-08-21 19:30:56,578   INFO  [main] CSVLOADER: Elapsed time: 1.197 seconds
+2015-08-21 19:30:56,578   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_invalidrows.csv
+2015-08-21 19:30:56,578   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_log.log
+2015-08-21 19:30:56,578   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_report.log
+2015-08-21 10:31:04,477   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 10:34:46,926   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:34:57,766   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:34:58,889   INFO  [main] CSVLOADER: Read 193297 rows from file and successfully inserted 193297 rows (final)
+2015-08-21 19:34:58,889   INFO  [main] CSVLOADER: Elapsed time: 1.233 seconds
+2015-08-21 19:34:58,889   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_invalidrows.csv
+2015-08-21 19:34:58,889   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_log.log
+2015-08-21 19:34:58,889   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_report.log
+2015-08-21 19:35:01,832   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:35:02,464   INFO  [main] CSVLOADER: Read 3143 rows from file and successfully inserted 3143 rows (final)
+2015-08-21 19:35:02,464   INFO  [main] CSVLOADER: Elapsed time: 0.739 seconds
+2015-08-21 19:35:02,464   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_invalidrows.csv
+2015-08-21 19:35:02,464   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_log.log
+2015-08-21 19:35:02,464   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_report.log
+2015-08-21 10:35:04,536   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 10:44:25,608   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:44:36,149   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:44:36,799   INFO  [main] CSVLOADER: Read 3143 rows from file and successfully inserted 3143 rows (final)
+2015-08-21 19:44:36,799   INFO  [main] CSVLOADER: Elapsed time: 0.762 seconds
+2015-08-21 19:44:36,799   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_invalidrows.csv
+2015-08-21 19:44:36,799   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_log.log
+2015-08-21 19:44:36,799   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_report.log
+2015-08-21 19:44:39,615   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:44:40,223   INFO  [main] CSVLOADER: Read 193297 rows from file and successfully inserted 193297 rows (final)
+2015-08-21 19:44:40,224   INFO  [main] CSVLOADER: Elapsed time: 0.717 seconds
+2015-08-21 19:44:40,224   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_invalidrows.csv
+2015-08-21 19:44:40,224   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_log.log
+2015-08-21 19:44:40,224   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_report.log
+2015-08-21 10:44:42,660   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 10:45:00,467   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 10:46:15,662   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 10:46:28,297   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:47:11,640   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:47:12,736   INFO  [main] CSVLOADER: Read 193297 rows from file and successfully inserted 193297 rows (final)
+2015-08-21 19:47:12,736   INFO  [main] CSVLOADER: Elapsed time: 1.205 seconds
+2015-08-21 19:47:12,736   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_invalidrows.csv
+2015-08-21 19:47:12,737   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_log.log
+2015-08-21 19:47:12,737   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_TOWNS_insert_report.log
+2015-08-21 19:47:15,004   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-08-21 19:47:15,633   INFO  [main] CSVLOADER: Read 3143 rows from file and successfully inserted 3143 rows (final)
+2015-08-21 19:47:15,633   INFO  [main] CSVLOADER: Elapsed time: 0.74 seconds
+2015-08-21 19:47:15,633   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_invalidrows.csv
+2015-08-21 19:47:15,633   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_log.log
+2015-08-21 19:47:15,633   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/voltdb/log/csvloader_PEOPLE_insert_report.log
+2015-08-21 10:47:18,116   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.

@@ -1,0 +1,360 @@
+2015-06-04 02:13:37,494   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 02:13:37,649   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 02:13:37,655   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 02:13:37,655   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 02:13:37,656   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 02:13:37,656   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 02:13:37,660   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 02:13:37,674   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 02:13:37,674   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 02:13:37,676   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 02:13:37,703   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 02:13:37,709   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 02:13:37,741   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@220787d0
+2015-06-04 02:13:37,744   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 02:13:37,746   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 02:13:37,746   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42279
+2015-06-04 02:13:37,747   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42279
+2015-06-04 02:13:37,757   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b44d94daa000000 with negotiated timeout 6000 for client /127.0.0.1:42279
+2015-06-04 02:13:37,757   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b44d94daa000000, negotiated timeout = 6000
+2015-06-04 02:13:37,797   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 02:13:37,821   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 02:13:37,821   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 02:13:37,849   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 02:13:37,858   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 02:13:37,867   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 02:13:37,867   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 02:13:37,867   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 02:13:37,867   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 02:13:38,028   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 02:13:38,048   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 02:13:38,647   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 02:13:38,654   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 02:13:38,680   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 02:13:38,687   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.
+2015-06-04 02:16:41,828   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 02:16:41,984   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 02:16:41,989   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 02:16:41,989   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 02:16:41,990   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 02:16:41,990   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 02:16:41,995   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 02:16:42,008   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 02:16:42,008   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 02:16:42,010   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 02:16:42,037   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 02:16:42,043   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 02:16:42,076   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@7f973c89
+2015-06-04 02:16:42,079   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 02:16:42,081   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 02:16:42,081   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42285
+2015-06-04 02:16:42,082   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42285
+2015-06-04 02:16:42,091   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b44dab5b1000000 with negotiated timeout 6000 for client /127.0.0.1:42285
+2015-06-04 02:16:42,091   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b44dab5b1000000, negotiated timeout = 6000
+2015-06-04 02:16:42,134   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 02:16:42,159   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 02:16:42,159   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 02:16:42,204   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 02:16:42,219   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 02:16:42,227   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 02:16:42,227   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 02:16:42,227   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 02:16:42,227   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 02:16:42,376   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 02:16:42,397   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 02:16:43,005   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 02:16:43,011   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 02:16:43,038   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 02:16:43,044   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.
+2015-06-04 05:37:31,684   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 05:37:31,840   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 05:37:31,845   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 05:37:31,845   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 05:37:31,846   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 05:37:31,846   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 05:37:31,851   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 05:37:31,863   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 05:37:31,863   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 05:37:31,865   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 05:37:31,891   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 05:37:31,897   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 05:37:31,929   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@7f973c89
+2015-06-04 05:37:31,933   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 05:37:31,934   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 05:37:31,934   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42738
+2015-06-04 05:37:31,936   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42738
+2015-06-04 05:37:31,948   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b4536a490000000 with negotiated timeout 6000 for client /127.0.0.1:42738
+2015-06-04 05:37:31,948   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b4536a490000000, negotiated timeout = 6000
+2015-06-04 05:37:32,008   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 05:37:32,032   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 05:37:32,032   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 05:37:32,066   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 05:37:32,074   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 05:37:32,082   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 05:37:32,083   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 05:37:32,083   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 05:37:32,083   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 05:37:32,231   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 05:37:32,251   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 05:37:32,850   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 05:37:32,856   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 05:37:32,883   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 05:37:32,890   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.java.lang.UnsatisfiedLinkError: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: __cudaRegisterFatBinary
+2015-06-04 05:40:55,677   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 05:40:55,833   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 05:40:55,838   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 05:40:55,838   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 05:40:55,839   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 05:40:55,839   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 05:40:55,844   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 05:40:55,857   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 05:40:55,857   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 05:40:55,859   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 05:40:55,886   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 05:40:55,892   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 05:40:55,924   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@7f973c89
+2015-06-04 05:40:55,927   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 05:40:55,929   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 05:40:55,929   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42742
+2015-06-04 05:40:55,930   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42742
+2015-06-04 05:40:55,939   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b453832fd800000 with negotiated timeout 6000 for client /127.0.0.1:42742
+2015-06-04 05:40:55,939   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b453832fd800000, negotiated timeout = 6000
+2015-06-04 05:40:55,981   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 05:40:56,003   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 05:40:56,004   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 05:40:56,048   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 05:40:56,061   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 05:40:56,070   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 05:40:56,071   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 05:40:56,071   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 05:40:56,071   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 05:40:56,220   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 05:40:56,240   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 05:40:56,853   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 05:40:56,859   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 05:40:56,885   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 05:40:56,891   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.java.lang.UnsatisfiedLinkError: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: __cudaRegisterFatBinary
+2015-06-04 05:56:04,378   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 05:56:04,534   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 05:56:04,539   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 05:56:04,539   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 05:56:04,540   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 05:56:04,540   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 05:56:04,544   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 05:56:04,557   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 05:56:04,558   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 05:56:04,560   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 05:56:04,587   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 05:56:04,593   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 05:56:04,625   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@7f973c89
+2015-06-04 05:56:04,628   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 05:56:04,630   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 05:56:04,630   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42805
+2015-06-04 05:56:04,631   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42805
+2015-06-04 05:56:04,641   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b453f21cc000000 with negotiated timeout 6000 for client /127.0.0.1:42805
+2015-06-04 05:56:04,641   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b453f21cc000000, negotiated timeout = 6000
+2015-06-04 05:56:04,683   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 05:56:04,702   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 05:56:04,703   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 05:56:04,752   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 05:56:04,768   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 05:56:04,776   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 05:56:04,776   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 05:56:04,776   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 05:56:04,776   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 05:56:04,926   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 05:56:04,946   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 05:56:05,575   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 05:56:05,581   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 05:56:05,607   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 05:56:05,613   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.java.lang.UnsatisfiedLinkError: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: __cudaRegisterFatBinary
+2015-06-04 06:03:05,195   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 06:03:05,352   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 06:03:05,357   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 06:03:05,358   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 06:03:05,359   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 06:03:05,359   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 06:03:05,363   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 06:03:05,376   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 06:03:05,377   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 06:03:05,379   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 06:03:05,406   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 06:03:05,412   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 06:03:05,445   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@220787d0
+2015-06-04 06:03:05,448   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 06:03:05,450   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 06:03:05,450   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42817
+2015-06-04 06:03:05,451   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42817
+2015-06-04 06:03:05,462   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b454257b6000000 with negotiated timeout 6000 for client /127.0.0.1:42817
+2015-06-04 06:03:05,462   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b454257b6000000, negotiated timeout = 6000
+2015-06-04 06:03:05,519   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 06:03:05,545   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 06:03:05,545   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 06:03:05,594   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 06:03:05,609   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 06:03:05,617   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 06:03:05,617   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 06:03:05,617   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 06:03:05,617   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 06:03:05,769   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 06:03:05,790   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 06:03:06,397   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 06:03:06,405   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 06:03:06,431   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 06:03:06,438   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.java.lang.UnsatisfiedLinkError: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: __cudaRegisterFatBinary
+2015-06-04 06:03:11,673   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 06:03:11,829   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 06:03:11,834   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 06:03:11,834   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 06:03:11,835   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 06:03:11,835   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 06:03:11,839   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 06:03:11,852   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 06:03:11,852   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 06:03:11,854   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 06:03:11,882   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 06:03:11,888   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 06:03:11,919   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@220787d0
+2015-06-04 06:03:11,922   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 06:03:11,924   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 06:03:11,924   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42818
+2015-06-04 06:03:11,925   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42818
+2015-06-04 06:03:11,941   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b4542645b000000 with negotiated timeout 6000 for client /127.0.0.1:42818
+2015-06-04 06:03:11,941   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b4542645b000000, negotiated timeout = 6000
+2015-06-04 06:03:11,992   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 06:03:12,015   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 06:03:12,015   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 06:03:12,049   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 06:03:12,057   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 06:03:12,065   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 06:03:12,065   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 06:03:12,065   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 06:03:12,065   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 06:03:12,213   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 06:03:12,233   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 06:03:12,822   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 06:03:12,830   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 06:03:12,856   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 06:03:12,863   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.java.lang.UnsatisfiedLinkError: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: __cudaRegisterFatBinary
+2015-06-04 06:29:56,778   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-06-04 06:29:56,934   INFO  [main] HOST: Generating default deployment file "/home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml"
+2015-06-04 06:29:56,939   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-06-04 06:29:56,939   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-06-04 06:29:56,941   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/GPU_join/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/GPU_join/anh/voltdb/voltdb
+2015-06-04 06:29:56,941   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/GPU_join/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jna.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/GPU_join/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/GPU_join/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jline-2.10.jar:/home/anh/work/GPU_join/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/GPU_join/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/GPU_join/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/GPU_join/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/GPU_join/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/GPU_join/anh/voltdb/lib/scala-library.jar
+2015-06-04 06:29:56,945   INFO  [main] NETWORK: Default network thread count: 2
+2015-06-04 06:29:56,958   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-06-04 06:29:56,958   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-06-04 06:29:56,960   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-06-04 06:29:56,987   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-06-04 06:29:56,993   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-06-04 06:29:57,025   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@7f973c89
+2015-06-04 06:29:57,028   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-06-04 06:29:57,030   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-06-04 06:29:57,030   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:42961
+2015-06-04 06:29:57,031   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:42961
+2015-06-04 06:29:57,044   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1b454ea354000000 with negotiated timeout 6000 for client /127.0.0.1:42961
+2015-06-04 06:29:57,044   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1b454ea354000000, negotiated timeout = 6000
+2015-06-04 06:29:57,094   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-06-04 06:29:57,116   INFO  [main] HOST: Host id of this node is: 0
+2015-06-04 06:29:57,116   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-06-04 06:29:57,151   INFO  [main] HOST: URL of deployment: /home/anh/work/GPU_join/anh/voltdb/voltdbroot/deployment.xml
+2015-06-04 06:29:57,162   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-06-04 06:29:57,173   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-06-04 06:29:57,173   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-06-04 06:29:57,173   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-06-04 06:29:57,173   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-06-04 06:29:57,322   INFO  [main] HOST: Searching for license file located /home/anh/work/GPU_join/anh/voltdb/license.xml
+2015-06-04 06:29:57,343   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-06-04 06:29:57,936   INFO  [main] EXPORT: System is not using any export functionality.
+2015-06-04 06:29:57,944   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-06-04 06:29:57,974   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-06-04 06:29:57,980   FATAL [Iv2ExecutionSite: 0:0] HOST: Library VOLTDB JNI shared library loading failed. Library path /home/anh/work/GPU_join/anh/voltdb/voltdb
+The library may have failed to load because it can't be found in your load library path, or because it is not compatible with the current platform.
+VoltDB provides builds on our website for 64-bit OSX systems >= 10.6, and 64-bit Linux systems with kernels >= 2.6.18.java.lang.UnsatisfiedLinkError: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/GPU_join/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: __cudaRegisterFatBinary
