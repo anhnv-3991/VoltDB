@@ -213,7 +213,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     // will include TupleValueExpression even after this substitution
     //
     int num_of_searchkeys = (int)m_indexNode->getSearchKeyExpressions().size();
-    //std::cout << "NUMBER OF SEARCH KEY = " << num_of_searchkeys << std::endl;
 //    for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
 //        VOLT_TRACE("Search Key[%d]:\n%s",
 //                   ctr, m_indexNode->getSearchKeyExpressions()[ctr]->debug(true).c_str());
@@ -227,21 +226,18 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     // end expression
     // where table1.field = table2.field
     AbstractExpression* end_expression = m_indexNode->getEndExpression();
-    //std::cout << "End expression = " << end_expression->debug(true).c_str() << std::endl;
     if (end_expression) {
         VOLT_TRACE("End Expression:\n%s", end_expression->debug(true).c_str());
     }
 
     // post expression
     AbstractExpression* post_expression = m_indexNode->getPredicate();
-    //std::cout << "Post expression = " << post_expression->debug(true).c_str() << std::endl;
     if (post_expression != NULL) {
         VOLT_TRACE("Post Expression:\n%s", post_expression->debug(true).c_str());
     }
 
     // initial expression
     AbstractExpression* initial_expression = m_indexNode->getInitialExpression();
-    //std::cout << "Initial expression = " << initial_expression->debug(true).c_str() << std::endl;
     if (initial_expression != NULL) {
         VOLT_TRACE("Initial Expression:\n%s", initial_expression->debug(true).c_str());
     }
@@ -256,14 +252,12 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
     // pre join expression
     AbstractExpression* prejoin_expression = node->getPreJoinPredicate();
-    //std::cout << "Prejoin expression = " << prejoin_expression->debug(true).c_str() << std::endl;
     if (prejoin_expression != NULL) {
         VOLT_TRACE("Prejoin Expression:\n%s", prejoin_expression->debug(true).c_str());
     }
 
     // where expression
     AbstractExpression* where_expression = node->getWherePredicate();
-    //std::cout << "Where expression = " << where_expression->debug(true).c_str() << std::endl;
     if (where_expression != NULL) {
         VOLT_TRACE("Where Expression:\n%s", where_expression->debug(true).c_str());
     }

@@ -85,9 +85,9 @@ bool GPUIJ::join(){
 
 	/****************** Initialize GPU ********************/
 	if ((vd = getenv("VOLT_HOME")) != NULL) {
-		snprintf(path, 256, "%s/voltdb/voltdb", vd);
+		snprintf(path, 256, "%s/voltdb", vd);
 	} else if ((vd = getenv("HOME")) != NULL) {
-		snprintf(path, 256, "%s/voltdb/voltdb", vd);
+		snprintf(path, 256, "%s/voltdb", vd);
 	} else
 		return false;
 
@@ -131,7 +131,7 @@ bool GPUIJ::join(){
 	/******** Calculate size of blocks, grids, and GPU buffers *********/
 	uint gpu_size, part_size;
 	ulong jr_size;
-	CUdeviceptr outer_dev, inner_dev, jresult_dev, count_dev, presum_dev;
+	CUdeviceptr outer_dev, inner_dev, jresult_dev, count_dev, presum_dev, cond_dev;
 	uint block_x, block_y, grid_x, grid_y;
 
 	part_size = getPartitionSize();

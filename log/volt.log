@@ -1,4 +1,4 @@
-2015-12-02 06:08:22,193   INFO  [main] CONSOLE: Initializing VoltDB...
+2015-12-03 04:31:33,142   INFO  [main] CONSOLE: Initializing VoltDB...
 
  _    __      ____  ____  ____ 
 | |  / /___  / / /_/ __ \/ __ )
@@ -8,42 +8,44 @@
 
 --------------------------------
 
-2015-12-02 06:08:22,352   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/voltdb/voltdbroot/deployment.xml"
-2015-12-02 06:08:22,357   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
-2015-12-02 06:08:22,357   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
-2015-12-02 06:08:22,358   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/voltdb/voltdb
-2015-12-02 06:08:22,358   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/anh/voltdb/lib/scala-library.jar:/home/anh/work/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/voltdb/lib/jna.jar:/home/anh/work/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/voltdb/lib/jline-2.10.jar
-2015-12-02 06:08:22,363   INFO  [main] NETWORK: Default network thread count: 2
-2015-12-02 06:08:22,376   INFO  [main] HOST: Beginning inter-node communication on port 3021.
-2015-12-02 06:08:22,376   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
-2015-12-02 06:08:22,379   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
-2015-12-02 06:08:22,405   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
-2015-12-02 06:08:22,411   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
-2015-12-02 06:08:22,444   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
-2015-12-02 06:08:22,448   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
-2015-12-02 06:08:22,450   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
-2015-12-02 06:08:22,450   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:40884
-2015-12-02 06:08:22,451   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:40884
-2015-12-02 06:08:22,460   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d175448d9800000 with negotiated timeout 6000 for client /127.0.0.1:40884
-2015-12-02 06:08:22,460   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d175448d9800000, negotiated timeout = 6000
-2015-12-02 06:08:22,505   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
-2015-12-02 06:08:22,530   INFO  [main] HOST: Host id of this node is: 0
-2015-12-02 06:08:22,530   INFO  [main] CONSOLE: Host id of this node is: 0
-2015-12-02 06:08:22,558   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/voltdb/voltdbroot/deployment.xml
-2015-12-02 06:08:22,567   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
-2015-12-02 06:08:22,575   INFO  [main] HOST: Elastic duration set to 50 milliseconds
-2015-12-02 06:08:22,575   INFO  [main] HOST: Elastic throughput set to 2 mb/s
-2015-12-02 06:08:22,575   INFO  [main] HOST: Max temptable size set to 100 mb
-2015-12-02 06:08:22,575   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
-2015-12-02 06:08:22,725   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/voltdb/license.xml
-2015-12-02 06:08:22,745   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
-2015-12-02 06:08:23,340   INFO  [main] EXPORT: System is not using any export functionality.
-2015-12-02 06:08:23,347   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
-2015-12-02 06:08:23,374   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
-2015-12-02 06:08:23,381   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/voltdb/voltdb
-/home/anh/work/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
+2015-12-03 04:31:33,352   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 04:31:33,357   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 04:31:33,357   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 04:31:33,386   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 04:31:33,386   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 04:31:33,391   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 04:31:33,437   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 04:31:33,437   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 04:31:33,440   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 04:31:33,474   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 04:31:33,480   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 04:31:33,552   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@43f8e336
+2015-12-03 04:31:33,555   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 04:31:33,557   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 04:31:33,557   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49162
+2015-12-03 04:31:33,559   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49162
+2015-12-03 04:31:33,570   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19bb255b800000 with negotiated timeout 6000 for client /127.0.0.1:49162
+2015-12-03 04:31:33,570   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19bb255b800000, negotiated timeout = 6000
+2015-12-03 04:31:33,627   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 04:31:33,645   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 04:31:33,645   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 04:31:33,699   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 04:31:33,713   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 04:31:33,723   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 04:31:33,723   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 04:31:33,723   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 04:31:33,723   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 04:31:33,728   INFO  [main] HOST: Creating snapshot path directory: /home/anh/work/anh/VoltDB/voltdbroot/snapshots
+2015-12-03 04:31:33,728   INFO  [main] HOST: Creating export overflow directory: /home/anh/work/anh/VoltDB/voltdbroot/export_overflow
+2015-12-03 04:31:33,885   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 04:31:33,913   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 04:31:34,621   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 04:31:34,635   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 04:31:34,662   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 04:31:34,672   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/VoltDB/voltdb
+/home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
 
-2015-12-02 06:28:05,751   INFO  [main] CONSOLE: Initializing VoltDB...
+2015-12-03 04:39:08,453   INFO  [main] CONSOLE: Initializing VoltDB...
 
  _    __      ____  ____  ____ 
 | |  / /___  / / /_/ __ \/ __ )
@@ -53,38 +55,381 @@
 
 --------------------------------
 
-2015-12-02 06:28:05,909   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/voltdb/voltdbroot/deployment.xml"
-2015-12-02 06:28:05,914   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
-2015-12-02 06:28:05,915   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
-2015-12-02 06:28:05,916   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/voltdb/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/voltdb/voltdb
-2015-12-02 06:28:05,916   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/voltdb/voltdb/voltdb-5.1.jar:/home/anh/work/anh/voltdb/lib/httpcore-4.3.2.jar:/home/anh/work/anh/voltdb/lib/scala-library.jar:/home/anh/work/anh/voltdb/lib/avro-1.7.7.jar:/home/anh/work/anh/voltdb/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/voltdb/lib/commons-lang3-3.0.jar:/home/anh/work/anh/voltdb/lib/jsch-0.1.51.jar:/home/anh/work/anh/voltdb/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/voltdb/lib/httpclient-4.3.2.jar:/home/anh/work/anh/voltdb/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/commons-cli-1.2.jar:/home/anh/work/anh/voltdb/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/voltdb/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/tomcat-juli.jar:/home/anh/work/anh/voltdb/lib/commons-codec-1.6.jar:/home/anh/work/anh/voltdb/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/zmq-2.1.11.jar:/home/anh/work/anh/voltdb/lib/tomcat-jdbc.jar:/home/anh/work/anh/voltdb/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/voltdb/lib/jna.jar:/home/anh/work/anh/voltdb/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/voltdb/lib/log4j-1.2.16.jar:/home/anh/work/anh/voltdb/lib/servlet-api-2.5.jar:/home/anh/work/anh/voltdb/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/voltdb/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/voltdb/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/voltdb/lib/super-csv-2.1.0.jar:/home/anh/work/anh/voltdb/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/voltdb/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/voltdb/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/voltdb/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/voltdb/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/voltdb/lib/jline-2.10.jar
-2015-12-02 06:28:05,920   INFO  [main] NETWORK: Default network thread count: 2
-2015-12-02 06:28:05,933   INFO  [main] HOST: Beginning inter-node communication on port 3021.
-2015-12-02 06:28:05,933   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
-2015-12-02 06:28:05,936   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
-2015-12-02 06:28:05,963   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
-2015-12-02 06:28:05,969   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
-2015-12-02 06:28:06,002   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
-2015-12-02 06:28:06,006   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
-2015-12-02 06:28:06,008   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
-2015-12-02 06:28:06,008   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:40964
-2015-12-02 06:28:06,009   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:40964
-2015-12-02 06:28:06,018   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d175d507c800000 with negotiated timeout 6000 for client /127.0.0.1:40964
-2015-12-02 06:28:06,018   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d175d507c800000, negotiated timeout = 6000
-2015-12-02 06:28:06,077   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
-2015-12-02 06:28:06,117   INFO  [main] HOST: Host id of this node is: 0
-2015-12-02 06:28:06,117   INFO  [main] CONSOLE: Host id of this node is: 0
-2015-12-02 06:28:06,153   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/voltdb/voltdbroot/deployment.xml
-2015-12-02 06:28:06,166   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
-2015-12-02 06:28:06,176   INFO  [main] HOST: Elastic duration set to 50 milliseconds
-2015-12-02 06:28:06,176   INFO  [main] HOST: Elastic throughput set to 2 mb/s
-2015-12-02 06:28:06,176   INFO  [main] HOST: Max temptable size set to 100 mb
-2015-12-02 06:28:06,176   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
-2015-12-02 06:28:06,337   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/voltdb/license.xml
-2015-12-02 06:28:06,362   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
-2015-12-02 06:28:07,009   INFO  [main] EXPORT: System is not using any export functionality.
-2015-12-02 06:28:07,015   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
-2015-12-02 06:28:07,041   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
-2015-12-02 06:28:07,049   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/voltdb/voltdb
-/home/anh/work/anh/voltdb/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/voltdb/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
+2015-12-03 04:39:08,622   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 04:39:08,628   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 04:39:08,628   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 04:39:08,629   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 04:39:08,629   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 04:39:08,633   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 04:39:08,647   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 04:39:08,647   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 04:39:08,650   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 04:39:08,677   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 04:39:08,683   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 04:39:08,719   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2015-12-03 04:39:08,723   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 04:39:08,725   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 04:39:08,725   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49354
+2015-12-03 04:39:08,727   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49354
+2015-12-03 04:39:08,742   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19be9e5b800000 with negotiated timeout 6000 for client /127.0.0.1:49354
+2015-12-03 04:39:08,742   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19be9e5b800000, negotiated timeout = 6000
+2015-12-03 04:39:08,794   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 04:39:08,819   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 04:39:08,819   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 04:39:08,867   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 04:39:08,882   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 04:39:08,891   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 04:39:08,891   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 04:39:08,891   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 04:39:08,891   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 04:39:09,049   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 04:39:09,070   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 04:39:09,763   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 04:39:09,770   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 04:39:09,797   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 04:39:09,805   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/VoltDB/voltdb
+/home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
 
+2015-12-03 04:43:03,749   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-12-03 04:43:03,916   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 04:43:03,921   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 04:43:03,921   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 04:43:03,922   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 04:43:03,922   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 04:43:03,927   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 04:43:03,940   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 04:43:03,940   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 04:43:03,943   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 04:43:03,973   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 04:43:03,979   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 04:43:04,014   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2015-12-03 04:43:04,017   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 04:43:04,019   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 04:43:04,019   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49357
+2015-12-03 04:43:04,020   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49357
+2015-12-03 04:43:04,030   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19c069ea800000 with negotiated timeout 6000 for client /127.0.0.1:49357
+2015-12-03 04:43:04,030   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19c069ea800000, negotiated timeout = 6000
+2015-12-03 04:43:04,081   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 04:43:04,105   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 04:43:04,105   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 04:43:04,142   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 04:43:04,154   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 04:43:04,163   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 04:43:04,163   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 04:43:04,163   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 04:43:04,163   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 04:43:04,319   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 04:43:04,340   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 04:43:04,974   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 04:43:04,981   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 04:43:05,010   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 04:43:05,018   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/VoltDB/voltdb
+/home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
+
+2015-12-03 05:04:27,825   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-12-03 05:04:27,993   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 05:04:27,999   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 05:04:27,999   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 05:04:28,000   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 05:04:28,000   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 05:04:28,005   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 05:04:28,019   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 05:04:28,019   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 05:04:28,021   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 05:04:28,049   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 05:04:28,056   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 05:04:28,092   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2015-12-03 05:04:28,096   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 05:04:28,098   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 05:04:28,098   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49603
+2015-12-03 05:04:28,099   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49603
+2015-12-03 05:04:28,114   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19ca35e2000000 with negotiated timeout 6000 for client /127.0.0.1:49603
+2015-12-03 05:04:28,114   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19ca35e2000000, negotiated timeout = 6000
+2015-12-03 05:04:28,155   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 05:04:28,179   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 05:04:28,179   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 05:04:28,214   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 05:04:28,223   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 05:04:28,232   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 05:04:28,232   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 05:04:28,232   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 05:04:28,232   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 05:04:28,391   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 05:04:28,411   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 05:04:29,043   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 05:04:29,050   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 05:04:29,078   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 05:04:29,086   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/VoltDB/voltdb
+/home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
+
+2015-12-03 05:08:38,569   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-12-03 05:08:38,737   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 05:08:38,743   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 05:08:38,743   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 05:08:38,744   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 05:08:38,744   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 05:08:38,749   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 05:08:38,762   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 05:08:38,763   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 05:08:38,765   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 05:08:38,795   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 05:08:38,802   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 05:08:38,838   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2015-12-03 05:08:38,841   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 05:08:38,843   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 05:08:38,843   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49623
+2015-12-03 05:08:38,845   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49623
+2015-12-03 05:08:38,858   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19cc1f9e800000 with negotiated timeout 6000 for client /127.0.0.1:49623
+2015-12-03 05:08:38,858   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19cc1f9e800000, negotiated timeout = 6000
+2015-12-03 05:08:38,913   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 05:08:38,934   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 05:08:38,934   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 05:08:38,984   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 05:08:38,999   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 05:08:39,008   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 05:08:39,008   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 05:08:39,008   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 05:08:39,008   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 05:08:39,166   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 05:08:39,187   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 05:08:39,858   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 05:08:39,865   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 05:08:39,891   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 05:08:39,899   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/VoltDB/voltdb
+/home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
+
+2015-12-03 05:30:38,639   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-12-03 05:30:38,808   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 05:30:38,813   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 05:30:38,813   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 05:30:38,814   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 05:30:38,814   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 05:30:38,819   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 05:30:38,832   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 05:30:38,832   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 05:30:38,835   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 05:30:38,863   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 05:30:38,869   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 05:30:38,905   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2015-12-03 05:30:38,909   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 05:30:38,911   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 05:30:38,912   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49754
+2015-12-03 05:30:38,913   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49754
+2015-12-03 05:30:38,932   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19d631e0800000 with negotiated timeout 6000 for client /127.0.0.1:49754
+2015-12-03 05:30:38,932   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19d631e0800000, negotiated timeout = 6000
+2015-12-03 05:30:38,988   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 05:30:39,020   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 05:30:39,020   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 05:30:39,073   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 05:30:39,082   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 05:30:39,091   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 05:30:39,091   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 05:30:39,091   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 05:30:39,091   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 05:30:39,250   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 05:30:39,276   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 05:30:39,913   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 05:30:39,920   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 05:30:39,947   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 05:30:39,955   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/VoltDB/voltdb
+/home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
+
+2015-12-03 05:51:46,604   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-12-03 05:51:46,775   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 05:51:46,780   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 05:51:46,781   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 05:51:46,782   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 05:51:46,782   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 05:51:46,786   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 05:51:46,800   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 05:51:46,800   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 05:51:46,803   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 05:51:46,831   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 05:51:46,838   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 05:51:46,874   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2015-12-03 05:51:46,878   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 05:51:46,880   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 05:51:46,880   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49962
+2015-12-03 05:51:46,881   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49962
+2015-12-03 05:51:46,890   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19dfde61000000 with negotiated timeout 6000 for client /127.0.0.1:49962
+2015-12-03 05:51:46,891   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19dfde61000000, negotiated timeout = 6000
+2015-12-03 05:51:46,943   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 05:51:46,968   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 05:51:46,968   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 05:51:47,014   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 05:51:47,032   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 05:51:47,040   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 05:51:47,040   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 05:51:47,040   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 05:51:47,040   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 05:51:47,200   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 05:51:47,220   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 05:51:47,839   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 05:51:47,846   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 05:51:47,874   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 05:51:47,882   FATAL [Iv2ExecutionSite: 0:0] HOST: UnsatisfiedLinkError: Library doest not exist!!! Path is /home/anh/work/anh/VoltDB/voltdb
+/home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so: undefined symbol: _ZN5boost6system16generic_categoryEv
+
+2015-12-03 05:54:25,987   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2015-12-03 05:54:26,153   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2015-12-03 05:54:26,158   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2015-12-03 05:54:26,158   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2015-12-03 05:54:26,159   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2015-12-03 05:54:26,159   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2015-12-03 05:54:26,164   INFO  [main] NETWORK: Default network thread count: 2
+2015-12-03 05:54:26,178   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2015-12-03 05:54:26,178   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2015-12-03 05:54:26,181   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2015-12-03 05:54:26,209   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2015-12-03 05:54:26,216   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2015-12-03 05:54:26,251   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@43f8e336
+2015-12-03 05:54:26,255   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2015-12-03 05:54:26,257   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2015-12-03 05:54:26,257   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:49967
+2015-12-03 05:54:26,258   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:49967
+2015-12-03 05:54:26,273   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1d19e115a9000000 with negotiated timeout 6000 for client /127.0.0.1:49967
+2015-12-03 05:54:26,273   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1d19e115a9000000, negotiated timeout = 6000
+2015-12-03 05:54:26,325   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2015-12-03 05:54:26,344   INFO  [main] HOST: Host id of this node is: 0
+2015-12-03 05:54:26,344   INFO  [main] CONSOLE: Host id of this node is: 0
+2015-12-03 05:54:26,378   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2015-12-03 05:54:26,387   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2015-12-03 05:54:26,395   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2015-12-03 05:54:26,396   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2015-12-03 05:54:26,396   INFO  [main] HOST: Max temptable size set to 100 mb
+2015-12-03 05:54:26,396   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2015-12-03 05:54:26,562   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2015-12-03 05:54:26,583   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2015-12-03 05:54:27,236   INFO  [main] EXPORT: System is not using any export functionality.
+2015-12-03 05:54:27,243   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2015-12-03 05:54:27,274   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2015-12-03 05:54:27,279   INFO  [Iv2ExecutionSite: 0:0] HOST: Successfully loaded native VoltDB library voltdb-5.1.
+2015-12-03 05:54:27,280   WARN  [Iv2ExecutionSite: 0:0] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2015-12-03 05:54:27,526   INFO  [main] TM: Setting maximum size of MPI read pool to: 20
+2015-12-03 05:54:27,592   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:0 as leader for partition 0
+2015-12-03 05:54:27,608   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:1 as leader for partition 1
+2015-12-03 05:54:27,613   INFO  [LeaderCache] TM: SP 0:0 for partition 0 found (including self) 1 surviving replicas to repair.  Survivors: 0:0
+2015-12-03 05:54:27,618   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:2 as leader for partition 2
+2015-12-03 05:54:27,621   INFO  [LeaderCache] TM: SP 0:1 for partition 1 found (including self) 1 surviving replicas to repair.  Survivors: 0:1
+2015-12-03 05:54:27,623   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:3 as leader for partition 3
+2015-12-03 05:54:27,626   INFO  [LeaderCache] TM: SP 0:2 for partition 2 found (including self) 1 surviving replicas to repair.  Survivors: 0:2
+2015-12-03 05:54:27,631   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:4 as leader for partition 4
+2015-12-03 05:54:27,631   INFO  [LeaderCache] TM: SP 0:3 for partition 3 found (including self) 1 surviving replicas to repair.  Survivors: 0:3
+2015-12-03 05:54:27,641   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:5 as leader for partition 5
+2015-12-03 05:54:27,642   INFO  [LeaderCache] TM: SP 0:4 for partition 4 found (including self) 1 surviving replicas to repair.  Survivors: 0:4
+2015-12-03 05:54:27,669   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:6 as leader for partition 6
+2015-12-03 05:54:27,670   INFO  [LeaderCache] TM: SP 0:5 for partition 5 found (including self) 1 surviving replicas to repair.  Survivors: 0:5
+2015-12-03 05:54:27,688   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:7 as leader for partition 7
+2015-12-03 05:54:27,689   INFO  [LeaderCache] TM: SP 0:6 for partition 6 found (including self) 1 surviving replicas to repair.  Survivors: 0:6
+2015-12-03 05:54:27,701   INFO  [LeaderCache] TM: SP 0:7 for partition 7 found (including self) 1 surviving replicas to repair.  Survivors: 0:7
+2015-12-03 05:54:27,931   INFO  [LeaderCache] TM: SP 0:0 for partition 0 finished leader promotion. Took 329 ms.
+2015-12-03 05:54:27,931   INFO  [LeaderCache] TM: SP 0:1 for partition 1 finished leader promotion. Took 313 ms.
+2015-12-03 05:54:27,932   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 1
+2015-12-03 05:54:27,934   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 0
+2015-12-03 05:54:27,943   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:27,943   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,088   INFO  [LeaderCache] TM: SP 0:2 for partition 2 finished leader promotion. Took 464 ms.
+2015-12-03 05:54:28,094   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 2
+2015-12-03 05:54:28,109   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,141   INFO  [LeaderCache] TM: SP 0:3 for partition 3 finished leader promotion. Took 513 ms.
+2015-12-03 05:54:28,148   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 3
+2015-12-03 05:54:28,153   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,159   INFO  [LeaderCache] TM: SP 0:4 for partition 4 finished leader promotion. Took 519 ms.
+2015-12-03 05:54:28,170   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 4
+2015-12-03 05:54:28,176   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,185   INFO  [LeaderCache] TM: SP 0:5 for partition 5 finished leader promotion. Took 529 ms.
+2015-12-03 05:54:28,185   INFO  [LeaderCache] TM: SP 0:6 for partition 6 finished leader promotion. Took 498 ms.
+2015-12-03 05:54:28,186   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 5
+2015-12-03 05:54:28,186   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 6
+2015-12-03 05:54:28,194   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,194   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,194   INFO  [LeaderCache] TM: SP 0:7 for partition 7 finished leader promotion. Took 494 ms.
+2015-12-03 05:54:28,201   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 7
+2015-12-03 05:54:28,209   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,212   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 found 8 surviving leaders to repair.  Survivors: 0:0, 0:1, 0:2, 0:3, 0:4, 0:5, 0:6, 0:7
+2015-12-03 05:54:28,213   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 finished leader promotion. Took 9 ms.
+2015-12-03 05:54:28,225   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2015-12-03 05:54:28,249   INFO  [main] HOST: Database start action is Create.
+2015-12-03 05:54:28,304   INFO  [main] HOST: PID of this Volt process is 15632
+2015-12-03 05:54:28,304   INFO  [main] HOST: Listening for native wire protocol clients on port 21212.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Listening for admin wire protocol clients on port 21211.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Local machine HTTP monitoring is listening on port 8080.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Json API over HTTP enabled at path /api/1.0/, listening on port 8080.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Maximum usable Java heap set to 1981 mb.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Minimum required Java heap for catalog and server config is 384 MB.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Cluster has 1 hosts with leader hostname: "localhost:3021". 8 sites per host. K = 0.
+2015-12-03 05:54:28,304   INFO  [main] HOST: The entire cluster has 1 copy of each of the 8 logical partitions.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Detection of network partitions in the cluster is enabled.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Client authentication is not enabled. Anonymous clients accepted.
+2015-12-03 05:54:28,304   INFO  [main] HOST: No schedule set for automated snapshots.
+2015-12-03 05:54:28,304   INFO  [main] HOST: Using "voltdbroot" for voltdbroot directory.
+2015-12-03 05:54:28,305   INFO  [main] HOST: CPU INFO:         4 Cores, 1 Sockets, 8 Hardware Threads
+2015-12-03 05:54:28,305   INFO  [main] HOST: CPU DESC:         Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz 8192 KB cache
+2015-12-03 05:54:28,305   INFO  [main] HOST: HOST MEMORY (MB): 32117
+2015-12-03 05:54:28,305   INFO  [main] HOST: OS PROFILE:       Linux 3.13.0-68-generic amd64 en_US
+2015-12-03 05:54:28,305   INFO  [main] HOST: JAVA VERSION:     1.7.0_91
+2015-12-03 05:54:28,305   INFO  [main] HOST: JAVA RUNTIME:     OpenJDK Runtime Environment (1.7.0_91-b02)
+2015-12-03 05:54:28,305   INFO  [main] HOST: JAVA VM:          OpenJDK 64-Bit Server VM (24.91-b01, mixed mode)
+2015-12-03 05:54:28,305   INFO  [main] HOST: About to list cluster interfaces for all nodes with format [ip1 ip2 ... ipN] client-port:admin-port:http-port
+2015-12-03 05:54:28,305   INFO  [main] HOST:   Host id: 0 with interfaces: 172.24.15.60 21212,21211,8080 [SELF]
+2015-12-03 05:54:28,305   WARN  [main] CONSOLE: This is not a highly available cluster. K-Safety is set to 0.
+2015-12-03 05:54:28,305   WARN  [main] CONSOLE: Durability is turned off. Command logging is off.
+2015-12-03 05:54:28,324   INFO  [SnapshotDaemon] LOGGING: This node was selected as the leader for snapshot truncation
+2015-12-03 05:54:28,325   INFO  [Thread-15] HOST: Logging config info
+2015-12-03 05:54:28,325   INFO  [SnapshotDaemon] LOGGING: Checking for existence of snapshot truncation request
+2015-12-03 05:54:28,373   INFO  [Thread-16] CONSOLE: Server completed initialization.
+2015-12-03 06:42:55,960   WARN  [Thread-0] CONSOLE: The VoltDB server will shut down due to a control-C or other JVM exit.

@@ -22,8 +22,8 @@ extern "C" {
 
 __global__
 void count(
-          COLUMNDATA *oCD,
-          COLUMNDATA *iCD,
+          IndexData *oCD,
+          IndexData *iCD,
           GComparisonExpression ex,
           ulong *count,
           int ltn,

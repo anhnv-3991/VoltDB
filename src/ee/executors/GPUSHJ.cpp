@@ -33,9 +33,9 @@ bool GPUSHJ::initGPU(){
   //char *path="/home/yabuta/voltdb/voltdb";//TODO : get voltdb/voltdb path
     
   if((vd = getenv("VOLT_HOME")) != NULL){
-    snprintf(path,256,"%s/voltdb/voltdb",vd);
+    snprintf(path,256,"%s/voltdb",vd);
   }else if((vd = getenv("HOME")) != NULL){
-    snprintf(path,256,"%s/voltdb/voltdb",vd);
+    snprintf(path,256,"%s/voltdb",vd);
   }else{
     return false;
   }
