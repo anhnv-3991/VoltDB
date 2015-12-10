@@ -95,7 +95,7 @@ class GNValue {
     	return m_sourceInlined;
     }
 
-    CUDAH char *getMdata() {
+    CUDAH const char *getMdata() const {
     	return m_data;
     }
 

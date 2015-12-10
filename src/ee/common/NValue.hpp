@@ -73,7 +73,7 @@ void throwCastSQLValueOutOfRangeException(
         const ValueType origType,
         const ValueType newType)
 {
-    throwCastSQLValueOutOfRangeException((const int64_t)value, origType, newType);
+    throwCastSQLValueOutOfRangeException((int64_t)value, origType, newType);
 }
 
 template<>
@@ -659,11 +659,11 @@ class NValue {
     return m_data;
   }
 
-  inline const ValueType getValueTypeForGPU(){
+  inline ValueType getValueTypeForGPU(){
     return m_valueType;
   }
   
-  inline const bool getSourceInlinedForGPU(){
+  inline bool getSourceInlinedForGPU(){
     return m_sourceInlined;
   }
 

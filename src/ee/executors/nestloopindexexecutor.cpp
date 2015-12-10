@@ -72,6 +72,7 @@
 #include <cuda_runtime.h>
 #include "GPUNIJ.h"
 #include "GPUSHJ.h"
+#include "GPUIJ.h"
 #include "GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
@@ -174,7 +175,7 @@ void GNValueDebug(GNValue &column_data)
 	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 	value.setValueTypeFromGPU(column_data.getValueType());
 
-	std::cout << value.debug() << std::endl;
+	std::cout << value.debug();
 }
 
 
@@ -272,8 +273,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     }
 
     //2015.11.04 - added for GPU Join
-    std::vector<int> column_indices = index->getColumnIndices();
-    if (column_indices.empty()) {
+    std::vector<int> inner_indices = index->getColumnIndices();
+    if (inner_indices.empty()) {
     	cout << "Empty indexed expression" << endl;
     }
 
@@ -301,19 +302,29 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 
 	/************ Build Expression Tree *****************************/
-	TreeExpression end_tree(end_expression);
-	std::vector<TreeExpression::TreeNode> end_ex_tree = end_tree.getTree();
+
+	TreeExpression end_ex_tree(end_expression);
+	//std::cout << "Size of end_expression = " << end_ex_tree.getSize() << std::endl;
+	//end_ex_tree.debug();
+
 	//end_tree.debug();
+	TreeExpression post_ex_tree(post_expression);
+	//std::cout << "Size of post_expression = " << post_ex_tree.getSize() << std::endl;
+	//post_ex_tree.debug();
 
+	TreeExpression initial_ex_tree(initial_expression);
+	//initial_ex_tree.debug();
 
-	//end_tree.debug();
+	TreeExpression skipNull_ex_tree(skipNullExpr);
+	//skipNull_ex_tree.debug();
 
-	TreeExpression post_tree(post_expression);
-	std::vector<TreeExpression::TreeNode> post_ex_tree = post_tree.getTree();
+	TreeExpression prejoin_ex_tree(prejoin_expression);
+	//prejoin_ex_tree.debug();
 
-	//post_tree.debug();
+	TreeExpression where_ex_tree(where_expression);
+	//where_ex_tree.debug();
 
-    /******************** Add for GPU join **************************/
+	/******************** Add for GPU join **************************/
 
     /******************** GET COLUMN DATA ***************************/
     int outer_size = (int)outer_table->activeTupleCount();
@@ -325,32 +336,21 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	TableIterator search_it_out = outer_table->iterator(), search_it_in = inner_table->iterator();
 	IndexData *index_data_out = (IndexData *)malloc(sizeof(IndexData) * outer_size);
 	IndexData *index_data_in = (IndexData *)malloc(sizeof(IndexData) * inner_size);
-	PostData *post_out = (PostData *)malloc(sizeof(PostData) * outer_size);
-	PostData *post_in = (PostData *)malloc(sizeof(PostData) * inner_size);
+	std::vector<int> search_keys(0);
 	int idx;
+
+	for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
+		int tmp = (dynamic_cast<TupleValueExpression *>(m_indexNode->getSearchKeyExpressions()[ctr]))->getColumnId();
+		search_keys.push_back(tmp);
+	}
 
 	idx = 0;
 	while (search_it_out.next(outer_tuple)) {
 		if (prejoin_expression == NULL || prejoin_expression->eval(&outer_tuple, NULL).isTrue()) {
 			index_data_out[idx].num = idx;
-			//cout << "Start debugging..." << endl;
-			for (int ctr = 0, count = 0; ctr < num_of_searchkeys; ctr++, count++) {
-				NValue candidate_value = m_indexNode->getSearchKeyExpressions()[ctr]->eval(&outer_tuple, NULL);
-				setGNValue(&index_data_out[idx].gn[count], candidate_value);
-				//cout << "outer candidate_value[" << count << "] = " << candidate_value.debug()  << endl;
-			}
-			//cout << "End debugging..." << endl;
-			/************ Get outer tuple for post expression ***************/
-			for (int ctr = 1, count = 0; ctr < post_ex_tree.size(); ctr++) {
-				if (post_ex_tree[ctr].type == EXPRESSION_TYPE_VALUE_TUPLE && post_ex_tree[ctr].tuple_idx == 0) {
-					NValue candidate_value = outer_tuple.getNValue(post_ex_tree[ctr].column_idx);
-					setGNValue(&(post_out[idx].gn[count]), candidate_value);
-					//GNValueDebug(post_out[idx].gn[count]);
-					count++;
-					if (count > MAX_GNVALUE) {
-						break;
-					}
-				}
+			for (int i = 0; i < outer_tuple.sizeInValues(); i++) {
+				NValue tmp_value = outer_tuple.getNValue(i);
+				setGNValue(&(index_data_out[idx].gn[i]), tmp_value);
 			}
 			idx++;
 		}
@@ -364,72 +364,39 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	/* Move to smallest key */
 	bool begin = true;
 	TableTuple tmp_tuple(inner_table->schema());
-	int size_of_keys = (int)(column_indices.size());
 
 	index->moveToEnd(begin, index_cursor2);
 
-    //cout << "Size of keys = " << size_of_keys << endl;
 	idx = 0;
 	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
 		if (prejoin_expression == NULL || prejoin_expression->eval(&tmp_tuple, NULL).isTrue()) {
 			index_data_in[idx].num = idx;
-			for (int ctr = 0, count = 0; ctr < size_of_keys; ctr++, count++) {
-				NValue candidate_value = inner_tuple.getNValue(column_indices[ctr]);
-				setGNValue(&index_data_in[idx].gn[count], candidate_value);
-			}
-			for (int ctr = 1, count = 0; ctr < post_ex_tree.size(); ctr++) {
-				if (post_ex_tree[ctr].type == EXPRESSION_TYPE_VALUE_TUPLE && post_ex_tree[ctr].tuple_idx == 1) {
-					NValue candidate_value = inner_tuple.getNValue(post_ex_tree[ctr].column_idx);
-					setGNValue(&(post_in[idx].gn[count]), candidate_value);
-					//GNValueDebug(post_in[idx].gn[count]);
-					count++;
-					if (count > MAX_GNVALUE) {
-						break;
-					}
-				}
+			for (int i = 0; i < inner_tuple.sizeInValues(); i++) {
+				NValue tmp_value = inner_tuple.getNValue(i);
+
+				setGNValue(&(index_data_in[idx].gn[i]), tmp_value);
 			}
 			idx++;
 		}
 	}
 
-
-	/***************** Build the post_expression for gpu *****************/
-	for (int i = 1, count_out = 0, count_in = 0; i < post_ex_tree.size(); i++) {
-		if (post_ex_tree[i].type == EXPRESSION_TYPE_VALUE_TUPLE) {
-			if (post_ex_tree[i].tuple_idx == 0) {
-				post_ex_tree[i].column_idx = count_out;
-				count_out++;
-			} else if (post_ex_tree[i].tuple_idx == 1) {
-				post_ex_tree[i].column_idx = count_in;
-				count_in++;
-			}
-		}
-	}
-	/***************** Build the end_expression for gpu *****************/
-	for (int i = 1, count_in = 0, count_out = 0; i < end_ex_tree.size(); i++) {
-		if (end_ex_tree[i].type == EXPRESSION_TYPE_VALUE_TUPLE) {
-			if (end_ex_tree[i].tuple_idx == 0) {
-				end_ex_tree[i].column_idx = count_out;
-				count_out++;
-			} else if (end_ex_tree[i].tuple_idx == 1) {
-				end_ex_tree[i].column_idx = count_in;
-				count_in++;
-			}
-		}
-	}
-
-//    /* Copy data to GPU memory */
-//    GPUIJ gn = new GPUIJ();
-//    GComparisonExpression gt(et);
+    /* Copy data to GPU memory */
+    GPUIJ gn(index_data_out, index_data_in, outer_size, inner_size, search_keys, inner_indices, end_ex_tree,
+    			post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree);
 //
-//    gn.setTableData(index_data_out, index_data_in, outer_size, inner_size);
-
-    //Test
-//    for (int k = 0; k < idx; k++) {
-//    	for (int j = 0; j < num_of_searchkeys; j++)
-//    		GNValueDebug(index_data_in[k].gn[j]);
-//        cout << "It is OK" << endl;
-//    }
+//
+//    std::cout << "End of GN construction" << std::endl;
+//    gn.debug();
+    bool ret = true;
+//
+    ret = gn.join();
+    if (ret != true) {
+    	std::cout << "Error: gpu join failed." << std::endl;
+    } else {
+    	int result_size = gn.getResultSize();
+    	RESULT *join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
+    	gn.getResult(join_result);
+    }
     /******************* End of adding GPU join ********************/
 
     VOLT_TRACE("<num_of_outer_cols>: %d\n", num_of_outer_cols);
@@ -725,6 +692,10 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
     cleanupInputTempTable(inner_table);
     cleanupInputTempTable(outer_table);
+    if (outer_size != 0)
+    	free(index_data_out);
+    if (inner_size != 0)
+    	free(index_data_in);
 
     return (true);
 }

@@ -273,7 +273,7 @@ def buildMakefile(CTX):
 
 #add part
     GPUPATH = "../../src/ee/executors/"
-    GPUINC = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUSHJ.h ../../src/ee/executors/GPUIJ.h ../../src/ee/executors/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/common/GTupleSchema.h ../../src/ee/GPUetc/expressions/Gcomparisonexpression.h ../../src/ee/GPUetc/expressions/makeexpressiontree.h ../../src/ee/GPUetc/expressions/nodedata.h"
+    GPUINC = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUSHJ.h ../../src/ee/executors/GPUIJ.h ../../src/ee/executors/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/common/GTupleSchema.h ../../src/ee/GPUetc/expressions/Gcomparisonexpression.h ../../src/ee/GPUetc/expressions/makeexpressiontree.h ../../src/ee/GPUetc/expressions/nodedata.h ../../src/ee/GPUetc/expressions/treeexpression.h"
     
 #scan.cu ,join_gpu.cu ,hjoin_gpu.cu ,partitioning.cu, index_join_gpu.cu
     makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu %s\n"%GPUINC)
@@ -285,7 +285,7 @@ def buildMakefile(CTX):
     makefile.write("objects/executors/partitioning.cubin:../../src/ee/executors/partitioning.cu %s\n"%GPUINC)
     makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -o objects/executors/partitioning.cubin %spartitioning.cu\n"%(GPUPATH))
     makefile.write("objects/executors/index_join_gpu.cubin:../../src/ee/executors/index_join_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -o objects/executors/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v -cubin -o objects/executors/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
 
 #scan_main.cpp ,GPUNIJ.cpp ,GPUSHJ.cpp, GPUIJ.cpp
     #makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUINC)    

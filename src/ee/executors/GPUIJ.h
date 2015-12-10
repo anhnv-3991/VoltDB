@@ -5,6 +5,7 @@
 #include "GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/treeexpression.h"
+#include "GPUetc/expressions/nodedata.h"
 
 using namespace voltdb;
 
@@ -12,21 +13,29 @@ using namespace voltdb;
 class GPUIJ {
 public:
 	GPUIJ();
-	~GPUIJ();
 
 	GPUIJ(IndexData *outer_table,
 			IndexData *inner_table,
 			int outer_size,
 			int inner_size,
-			TreeExpression *end_expression,
-			TreeExpression *post_expression,
-			TreeExpression *initial_expression,
-			TreeExpression *skipNullExpr,
-			TreeExpression *prejoin_expression,
-			TreeExpression *where_expression
-			);
+			std::vector<int> search_idx,
+			std::vector<int> indices,
+			TreeExpression end_expression,
+			TreeExpression post_expression,
+			TreeExpression initial_expression,
+			TreeExpression skipNullExpr,
+			TreeExpression prejoin_expression,
+			TreeExpression where_expression);
+
+	~GPUIJ();
 
 	bool join();
+
+	void getResult(RESULT *output) const;
+
+	int getResultSize() const;
+
+	void debug();
 
 private:
 	IndexData *outer_table_;
@@ -34,16 +43,23 @@ private:
 	int outer_size_, inner_size_;
 	RESULT *join_result_;
 	int result_size_;
+	int end_size_, post_size_, initial_size_, skipNull_size_, prejoin_size_, where_size_, search_keys_size_, indices_size_;
+	int *search_keys_, *indices_;
 
-	TreeExpression *end_expression_;
-	TreeExpression *post_expression_;
-	TreeExpression *initial_expression_;
-	TreeExpression *skipNullExpr_;
-	TreeExpression *prejoin_expression_;
-	TreeExpression *where_expression_;
+
+	GTreeNode *end_expression_;
+	GTreeNode *post_expression_;
+	GTreeNode *initial_expression_;
+	GTreeNode *skipNullExpr_;
+	GTreeNode *prejoin_expression_;
+	GTreeNode *where_expression_;
 
 	uint getPartitionSize() const;
 	uint divUtility(uint divident, uint divisor) const;
+	bool getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression);
+	template <typename T> void freeArrays(T *expression);
+	void setNValue(NValue *nvalue, GNValue &gnvalue);
+	void debugGTrees(const GTreeNode *expression, int size);
 };
 
 #endif
