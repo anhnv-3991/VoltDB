@@ -19,16 +19,11 @@ public:
 	TreeExpression(const AbstractExpression *expression) {
 		int tree_size = 0;
 
-		tree_size =	getExpressionLength(expression, 1);
-		GTreeNode tmp;
+		tree_size =	getExpressionLength(expression);
+		int root = 0;
+		tree_ = std::vector<GTreeNode>(tree_size);
 
-		memset(&tmp, 0, sizeof(GTreeNode));
-
-		for (int i = 0; i < tree_size + 1; i++) {
-			tree_.push_back(tmp);
-		}
-
-		buildTree(expression, 1);
+		buildTree(expression, &root);
 	}
 
 	void debug(void) {
@@ -38,7 +33,7 @@ public:
 			std::cout << "Empty expression" << std::endl;
 		}
 
-		for (int index = 1; index < tree_size; index++) {
+		for (int index = 0; index < tree_size; index++) {
 			switch (tree_[index].type) {
 				case EXPRESSION_TYPE_CONJUNCTION_AND: {
 					std::cout << "[" << index << "] CONJUNCTION AND" << std::endl;
@@ -132,7 +127,7 @@ public:
 	}
 
 	void getNodesArray(GTreeNode *output) const {
-		for (int i = 1; i < tree_.size(); i++) {
+		for (int i = 0; i < tree_.size(); i++) {
 			output[i] = tree_[i];
 		}
 	}
@@ -164,43 +159,30 @@ private:
 		std::cout << value.debug() << std::endl;
 	}
 
-	int getExpressionLength(const AbstractExpression *expression, int root) {
+	int getExpressionLength(const AbstractExpression *expression) {
 		if (expression == NULL) {
 			return 0;
 		}
 
 		int left, right;
 
-		if (expression->getLeft() != NULL)
-			left = getExpressionLength(expression->getLeft(), root * 2);
-		else
-			left = 0;
+		left = getExpressionLength(expression->getLeft());
 
-		if (expression->getRight() != NULL)
-			right = getExpressionLength(expression->getRight(), root * 2 + 1);
-		else
-			right = 0;
+		right = getExpressionLength(expression->getRight());
 
-		if (left == 0 && right == 0)
-			return root;
-		else if (left > right)
-			return left;
-		else
-			return right;
+		return (1 + left + right);
 	}
 
-	bool buildTree(const AbstractExpression *expression, int index) {
+	bool buildTree(const AbstractExpression *expression, int *index) {
 		if (expression == NULL) {
 			return true;
 		}
 
-		if (tree_.size() < index) {
+		if (tree_.size() < *index) {
 			return false;
 		}
 
 		bool res = true;
-
-		tree_[index].type = expression->getExpressionType();
 
 		switch (expression->getExpressionType()) {
 			case EXPRESSION_TYPE_CONJUNCTION_AND:
@@ -219,30 +201,30 @@ private:
 			case EXPRESSION_TYPE_OPERATOR_CONCAT:
 			case EXPRESSION_TYPE_OPERATOR_MOD:
 			case EXPRESSION_TYPE_OPERATOR_CAST: {
-				res = buildTree(expression->getLeft(), index * 2);
+				res = buildTree(expression->getLeft(), index);
 				if (!res) {
-					std::cout << "Error: cannot build left child at index = " << index << std::endl;
+					std::cout << "Error: cannot build left child at index = " << *index << std::endl;
 					return res;
 				}
 
-				res = buildTree(expression->getRight(), index * 2 + 1);
+				res = buildTree(expression->getRight(), index);
 				if (!res) {
-					std::cout << "Error: cannot build right child at index = " << index << std::endl;
+					std::cout << "Error: cannot build right child at index = " << *index << std::endl;
 					return res;
 				}
 
 				break;
 			}
 			case EXPRESSION_TYPE_VALUE_TUPLE: {
-				tree_[index].tuple_idx = (dynamic_cast<const TupleValueExpression *>(expression))->getTupleId();
-				tree_[index].column_idx = (dynamic_cast<const TupleValueExpression *>(expression))->getColumnId();
+				tree_[*index].tuple_idx = (dynamic_cast<const TupleValueExpression *>(expression))->getTupleId();
+				tree_[*index].column_idx = (dynamic_cast<const TupleValueExpression *>(expression))->getColumnId();
 
 				break;
 			}
 			case EXPRESSION_TYPE_VALUE_CONSTANT: {
 				NValue nvalue = expression->eval(NULL, NULL);
 
-				setGNValue(&(tree_[index].value), nvalue);
+				setGNValue(&(tree_[*index].value), nvalue);
 
 				break;
 			}
@@ -256,6 +238,9 @@ private:
 				break;
 			}
 		}
+
+		tree_[*index].type = expression->getExpressionType();
+		(*index)++;
 
 		return res;
 	}

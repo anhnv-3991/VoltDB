@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdint.h>
 #include <cuda.h>
@@ -19,163 +20,297 @@ finally join() store match tuple to result array .
 */
 
 extern "C" {
-
-__device__ GNValue eval(GTreeNode *tree_expression,
-					int tree_size,
-					int root_index,
-					IndexData outer_tuple,
-					IndexData inner_tuple)
+CUDAH bool pushStack(int *stack, int *top, int new_val)
 {
-	if (root_index == 0 || root_index >= tree_size) {
-		return GNValue::getNullValue();
+	if (*top >= MAX_STACK_SIZE - 1) {
+		printf("Error: Full GPU stack!\n");
+		return false;
 	}
 
-	if (tree_expression[root_index].type == EXPRESSION_TYPE_INVALID) {
-		return GNValue::getNullValue();
-	}
+	(*top)++;
+	stack[*top] = new_val;
 
-	GTreeNode tmp_node = tree_expression[root_index];
-
-	switch (tmp_node.type) {
-		case EXPRESSION_TYPE_VALUE_CONSTANT: {
-			return tmp_node.value;
-		}
-		case EXPRESSION_TYPE_VALUE_TUPLE: {
-			if (tmp_node.tuple_idx == 0) {
-				return outer_tuple.gn[tmp_node.column_idx];
-			} else if (tmp_node.tuple_idx == 1) {
-				return inner_tuple.gn[tmp_node.column_idx];
-			}
-
-			return GNValue::getNullValue();
-		}
-		default: {
-			break;
-		}
-	}
-
-	GNValue eval_left, eval_right;
-
-	eval_left = eval(tree_expression, tree_size, root_index * 2, outer_tuple, inner_tuple);
-	eval_right = eval(tree_expression, tree_size, root_index * 2 + 1, outer_tuple, inner_tuple);
-
-	switch (tmp_node.type) {
-		case EXPRESSION_TYPE_CONJUNCTION_AND: {
-			if ((eval_left.getValueType() != VALUE_TYPE_BOOLEAN || eval_right.getValueType() != VALUE_TYPE_BOOLEAN)) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_and(eval_right);
-		}
-		case EXPRESSION_TYPE_CONJUNCTION_OR: {
-			if (eval_left.getValueType() != VALUE_TYPE_BOOLEAN || eval_right.getValueType() != VALUE_TYPE_BOOLEAN) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_or(eval_right);
-		}
-		case EXPRESSION_TYPE_COMPARE_EQUAL: {
-			if (eval_left.getValueType() != eval_right.getValueType()) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_equal(eval_right);
-		}
-		case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-			if (eval_left.getValueType() != eval_right.getValueType()) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_notEqual(eval_right);
-		}
-		case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-			if (eval_left.getValueType() != eval_right.getValueType()) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_lessThan(eval_right);
-		}
-		case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-			if (eval_left.getValueType() != eval_right.getValueType()) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_lessThanOrEqual(eval_right);
-		}
-		case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-			if (eval_left.getValueType() != eval_right.getValueType()) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_lessThanOrEqual(eval_right);
-		}
-		case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-			if (eval_left.getValueType() != eval_right.getValueType()) {
-				return GNValue::getNullValue();
-			}
-
-			return eval_left.op_greaterThanOrEqual(eval_right);
-		}
-		default: {
-			break;
-		}
-
-	}
-
-	return GNValue::getNullValue();
+	return true;
 }
 
-__device__ int binarySearchIdx(const int *search_key_indices,
-						int search_key_size,
-						const int *key_indices,
-						int key_index_size,
-						const IndexData search_key,
-						const IndexData *search_array,
-						int left_boundary,
-						int right_boundary,
-						int size_of_array)
+CUDAH int popStack(int *stack, int *top)
 {
-	if (left_boundary < 0 || right_boundary >= size_of_array || left_boundary > right_boundary) {
+	if (*top < 0) {
+		printf("Error: Empty GPU stack!\n");
 		return -1;
 	}
+	int retval = stack[*top];
+	(*top)--;
+	return retval;
+}
 
-	int middle = (left_boundary + right_boundary) / 2;
+//No more recursive
+CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_tuple, IndexData inner_tuple, int *stack)
+{
+	int top = -1;
+	int idx;
+	GNValue left, right;
+	GTreeNode tmp_node;
 
-	int res = 0, search_res = -1;
 
-	for (int i = 0; i < search_key_size; i++) {
-		res = search_key.gn[i].compare_withoutNull(search_array[middle].gn[key_indices[i]]);
-		if (res != 0)
+	memset(stack, 0, MAX_STACK_SIZE);
+	int i;
+	for (i = 0; i < tree_size; i++) {
+		tmp_node = tree_expression[i];
+		if (tmp_node.type == EXPRESSION_TYPE_VALUE_TUPLE) {
+			if (tmp_node.column_idx >= MAX_GNVALUE || tmp_node.column_idx < 0)
+				return false;
+
+			if (tmp_node.tuple_idx == 0) {
+				tree_expression[i].value = outer_tuple.gn[tmp_node.column_idx];
+			} else if (tmp_node.tuple_idx == 1) {
+				tree_expression[i].value = inner_tuple.gn[tmp_node.column_idx];
+			} else {
+				return false;
+			}
+
+			if (!pushStack(stack, &top, i)) {
+				printf("Error: Failed to push %d to stack! Exiting...\n", i);
+				return false;
+			}
+
+			continue;
+		} else if (tmp_node.type == EXPRESSION_TYPE_VALUE_CONSTANT) {
+			if (!pushStack(stack, &top, i)) {
+				printf("Error: Failed to push %d to stack! Exiting...\n, i");
+				return false;
+			}
+			continue;
+		}
+
+		// Get left operand
+		idx = popStack(stack, &top);
+		if (idx >= 0)
+			right = tree_expression[idx].value;
+		else
+			return false;
+
+		// Get right operand
+		idx = popStack(stack, &top);
+		if (idx >= 0)
+			left = tree_expression[idx].value;
+		else
+			return false;
+
+		switch(tmp_node.type) {
+			case EXPRESSION_TYPE_CONJUNCTION_AND: {
+				if ((left.getValueType() != VALUE_TYPE_BOOLEAN || right.getValueType() != VALUE_TYPE_BOOLEAN))
+					return false;
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_and(right);
+				break;
+			}
+			case EXPRESSION_TYPE_CONJUNCTION_OR: {
+				if (left.getValueType() != VALUE_TYPE_BOOLEAN || right.getValueType() != VALUE_TYPE_BOOLEAN) {
+					return false;
+				}
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_or(right);
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_EQUAL: {
+				if (left.getValueType() != right.getValueType()) {
+					return false;
+				}
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_equal(right);
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
+				if (left.getValueType() != right.getValueType()) {
+					return false;
+				}
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_notEqual(right);
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
+				if (left.getValueType() != right.getValueType()) {
+					return false;
+				}
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_lessThan(right);
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
+				if (left.getValueType() != right.getValueType()) {
+					return false;
+				}
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_lessThanOrEqual(right);
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+				if (left.getValueType() != right.getValueType()) {
+					return false;
+				}
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_lessThanOrEqual(right);
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
+				if (left.getValueType() != right.getValueType()) {
+					return false;
+				}
+
+				if (!pushStack(stack, &top, i)) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
+				tree_expression[i].value = left.op_greaterThanOrEqual(right);
+				break;
+			}
+			default: {
+				return false;
+			}
+		}
+	}
+
+	idx = popStack(stack, &top);
+	if (idx < 0 || idx >= tree_size) {
+		printf("Error: index is out of range.\n");
+		return false;
+	}
+
+	return (tree_expression[idx].value.isTrue()) ? true: false;
+}
+
+CUDAH void binarySearchIdx(int *search_key_indices,
+								int search_key_size,
+								int *key_indices,
+								int key_index_size,
+								IndexData search_key,
+								IndexData *search_array,
+								int left_bound,
+								int right_bound,
+								int *res_left,
+								int *res_right)
+{
+	int left = left_bound, right = right_bound;
+
+	int middle = -1, res, i, j, search_idx, key_idx;
+	GNValue tmp_search, tmp_idx;
+
+	*res_left = *res_right = -1;
+
+	while (left <= right && left >= 0) {
+		res = 0;
+		middle = (left + right)/2;
+
+		if (middle < left_bound || middle > right_bound)
 			break;
+
+		for (i = 0; i < search_key_size; i++) {
+			search_idx = search_key_indices[i];
+			if (search_idx >= MAX_GNVALUE)
+				return;
+			tmp_search = search_key.gn[search_idx];
+
+			if (i >= key_index_size)
+				return;
+			key_idx = key_indices[i];
+			if (key_idx >= MAX_GNVALUE)
+				return;
+			tmp_idx = search_array[middle].gn[key_idx];
+
+			res = tmp_search.compare_withoutNull(tmp_idx);
+			if (res != 0)
+				break;
+		}
+
+		if (res < 0) {
+			right = middle - 1;
+			middle = -1;
+		} else if (res > 0) {
+			left = middle + 1;
+			middle = -1;
+		} else {
+			break;
+		}
 	}
 
-	if (res > 0) {
-		search_res = binarySearchIdx(search_key_indices,
-							search_key_size,
-							key_indices,
-							key_index_size,
-							search_key,
-							search_array,
-							middle + 1,
-							right_boundary,
-							size_of_array);
+	if (middle != -1) {
+		for (left = middle - 1; left >= left_bound; left--) {
+			for (j = 0; j < search_key_size; j++) {
+				search_idx = search_key_indices[j];
+				if (search_idx >= MAX_GNVALUE)
+					return;
+				tmp_search = search_key.gn[search_idx];
+
+				if (j >= key_index_size)
+					return;
+				key_idx = key_indices[j];
+				if (key_idx >= MAX_GNVALUE)
+					return;
+				tmp_idx = search_array[left].gn[key_idx];
+
+				res = tmp_search.compare_withoutNull(tmp_idx);
+				if (res != 0)
+					break;
+			}
+			if (res != 0)
+				break;
+		}
+		left++;
+
+		for (right = middle + 1; right <= right_bound; right++) {
+			for (j = 0; j < search_key_size; j++) {
+				search_idx = search_key_indices[j];
+				if (search_idx >= MAX_GNVALUE)
+					return;
+				tmp_search = search_key.gn[search_idx];
+
+				if (j >= key_index_size)
+					return;
+				key_idx = key_indices[j];
+				if (key_idx >= MAX_GNVALUE)
+					return;
+				tmp_idx = search_array[right].gn[key_idx];
+
+				res = tmp_search.compare_withoutNull(tmp_idx);
+				if (res != 0)
+					break;
+			}
+			if (res != 0)
+				break;
+		}
+		right--;
+		*res_left = left;
+		*res_right = right;
 	}
-
-	if (res < 0) {
-		search_res = binarySearchIdx(search_key_indices,
-							search_key_size,
-							key_indices,
-							key_index_size,
-							search_key,
-							search_array,
-							left_boundary,
-							middle - 1,
-							size_of_array);
-	}
-
-	search_res = middle;
-
-	return search_res;
 }
 
 __global__
@@ -185,6 +320,7 @@ void count(
           ulong *count_dev,
           uint outer_part_size,
           uint inner_part_size,
+          uint gpu_size,
           GTreeNode *end_ex_dev,
           int end_size,
           GTreeNode *post_ex_dev,
@@ -199,51 +335,49 @@ void count(
 
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
-//
-//	__shared__ IndexData tmp_inner[BLOCK_SIZE_Y];
+	bool res = true;
 
-	/**
-	TO DO : tmp_inner shoud be stored in parallel.but I have bug.
-	*/
-
-//	if (threadIdx.x == 0) {
-//		for (uint j = 0; j < BLOCK_SIZE_Y && BLOCK_SIZE_Y * blockIdx.y + j < inner_part_size; j++) {
-//			tmp_inner[j] = inner_dev[BLOCK_SIZE_Y * blockIdx.y + j];
-//		}
-//	}
-
-//	__syncthreads();
-
-	count_dev[x + k] = 0;
+	//printf("%u\n", outer_part_size);
 
 	if (x < outer_part_size) {
 	//A global memory read is very slow.So repeating values is stored register memory
 		IndexData tmp_outer = outer_dev[x];
-//		int tmp_inner_size = inner_part_size;
+		int tmp_stack[MAX_STACK_SIZE];
+		int res_left, res_right;
+		int res_count = 0;
+		int left_bound = BLOCK_SIZE_Y * blockIdx.y;
+		int right_bound = left_bound + inner_part_size - 1;
 
-		// Search for candidate value
-		int candidate_idx = binarySearchIdx(search_key_indices,
-																search_keys_size,
-																key_indices,
-																key_index_size,
-																tmp_outer,
-																inner_dev,
-																0,
-																BLOCK_SIZE_Y - 1,
-																BLOCK_SIZE_Y);
-		if (candidate_idx != -1) {
-			GNValue res = eval(end_ex_dev, end_size, 1, tmp_outer, inner_dev[candidate_idx]);
+		printf("x = %d; left_bound = %d; right_bound = %d\n", x, left_bound, right_bound);
 
-			if (res.isTrue()) {
-				res = eval(post_ex_dev, post_size, 1, tmp_outer, inner_dev[candidate_idx]);
-				if (res.isTrue()) {
-					count_dev[x + k] = 1;
-				}
+		binarySearchIdx(search_key_indices,
+							search_keys_size,
+							key_indices,
+							key_index_size,
+							tmp_outer,
+							inner_dev,
+							left_bound,
+							right_bound,
+							&res_left,
+							&res_right);
+
+		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size) {
+			for (; res_left <= res_right; res_left++) {
+				if (end_size > 0)
+					res = res & evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
+
+				if (post_size > 0)
+					res = res & evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
+
+				if (res)
+					res_count++;
 			}
 		}
+
+		count_dev[x + k] = res_count;
 	}
 
-	if (x + k == (blockDim.x * gridDim.x * gridDim.y - 1)) {
+	if (x + k == (blockDim.x * gridDim.x * gridDim.y - 1) && x + k + 1 < gpu_size) {
 		count_dev[x + k + 1] = 0;
 	}
 }
@@ -255,6 +389,7 @@ __global__ void join(IndexData *outer_dev,
 						ulong *count_dev,
 						uint outer_part_size,
 						uint inner_part_size,
+						uint gpu_size,
 						GTreeNode *end_ex_dev,
 						int end_size,
 						GTreeNode *post_ex_dev,
@@ -268,43 +403,44 @@ __global__ void join(IndexData *outer_dev,
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
 
-//	__shared__ IndexData tmp_inner[BLOCK_SIZE_Y];
-//
-//	if (threadIdx.x == 0) {
-//		for (uint j = 0; j < BLOCK_SIZE_Y && BLOCK_SIZE_Y * blockIdx.y + j < inner_part_size; j++) {
-//			tmp_inner[j] = inner_dev[BLOCK_SIZE_Y * blockIdx.y + j];
-//		}
-//	}
-//
-//	__syncthreads();
+	if (x + k >= gpu_size)
+		return;
 
 	if (x < outer_part_size) {
 		IndexData tmp_outer = outer_dev[x];
-//		int tmp_inner_size = inner_part_size;
 		ulong writeloc = count_dev[x + k];
+		int tmp_stack[MAX_STACK_SIZE];
+		bool res = true;
+		int res_left, res_right;
+		int left_bound = BLOCK_SIZE_Y * blockIdx.y;
+		int right_bound = left_bound + inner_part_size - 1;
 
-		int candidate_idx = binarySearchIdx(search_key_indices,
-																search_keys_size,
-																key_indices,
-																key_index_size,
-																tmp_outer,
-																inner_dev,
-																0,
-																BLOCK_SIZE_Y - 1,
-																BLOCK_SIZE_Y);
-		if (candidate_idx != -1) {
-			GNValue res = eval(end_ex_dev, end_size, 1, tmp_outer, inner_dev[candidate_idx]);
+		binarySearchIdx(search_key_indices,
+							search_keys_size,
+							key_indices,
+							key_index_size,
+							tmp_outer,
+							inner_dev,
+							left_bound,
+							right_bound,
+							&res_left,
+							&res_right);
 
-			if (res.isTrue()) {
-				res = eval(post_ex_dev, post_size, 1, tmp_outer, inner_dev[candidate_idx]);
+		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size) {
+			for (; res_left <= res_right; res_left++) {
+				if (end_size > 0)
+					res = res & evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
 
-				if (res.isTrue()) {
+				if (post_size > 0)
+					res = res & evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
+
+				if (res) {
 					result_dev[writeloc].lkey = tmp_outer.num;
-					result_dev[writeloc].rkey = inner_dev[candidate_idx].num;
+					result_dev[writeloc].rkey = inner_dev[res_left].num;
+					writeloc++;
 				}
 			}
 		}
 	}
 }
-
 }

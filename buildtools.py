@@ -285,7 +285,7 @@ def buildMakefile(CTX):
     makefile.write("objects/executors/partitioning.cubin:../../src/ee/executors/partitioning.cu %s\n"%GPUINC)
     makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -o objects/executors/partitioning.cubin %spartitioning.cu\n"%(GPUPATH))
     makefile.write("objects/executors/index_join_gpu.cubin:../../src/ee/executors/index_join_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v -cubin -o objects/executors/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -G -lineinfo --maxrregcount 32 -cubin -o objects/executors/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
 
 #scan_main.cpp ,GPUNIJ.cpp ,GPUSHJ.cpp, GPUIJ.cpp
     #makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUINC)    
