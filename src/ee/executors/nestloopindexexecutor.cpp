@@ -265,7 +265,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
     LimitPlanNode* limit_node = dynamic_cast<LimitPlanNode*>(node->getInlinePlanNode(PLAN_NODE_TYPE_LIMIT));
     int tuple_ctr = 0;
-    int tuple_skipped = 0;
+    //int tuple_skipped = 0;
     int limit = -1;
     int offset = -1;
     if (limit_node) {
@@ -284,8 +284,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     int num_of_outer_cols = outer_table->columnCount();
     assert (outer_tuple.sizeInValues() == outer_table->columnCount());
     assert (inner_tuple.sizeInValues() == inner_table->columnCount());
-    const TableTuple &null_tuple = m_null_tuple.tuple();
-    int num_of_inner_cols = (m_joinType == JOIN_TYPE_LEFT)? null_tuple.sizeInValues() : 0;
+    //const TableTuple &null_tuple = m_null_tuple.tuple();
+    //int num_of_inner_cols = (m_joinType == JOIN_TYPE_LEFT)? null_tuple.sizeInValues() : 0;
     ProgressMonitorProxy pmp(m_engine, this, inner_table);
 
     TableTuple join_tuple;
@@ -297,12 +297,11 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
         join_tuple = m_tmpOutputTable->tempTuple();
     }
 
-    bool earlyReturned = false;
+    //bool earlyReturned = false;
 
 
 
 	/************ Build Expression Tree *****************************/
-
 	TreeExpression end_ex_tree(end_expression);
 
 	TreeExpression post_ex_tree(post_expression);
@@ -312,6 +311,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	TreeExpression skipNull_ex_tree(skipNullExpr);
 
 	TreeExpression prejoin_ex_tree(prejoin_expression);
+	//prejoin_ex_tree.debug();
 
 	TreeExpression where_ex_tree(where_expression);
 
@@ -345,7 +345,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 //	}
 	idx = 0;
 	while (search_it_out.next(outer_tuple)) {
-		if (prejoin_expression == NULL || prejoin_expression->eval(&outer_tuple, NULL).isTrue()) {
+//		if (prejoin_expression == NULL || prejoin_expression->eval(&outer_tuple, NULL).isTrue()) {
 			index_data_out[idx].num = idx;
 			tmp_outer_tuple[idx] = outer_tuple;
 			for (int i = 0; i < outer_tuple.sizeInValues(); i++) {
@@ -353,7 +353,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 				setGNValue(&(index_data_out[idx].gn[i]), tmp_value);
 			}
 			idx++;
-		}
+//		}
 	}
 
 //	for (int ctr = 0; ctr < outer_size; ctr++) {
@@ -362,7 +362,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 //		}
 //		std::cout << std::endl;
 //	}
-	idx = 0;
 
 	/********** Get column data for end_expression (index keys) & post_expression from inner table ********************************/
 	IndexCursor index_cursor2(index->getTupleSchema());
@@ -375,16 +374,16 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	idx = 0;
 	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
-		if (prejoin_expression == NULL || prejoin_expression->eval(&tmp_tuple, NULL).isTrue()) {
+//		if (prejoin_expression == NULL || prejoin_expression->eval(&tmp_tuple, NULL).isTrue()) {
 			index_data_in[idx].num = idx;
-			tmp_inner_tuple[idx] = tmp_tuple;
+			tmp_inner_tuple[idx] = inner_tuple;
 			for (int i = 0; i < inner_tuple.sizeInValues(); i++) {
 				NValue tmp_value = inner_tuple.getNValue(i);
 
 				setGNValue(&(index_data_in[idx].gn[i]), tmp_value);
 			}
 			idx++;
-		}
+		//}
 	}
 
 	bool ret = true;
@@ -405,16 +404,25 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
 			gn.getResult(join_result);
 
-			for (int i = 0; i < result_size; i++) {
-				for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); col_ctr++) {
-					join_tuple.setNValue(col_ctr,
-							  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[join_result[i].lkey], &tmp_inner_tuple[join_result[i].rkey]));
+			printf("Size of result = %d\n", result_size);
+			printf("Start writing output...\n");
+			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
+				int l = join_result[i].lkey;
+				int r = join_result[i].rkey;
+				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
+					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
+					//printf("i = %d; lkey = %d; rkey = %d\n", i, join_result[i].lkey, join_result[i].rkey);
+					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
+						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
+						join_tuple.setNValue(col_ctr,
+								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+					}
 				}
 
                 if (m_aggExec != NULL) {
                     if (m_aggExec->p_execute_tuple(join_tuple)) {
                         // Get enough rows for LIMIT
-                        earlyReturned = true;
+                        //earlyReturned = true;
                         break;
                     }
                 } else {
@@ -720,6 +728,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
     cleanupInputTempTable(inner_table);
     cleanupInputTempTable(outer_table);
+
+    printf("End of JOIN\n");
     if (outer_size != 0) {
     	free(index_data_out);
     	free(tmp_outer_tuple);
@@ -729,9 +739,10 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     	free(tmp_inner_tuple);
     }
 
-    if (outer_size != 0 && inner_size != 0 && ret && result_size != 0) {
+    if (outer_size != 0 && inner_size != 0 && result_size != 0) {
     	free(join_result);
     }
+
 
     return (true);
 }

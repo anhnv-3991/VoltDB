@@ -10,6 +10,7 @@
 using namespace voltdb;
 
 #define DEFAULT_PART_SIZE_ (256 * 1024)
+#define PART_SIZE_ 1024
 class GPUIJ {
 public:
 	GPUIJ();

@@ -1,0 +1,119 @@
+Time: 2016-01-12 08:38:33.679000
+Message: ZooKeeper service unable to bind to port : 2181
+
+Platform Properties:
+CPU INFO:         4 Cores, 1 Sockets, 8 Hardware Threads
+CPU DESC:         Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz 8192 KB cache
+HOST MEMORY (MB): 32117
+OS PROFILE:       Linux 3.13.0-74-generic amd64 en_US
+JAVA VERSION:     1.7.0_91
+JAVA RUNTIME:     OpenJDK Runtime Environment (1.7.0_91-b02)
+JAVA VM:          OpenJDK 64-Bit Server VM (24.91-b01, mixed mode)
+
+****** Exception Thread ****** 
+java.net.BindException: Address already in use
+	at sun.nio.ch.Net.bind0(Native Method)
+	at sun.nio.ch.Net.bind(Net.java:463)
+	at sun.nio.ch.Net.bind(Net.java:455)
+	at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:223)
+	at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:74)
+	at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:67)
+	at org.apache.zookeeper_voltpatches.server.NIOServerCnxn$Factory.<init>(NIOServerCnxn.java:149)
+	at org.voltcore.agreement.AgreementSite.<init>(AgreementSite.java:140)
+	at org.voltcore.messaging.HostMessenger.notifyOfHosts(HostMessenger.java:675)
+	at org.voltcore.messaging.SocketJoiner.connectToPrimary(SocketJoiner.java:688)
+	at org.voltcore.messaging.SocketJoiner.start(SocketJoiner.java:179)
+	at org.voltcore.messaging.HostMessenger.start(HostMessenger.java:330)
+	at org.voltdb.RealVoltDB.buildClusterMesh(RealVoltDB.java:1595)
+	at org.voltdb.RealVoltDB.initialize(RealVoltDB.java:446)
+	at org.voltdb.VoltDB.initialize(VoltDB.java:903)
+	at org.voltdb.VoltDB.main(VoltDB.java:887)
+
+****** Current Thread ****** 
+Stack trace from crashLocalVoltDB() method:
+java.lang.Thread.dumpThreads(Native Method)
+java.lang.Thread.getAllStackTraces(Thread.java:1640)
+org.voltdb.VoltDB.printStackTraces(VoltDB.java:682)
+org.voltdb.VoltDB.crashLocalVoltDB(VoltDB.java:775)
+org.apache.zookeeper_voltpatches.server.NIOServerCnxn$Factory.<init>(NIOServerCnxn.java:155)
+org.voltcore.agreement.AgreementSite.<init>(AgreementSite.java:140)
+org.voltcore.messaging.HostMessenger.notifyOfHosts(HostMessenger.java:675)
+org.voltcore.messaging.SocketJoiner.connectToPrimary(SocketJoiner.java:688)
+org.voltcore.messaging.SocketJoiner.start(SocketJoiner.java:179)
+org.voltcore.messaging.HostMessenger.start(HostMessenger.java:330)
+org.voltdb.RealVoltDB.buildClusterMesh(RealVoltDB.java:1595)
+org.voltdb.RealVoltDB.initialize(RealVoltDB.java:446)
+org.voltdb.VoltDB.initialize(VoltDB.java:903)
+org.voltdb.VoltDB.main(VoltDB.java:887)
+****** All Threads ******
+
+****** Thread[Finalizer,8,system] ******
+java.lang.Object.wait(Native Method)
+java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
+java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:151)
+java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)
+
+****** Thread[process reaper,10,system] ******
+sun.misc.Unsafe.park(Native Method)
+java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:226)
+java.util.concurrent.SynchronousQueue$TransferStack.awaitFulfill(SynchronousQueue.java:460)
+java.util.concurrent.SynchronousQueue$TransferStack.transfer(SynchronousQueue.java:359)
+java.util.concurrent.SynchronousQueue.poll(SynchronousQueue.java:942)
+java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1068)
+java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+java.lang.Thread.run(Thread.java:745)
+
+****** Thread[Async Logger,5,main] ******
+sun.misc.Unsafe.park(Native Method)
+java.util.concurrent.locks.LockSupport.park(LockSupport.java:186)
+java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2043)
+java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:442)
+java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1068)
+java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+org.voltcore.utils.CoreUtils$6$1.run(CoreUtils.java:644)
+java.lang.Thread.run(Thread.java:745)
+
+****** Thread[main,5,main] ******
+java.lang.Thread.dumpThreads(Native Method)
+java.lang.Thread.getAllStackTraces(Thread.java:1640)
+org.voltdb.VoltDB.printStackTraces(VoltDB.java:682)
+org.voltdb.VoltDB.crashLocalVoltDB(VoltDB.java:775)
+org.apache.zookeeper_voltpatches.server.NIOServerCnxn$Factory.<init>(NIOServerCnxn.java:155)
+org.voltcore.agreement.AgreementSite.<init>(AgreementSite.java:140)
+org.voltcore.messaging.HostMessenger.notifyOfHosts(HostMessenger.java:675)
+org.voltcore.messaging.SocketJoiner.connectToPrimary(SocketJoiner.java:688)
+org.voltcore.messaging.SocketJoiner.start(SocketJoiner.java:179)
+org.voltcore.messaging.HostMessenger.start(HostMessenger.java:330)
+org.voltdb.RealVoltDB.buildClusterMesh(RealVoltDB.java:1595)
+org.voltdb.RealVoltDB.initialize(RealVoltDB.java:446)
+org.voltdb.VoltDB.initialize(VoltDB.java:903)
+org.voltdb.VoltDB.main(VoltDB.java:887)
+
+****** Thread[Volt Server Network - 0,5,main] ******
+sun.nio.ch.EPollArrayWrapper.epollWait(Native Method)
+sun.nio.ch.EPollArrayWrapper.poll(EPollArrayWrapper.java:269)
+sun.nio.ch.EPollSelectorImpl.doSelect(EPollSelectorImpl.java:79)
+sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:87)
+sun.nio.ch.SelectorImpl.select(SelectorImpl.java:98)
+sun.nio.ch.SelectorImpl.select(SelectorImpl.java:102)
+org.voltcore.network.VoltNetwork.run(VoltNetwork.java:303)
+java.lang.Thread.run(Thread.java:745)
+
+****** Thread[Reference Handler,10,system] ******
+java.lang.Object.wait(Native Method)
+java.lang.Object.wait(Object.java:503)
+java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
+
+****** Thread[Volt Server Network - 1,5,main] ******
+sun.nio.ch.EPollArrayWrapper.epollWait(Native Method)
+sun.nio.ch.EPollArrayWrapper.poll(EPollArrayWrapper.java:269)
+sun.nio.ch.EPollSelectorImpl.doSelect(EPollSelectorImpl.java:79)
+sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:87)
+sun.nio.ch.SelectorImpl.select(SelectorImpl.java:98)
+sun.nio.ch.SelectorImpl.select(SelectorImpl.java:102)
+org.voltcore.network.VoltNetwork.run(VoltNetwork.java:303)
+java.lang.Thread.run(Thread.java:745)
+
+****** Thread[Signal Dispatcher,9,system] ******

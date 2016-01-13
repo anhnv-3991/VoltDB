@@ -20,7 +20,8 @@ finally join() store match tuple to result array .
 */
 
 extern "C" {
-CUDAH bool pushStack(int *stack, int *top, int new_val)
+//CUDAH int flag_test;
+CUDAH bool pushStack(GNValue *stack, int *top, GNValue new_val)
 {
 	if (*top >= MAX_STACK_SIZE - 1) {
 		printf("Error: Full GPU stack!\n");
@@ -33,22 +34,21 @@ CUDAH bool pushStack(int *stack, int *top, int new_val)
 	return true;
 }
 
-CUDAH int popStack(int *stack, int *top)
+CUDAH GNValue popStack(GNValue *stack, int *top)
 {
 	if (*top < 0) {
 		printf("Error: Empty GPU stack!\n");
-		return -1;
+		return GNValue::getNullValue();
 	}
-	int retval = stack[*top];
+	GNValue retval = stack[*top];
 	(*top)--;
 	return retval;
 }
 
 //No more recursive
-CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_tuple, IndexData inner_tuple, int *stack)
+CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_tuple, IndexData inner_tuple, GNValue *stack)
 {
 	int top = -1;
-	int idx;
 	GNValue left, right;
 	GTreeNode tmp_node;
 
@@ -56,27 +56,29 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 	memset(stack, 0, MAX_STACK_SIZE);
 	int i;
 	for (i = 0; i < tree_size; i++) {
+		//printf("tree_expression type = %d at i = %d\n", tree_expression[i].type, i);
 		tmp_node = tree_expression[i];
 		if (tmp_node.type == EXPRESSION_TYPE_VALUE_TUPLE) {
 			if (tmp_node.column_idx >= MAX_GNVALUE || tmp_node.column_idx < 0)
 				return false;
 
 			if (tmp_node.tuple_idx == 0) {
-				tree_expression[i].value = outer_tuple.gn[tmp_node.column_idx];
+				if (!pushStack(stack, &top, outer_tuple.gn[tmp_node.column_idx])) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
 			} else if (tmp_node.tuple_idx == 1) {
-				tree_expression[i].value = inner_tuple.gn[tmp_node.column_idx];
+				if (!pushStack(stack, &top, inner_tuple.gn[tmp_node.column_idx])) {
+					printf("Error: Failed to push %d to stack! Exiting...\n", i);
+					return false;
+				}
 			} else {
-				return false;
-			}
-
-			if (!pushStack(stack, &top, i)) {
-				printf("Error: Failed to push %d to stack! Exiting...\n", i);
 				return false;
 			}
 
 			continue;
 		} else if (tmp_node.type == EXPRESSION_TYPE_VALUE_CONSTANT) {
-			if (!pushStack(stack, &top, i)) {
+			if (!pushStack(stack, &top, tmp_node.value)) {
 				printf("Error: Failed to push %d to stack! Exiting...\n, i");
 				return false;
 			}
@@ -84,29 +86,21 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 		}
 
 		// Get left operand
-		idx = popStack(stack, &top);
-		if (idx >= 0)
-			right = tree_expression[idx].value;
-		else
-			return false;
+		right = popStack(stack, &top);
 
 		// Get right operand
-		idx = popStack(stack, &top);
-		if (idx >= 0)
-			left = tree_expression[idx].value;
-		else
-			return false;
+		left = popStack(stack, &top);
 
 		switch(tmp_node.type) {
 			case EXPRESSION_TYPE_CONJUNCTION_AND: {
 				if ((left.getValueType() != VALUE_TYPE_BOOLEAN || right.getValueType() != VALUE_TYPE_BOOLEAN))
 					return false;
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_and(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_and(right);
+
 				break;
 			}
 			case EXPRESSION_TYPE_CONJUNCTION_OR: {
@@ -114,11 +108,11 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_or(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_or(right);
+
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_EQUAL: {
@@ -126,11 +120,11 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_equal(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_equal(right);
+
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
@@ -138,11 +132,11 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_notEqual(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_notEqual(right);
+
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
@@ -150,11 +144,11 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_lessThan(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_lessThan(right);
+
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
@@ -162,11 +156,11 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_lessThanOrEqual(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_lessThanOrEqual(right);
+
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
@@ -174,11 +168,11 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_lessThanOrEqual(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_lessThanOrEqual(right);
+
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
@@ -186,11 +180,11 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, i)) {
+				if (!pushStack(stack, &top, left.op_greaterThanOrEqual(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
-				tree_expression[i].value = left.op_greaterThanOrEqual(right);
+
 				break;
 			}
 			default: {
@@ -199,13 +193,7 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 		}
 	}
 
-	idx = popStack(stack, &top);
-	if (idx < 0 || idx >= tree_size) {
-		printf("Error: index is out of range.\n");
-		return false;
-	}
-
-	return (tree_expression[idx].value.isTrue()) ? true: false;
+	return (popStack(stack, &top).isTrue()) ? true: false;
 }
 
 CUDAH void binarySearchIdx(int *search_key_indices,
@@ -239,6 +227,11 @@ CUDAH void binarySearchIdx(int *search_key_indices,
 				return;
 			tmp_search = search_key.gn[search_idx];
 
+			if (tmp_search.getValueType() == VALUE_TYPE_INVALID || tmp_search.getValueType() == VALUE_TYPE_NULL) {
+				//printf("search key problem: search_idx = %d, num = %d\n", search_idx, search_key.num);
+				middle = -1;
+				break;
+			}
 			if (i >= key_index_size)
 				return;
 			key_idx = key_indices[i];
@@ -246,6 +239,12 @@ CUDAH void binarySearchIdx(int *search_key_indices,
 				return;
 			tmp_idx = search_array[middle].gn[key_idx];
 
+			if (tmp_idx.getValueType() == VALUE_TYPE_INVALID || tmp_idx.getValueType() == VALUE_TYPE_NULL) {
+				middle = -1;
+				//printf("search key problem: middle = %d, num = %d, left = %d, right = %d\n", middle, search_key.num, left_bound, right_bound);
+				break;
+			}
+			//tmp_idx.debug();
 			res = tmp_search.compare_withoutNull(tmp_idx);
 			if (res != 0)
 				break;
@@ -339,16 +338,16 @@ void count(
 
 	//printf("%u\n", outer_part_size);
 
-	if (x < outer_part_size) {
+	//printf("x = %d, k = %d\n", x, k);
+	if (x < outer_part_size && x + k < gpu_size) {
 	//A global memory read is very slow.So repeating values is stored register memory
 		IndexData tmp_outer = outer_dev[x];
-		int tmp_stack[MAX_STACK_SIZE];
-		int res_left, res_right;
+		GNValue tmp_stack[MAX_STACK_SIZE];
+		int res_left = -1, res_right = -1;
 		int res_count = 0;
 		int left_bound = BLOCK_SIZE_Y * blockIdx.y;
-		int right_bound = left_bound + inner_part_size - 1;
-
-		printf("x = %d; left_bound = %d; right_bound = %d\n", x, left_bound, right_bound);
+		//int right_bound = inner_part_size + left_bound - 1;
+		int right_bound = (left_bound + BLOCK_SIZE_Y < inner_part_size) ? (left_bound + BLOCK_SIZE_Y) : (inner_part_size - 1);
 
 		binarySearchIdx(search_key_indices,
 							search_keys_size,
@@ -361,21 +360,26 @@ void count(
 							&res_left,
 							&res_right);
 
+
+
 		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size) {
-			for (; res_left <= res_right; res_left++) {
+			while (res_left <= res_right) {
 				if (end_size > 0)
-					res = res & evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
+					res = evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
 
 				if (post_size > 0)
-					res = res & evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
+					res = evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
 
 				if (res)
 					res_count++;
+				res_left++;
 			}
+
 		}
 
 		count_dev[x + k] = res_count;
 	}
+
 
 	if (x + k == (blockDim.x * gridDim.x * gridDim.y - 1) && x + k + 1 < gpu_size) {
 		count_dev[x + k + 1] = 0;
@@ -403,18 +407,17 @@ __global__ void join(IndexData *outer_dev,
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
 
-	if (x + k >= gpu_size)
-		return;
-
-	if (x < outer_part_size) {
+	if (x < outer_part_size && x + k < gpu_size) {
 		IndexData tmp_outer = outer_dev[x];
 		ulong writeloc = count_dev[x + k];
-		int tmp_stack[MAX_STACK_SIZE];
+		GNValue tmp_stack[MAX_STACK_SIZE];
 		bool res = true;
-		int res_left, res_right;
+		int res_left = -1, res_right = -1;
 		int left_bound = BLOCK_SIZE_Y * blockIdx.y;
-		int right_bound = left_bound + inner_part_size - 1;
+		//int right_bound = inner_part_size + left_bound - 1;
+		int right_bound = (left_bound + BLOCK_SIZE_Y < inner_part_size) ? (left_bound + BLOCK_SIZE_Y - 1) : (inner_part_size - 1);
 
+		//printf("writeloc = %d; x = %d; k = %d\n", writeloc, x, k);
 		binarySearchIdx(search_key_indices,
 							search_keys_size,
 							key_indices,
@@ -427,18 +430,21 @@ __global__ void join(IndexData *outer_dev,
 							&res_right);
 
 		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size) {
-			for (; res_left <= res_right; res_left++) {
+			while(res_left <= res_right) {
 				if (end_size > 0)
-					res = res & evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
+					res = evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
 
 				if (post_size > 0)
-					res = res & evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
+					res = evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
 
 				if (res) {
 					result_dev[writeloc].lkey = tmp_outer.num;
 					result_dev[writeloc].rkey = inner_dev[res_left].num;
+					//printf("x = %d, k = %d\n", x, k);
+					//printf("tmp_outer.num = %d; inner_dev[res_left].num = %d; x = %d; k = %d; res_left = %d; writeloc = %lu\n", tmp_outer.num, inner_dev[res_left].num, x, k, res_left, writeloc);
 					writeloc++;
 				}
+				res_left++;
 			}
 		}
 	}

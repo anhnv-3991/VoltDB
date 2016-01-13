@@ -1,0 +1,2064 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00007f05837005e8, pid=10608, tid=139659925485312
+#
+# JRE version: OpenJDK Runtime Environment (7.0_91-b02) (build 1.7.0_91-b02)
+# Java VM: OpenJDK 64-Bit Server VM (24.91-b01 mixed mode linux-amd64 compressed oops)
+# Derivative: IcedTea 2.6.3
+# Distribution: Ubuntu 14.04 LTS, package 7u91-2.6.3-0ubuntu0.14.04.1
+# Problematic frame:
+# C  [libvoltdb-5.1.so+0x2075e8]  voltdb::NestLoopIndexExecutor::p_execute(voltdb::GenericValueArray<voltdb::NValue> const&)+0x1518
+#
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please include
+# instructions on how to reproduce the bug and visit:
+#   http://icedtea.classpath.org/bugzilla
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007f0614add800):  JavaThread "Iv2ExecutionSite: 0:5" [_thread_in_native, id=10673, stack(0x00007f051c2f7000,0x00007f051c3f8000)]
+
+siginfo:si_signo=SIGSEGV: si_errno=0, si_code=1 (SEGV_MAPERR), si_addr=0x00007f00c4dec120
+
+Registers:
+RAX=0x00007f00c4dec120, RBX=0x0000000000000005, RCX=0x00007f061bb5888d, RDX=0x00007f061be2d9e0
+RSP=0x00007f051c3ed9e0, RBP=0x00007f051c3f4110, RSI=0x00007f049ad1d000, RDI=0x0000000000000000
+R8 =0x2e2e2e7475707475, R9 =0x00007f05839abe9e, R10=0x00007f061be2a6a0, R11=0x0000000000000000
+R12=0x00007f05045cfa70, R13=0x00007f051c3eddf0, R14=0x0000000000000580, R15=0x00007f05045e1f90
+RIP=0x00007f05837005e8, EFLAGS=0x0000000000010203, CSGSFS=0x0000000000000033, ERR=0x0000000000000004
+  TRAPNO=0x000000000000000e
+
+Top of Stack: (sp=0x00007f051c3ed9e0)
+0x00007f051c3ed9e0:   00007f051c3edd30 00007f051c3edd50
+0x00007f051c3ed9f0:   00007f051c3edd70 00007f051c3edd90
+0x00007f051c3eda00:   00007f051c3eddb0 00007f051c3eddd0
+0x00007f051c3eda10:   00007f051c3eddf0 0000000000001910
+0x00007f051c3eda20:   0000000000000000 0000000000000000
+0x00007f051c3eda30:   0000000000000001 0000000000000000
+0x00007f051c3eda40:   00007f051c3ee001 00007f05045e1f01
+0x00007f051c3eda50:   00007f051c3ee010 00007f051c3edc90
+0x00007f051c3eda60:   000000000000003c 0000000000000028
+0x00007f051c3eda70:   00007f051c3edc30 00007f051c3eddd0
+0x00007f051c3eda80:   00007f051c3ede10 00000000000001d0
+0x00007f051c3eda90:   00007f05045e0280 00007f05045d0930
+0x00007f051c3edaa0:   00000005f71c12a8 00007f051c3edef0
+0x00007f051c3edab0:   00007f04be728010 0000000000005b20
+0x00007f051c3edac0:   00007f0504458c90 00007f04be6cc010
+0x00007f051c3edad0:   00007f0500000000 00007f051c3ede80
+0x00007f051c3edae0:   00007f05045e1f90 00007f051c3edbd0
+0x00007f051c3edaf0:   00007f051c3eddb0 00007f051c3edf60
+0x00007f051c3edb00:   00007f050444a380 00007f05045cf8e0
+0x00007f051c3edb10:   00000000ffffffff 0000000000000000
+0x00007f051c3edb20:   00000000ffffffff 0000000000000000
+0x00007f051c3edb30:   0000000000000000 0000000000000000
+0x00007f051c3edb40:   0000000000000000 00000000f76b8a98
+0x00007f051c3edb50:   0000000000000000 0000000000000000
+0x00007f051c3edb60:   00000000f7414818 0000000000000920
+0x00007f051c3edb70:   0000000000000000 00000000f76cce60
+0x00007f051c3edb80:   00000000f7414818 0000000000000000
+0x00007f051c3edb90:   00000000f776c810 0000000000000000
+0x00007f051c3edba0:   00000000f75ccf40 0000000000000000
+0x00007f051c3edbb0:   00000000f766ed40 00000000f76b8b60
+0x00007f051c3edbc0:   00007f05045cf880 00007f04bed9466f
+0x00007f051c3edbd0:   00007f05045dfb70 00007f04c08bf010 
+
+Instructions: (pc=0x00007f05837005e8)
+0x00007f05837005c8:   ff 83 f8 ff 74 0c 3b 85 c0 99 ff ff 0f 8e 8f fe
+0x00007f05837005d8:   ff ff 49 63 07 48 c1 e0 04 48 03 85 b8 99 ff ff
+0x00007f05837005e8:   48 8b 18 48 8b 40 08 48 89 85 60 99 ff ff 8b 85
+0x00007f05837005f8:   94 99 ff ff 48 89 9d 78 99 ff ff 85 c0 0f 84 15 
+
+Register to memory mapping:
+
+RAX=0x00007f00c4dec120 is an unknown value
+RBX=0x0000000000000005 is an unknown value
+RCX=0x00007f061bb5888d: __write+0x2d in /lib/x86_64-linux-gnu/libc.so.6 at 0x00007f061ba6d000
+RDX=0x00007f061be2d9e0: <offset 0x3c09e0> in /lib/x86_64-linux-gnu/libc.so.6 at 0x00007f061ba6d000
+RSP=0x00007f051c3ed9e0 is pointing into the stack for thread: 0x00007f0614add800
+RBP=0x00007f051c3f4110 is pointing into the stack for thread: 0x00007f0614add800
+RSI=0x00007f049ad1d000 is an unknown value
+RDI=0x0000000000000000 is an unknown value
+R8 =0x2e2e2e7475707475 is an unknown value
+R9 =0x00007f05839abe9e: <offset 0x4b2e9e> in /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so at 0x00007f05834f9000
+R10=0x00007f061be2a6a0: _IO_file_jumps+0 in /lib/x86_64-linux-gnu/libc.so.6 at 0x00007f061ba6d000
+R11=0x0000000000000000 is an unknown value
+R12=0x00007f05045cfa70 is an unknown value
+R13=0x00007f051c3eddf0 is pointing into the stack for thread: 0x00007f0614add800
+R14=0x0000000000000580 is an unknown value
+R15=0x00007f05045e1f90 is an unknown value
+
+
+Stack: [0x00007f051c2f7000,0x00007f051c3f8000],  sp=0x00007f051c3ed9e0,  free space=986k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libvoltdb-5.1.so+0x2075e8]  voltdb::NestLoopIndexExecutor::p_execute(voltdb::GenericValueArray<voltdb::NValue> const&)+0x1518
+C  [libvoltdb-5.1.so+0x48deec]  voltdb::ExecutorVector::execute(voltdb::VoltDBEngine*)+0x3c
+C  [libvoltdb-5.1.so+0x48a035]  voltdb::VoltDBEngine::executePlanFragment(long, long, long, long, long, long, bool, bool)+0x125
+C  [libvoltdb-5.1.so+0x48a60d]  voltdb::VoltDBEngine::executePlanFragments(int, long*, long*, voltdb::ReferenceSerializeInput<(voltdb::Endianess)0>&, long, long, long, long, long)+0x31d
+C  [libvoltdb-5.1.so+0x1ce53a]  Java_org_voltdb_jni_ExecutionEngine_nativeExecutePlanFragments+0x19a
+j  org.voltdb.jni.ExecutionEngine.nativeExecutePlanFragments(JI[J[JJJJJJ)I+0
+j  org.voltdb.jni.ExecutionEngineJNI.coreExecutePlanFragments(I[J[J[Ljava/lang/Object;JJJJJ)[Lorg/voltdb/VoltTable;+329
+j  org.voltdb.jni.ExecutionEngine.executePlanFragments(I[J[J[Ljava/lang/Object;[Ljava/lang/String;JJJJJ)[Lorg/voltdb/VoltTable;+52
+j  org.voltdb.iv2.Site.executePlanFragments(I[J[J[Ljava/lang/Object;[Ljava/lang/String;JJJZ)[Lorg/voltdb/VoltTable;+36
+j  org.voltdb.iv2.FragmentTask.processFragmentTask(Lorg/voltdb/SiteProcedureConnection;)Lorg/voltdb/messaging/FragmentResponseMessage;+346
+j  org.voltdb.iv2.FragmentTask.run(Lorg/voltdb/SiteProcedureConnection;)V+96
+j  org.voltdb.iv2.Site.run()V+120
+j  java.lang.Thread.run()V+11
+v  ~StubRoutines::call_stub
+V  [libjvm.so+0x5edc89]  JavaCalls::call_helper(JavaValue*, methodHandle*, JavaCallArguments*, Thread*)+0x339
+V  [libjvm.so+0x5ecade]  JavaCalls::call_virtual(JavaValue*, Handle, KlassHandle, Symbol*, Symbol*, Thread*)+0x20e
+V  [libjvm.so+0x6296d1]  thread_entry(JavaThread*, Thread*)+0xd1
+V  [libjvm.so+0x906c70]  JavaThread::thread_main_inner()+0xf0
+V  [libjvm.so+0x906ee1]  JavaThread::run()+0x221
+V  [libjvm.so+0x7cc742]  java_start(Thread*)+0xf2
+
+Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
+j  org.voltdb.jni.ExecutionEngine.nativeExecutePlanFragments(JI[J[JJJJJJ)I+0
+j  org.voltdb.jni.ExecutionEngineJNI.coreExecutePlanFragments(I[J[J[Ljava/lang/Object;JJJJJ)[Lorg/voltdb/VoltTable;+329
+j  org.voltdb.jni.ExecutionEngine.executePlanFragments(I[J[J[Ljava/lang/Object;[Ljava/lang/String;JJJJJ)[Lorg/voltdb/VoltTable;+52
+j  org.voltdb.iv2.Site.executePlanFragments(I[J[J[Ljava/lang/Object;[Ljava/lang/String;JJJZ)[Lorg/voltdb/VoltTable;+36
+j  org.voltdb.iv2.FragmentTask.processFragmentTask(Lorg/voltdb/SiteProcedureConnection;)Lorg/voltdb/messaging/FragmentResponseMessage;+346
+j  org.voltdb.iv2.FragmentTask.run(Lorg/voltdb/SiteProcedureConnection;)V+96
+j  org.voltdb.iv2.Site.run()V+120
+j  java.lang.Thread.run()V+11
+v  ~StubRoutines::call_stub
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0x00007f0564002800 JavaThread "RO MP Iv2ExecutionSite - 0:8 - 1" daemon [_thread_blocked, id=10920, stack(0x00007f051c074000,0x00007f051c0f5000)]
+  0x00007f05a402a000 JavaThread "SystemInformationAgent" daemon [_thread_blocked, id=10817, stack(0x00007f04c888c000,0x00007f04c88cd000)]
+  0x00007f05b0048000 JavaThread "Ad Hoc Planner - 0" daemon [_thread_blocked, id=10767, stack(0x00007f04cbab2000,0x00007f04cbaf3000)]
+  0x00007f05b0026000 JavaThread "SystemCatalogAgent" daemon [_thread_blocked, id=10758, stack(0x00007f04cba71000,0x00007f04cbab2000)]
+  0x00007f057c001000 JavaThread "Client authenticator - 0" daemon [_thread_blocked, id=10753, stack(0x00007f04cbaf3000,0x00007f04cbb34000)]
+  0x00007f056000f800 JavaThread "Estimated Time Updater" daemon [_thread_blocked, id=10713, stack(0x00007f04cbbf7000,0x00007f04cbcf8000)]
+  0x00007f0578024000 JavaThread "qtp1691190141-73 Acceptor0 SocketConnector@0.0.0.0:8080" [_thread_in_native, id=10712, stack(0x00007f04cbf91000,0x00007f04cc092000)]
+  0x00007f0578006000 JavaThread "RateLimitedClientNotifier" daemon [_thread_blocked, id=10711, stack(0x00007f04cbb34000,0x00007f04cbb75000)]
+  0x00007f0578003800 JavaThread "AdminPort connection acceptor" daemon [_thread_in_native, id=10710, stack(0x00007f04cbb75000,0x00007f04cbbb6000)]
+  0x00007f0578002000 JavaThread "ClientPort connection acceptor" daemon [_thread_in_native, id=10709, stack(0x00007f04cbbb6000,0x00007f04cbbf7000)]
+  0x00007f061400b000 JavaThread "DestroyJavaVM" [_thread_blocked, id=10609, stack(0x00007f061d541000,0x00007f061d642000)]
+  0x00007f0614af0800 JavaThread "SnapshotDaemon" daemon [_thread_blocked, id=10704, stack(0x00007f04cbdf9000,0x00007f04cbe3a000)]
+  0x00007f056000e000 JavaThread "StatsAgent" daemon [_thread_blocked, id=10703, stack(0x00007f04cbf50000,0x00007f04cbf91000)]
+  0x00007f0614945000 JavaThread "Periodic Work" daemon [_thread_blocked, id=10700, stack(0x00007f04cc092000,0x00007f04cc0d3000)]
+  0x00007f0614944000 JavaThread "SnapshotCompletionMonitor" daemon [_thread_blocked, id=10699, stack(0x00007f04cc0d3000,0x00007f04cc114000)]
+  0x00007f05544bd000 JavaThread "process reaper" daemon [_thread_blocked, id=10685, stack(0x00007f050c0c3000,0x00007f050c0fc000)]
+  0x00007f0614ac0000 JavaThread "Iv2ExecutionSite: 0:8" [_thread_blocked, id=10682, stack(0x00007f04ed1fd000,0x00007f04ed2fe000)]
+  0x00007f0614abe000 JavaThread "Iv2ExecutionSite: 0:7" [_thread_blocked, id=10680, stack(0x00007f04f56fd000,0x00007f04f57fe000)]
+  0x00007f0614ae1800 JavaThread "Iv2ExecutionSite: 0:6" [_thread_in_native, id=10677, stack(0x00007f04fdafc000,0x00007f04fdbfd000)]
+=>0x00007f0614add800 JavaThread "Iv2ExecutionSite: 0:5" [_thread_in_native, id=10673, stack(0x00007f051c2f7000,0x00007f051c3f8000)]
+  0x00007f0614ab9000 JavaThread "Iv2ExecutionSite: 0:4" [_thread_blocked, id=10670, stack(0x00007f051e0fc000,0x00007f051e1fd000)]
+  0x00007f0614ab5800 JavaThread "Iv2ExecutionSite: 0:3" [_thread_in_native, id=10664, stack(0x00007f053c0f9000,0x00007f053c1fa000)]
+  0x00007f0614ad7800 JavaThread "Iv2ExecutionSite: 0:2" [_thread_blocked, id=10661, stack(0x00007f053e6ff000,0x00007f053e800000)]
+  0x00007f0614b86800 JavaThread "Iv2ExecutionSite: 0:1" [_thread_in_native, id=10658, stack(0x00007f0580299000,0x00007f058039a000)]
+  0x00007f0614b80000 JavaThread "Iv2ExecutionSite: 0:0" [_thread_blocked, id=10655, stack(0x00007f0583d04000,0x00007f0583e05000)]
+  0x00007f0614b62800 JavaThread "Periodic Priority Work" daemon [_thread_blocked, id=10654, stack(0x00007f0583c82000,0x00007f0583cc3000)]
+  0x00007f0614919000 JavaThread "MpInitiator send" [_thread_blocked, id=10651, stack(0x00007f0583e08000,0x00007f0583e41000)]
+  0x00007f0614917800 JavaThread "MpInitiator deliver" [_thread_blocked, id=10650, stack(0x00007f0583e41000,0x00007f0583e7a000)]
+  0x00007f06147bb800 JavaThread "main-EventThread" daemon [_thread_blocked, id=10637, stack(0x00007f05e818d000,0x00007f05e828e000)]
+  0x00007f06147bd800 JavaThread "main-SendThread(localhost:2181)" daemon [_thread_in_native, id=10636, stack(0x00007f05e828e000,0x00007f05e838f000)]
+  0x00007f0614784800 JavaThread "ZooKeeperServer" [_thread_blocked, id=10635, stack(0x00007f05e838f000,0x00007f05e8490000)]
+  0x00007f0614782000 JavaThread "NIOServerCxn.Factory:/127.0.0.1:2181" daemon [_thread_in_native, id=10634, stack(0x00007f05e8490000,0x00007f05e8591000)]
+  0x00007f061468d800 JavaThread "Volt Server Network - 1" daemon [_thread_in_native, id=10633, stack(0x00007f05e8591000,0x00007f05e8692000)]
+  0x00007f061468c000 JavaThread "Volt Server Network - 0" daemon [_thread_in_native, id=10632, stack(0x00007f05e8692000,0x00007f05e8793000)]
+  0x00007f061468b000 JavaThread "Socket Joiner" daemon [_thread_in_native, id=10631, stack(0x00007f05e8793000,0x00007f05e87d4000)]
+  0x00007f06144d6000 JavaThread "Async Logger" daemon [_thread_blocked, id=10630, stack(0x00007f05e89dd000,0x00007f05e8a1e000)]
+  0x00007f061418d000 JavaThread "Service Thread" daemon [_thread_blocked, id=10628, stack(0x00007f05ea454000,0x00007f05ea555000)]
+  0x00007f061418a800 JavaThread "C2 CompilerThread1" daemon [_thread_blocked, id=10627, stack(0x00007f05ea555000,0x00007f05ea656000)]
+  0x00007f0614188800 JavaThread "C2 CompilerThread0" daemon [_thread_blocked, id=10626, stack(0x00007f05ea656000,0x00007f05ea757000)]
+  0x00007f0614186000 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=10625, stack(0x00007f05ea757000,0x00007f05ea858000)]
+  0x00007f0614184000 JavaThread "Surrogate Locker Thread (Concurrent GC)" daemon [_thread_blocked, id=10624, stack(0x00007f05ea858000,0x00007f05ea959000)]
+  0x00007f0614158800 JavaThread "Finalizer" daemon [_thread_blocked, id=10623, stack(0x00007f05eb129000,0x00007f05eb22a000)]
+  0x00007f0614156800 JavaThread "Reference Handler" daemon [_thread_blocked, id=10622, stack(0x00007f05eb22a000,0x00007f05eb32b000)]
+
+Other Threads:
+  0x00007f0614152000 VMThread [stack: 0x00007f05eb32b000,0x00007f05eb42c000] [id=10621]
+  0x00007f0614198800 WatcherThread [stack: 0x00007f05ea353000,0x00007f05ea454000] [id=10629]
+
+VM state:not at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+Heap
+ par new generation   total 613440K, used 545966K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,  93% used [0x0000000775a00000, 0x0000000794c4f260, 0x0000000796e90000)
+  from space 68096K,  52% used [0x000000079b110000, 0x000000079d3ec810, 0x000000079f390000)
+  to   space 68096K,   0% used [0x0000000796e90000, 0x0000000796e90000, 0x000000079b110000)
+ concurrent mark-sweep generation total 1415616K, used 27079K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 30468K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+
+Card table byte_map: [0x00007f061811a000,0x00007f061856e000] byte_map_base: 0x00007f061456d000
+
+Polling page: 0x00007f061d674000
+
+Code Cache  [0x00007f0611000000, 0x00007f0611270000, 0x00007f0614000000)
+ total_blobs=1161 nmethods=659 adapters=455 free_code_cache=47337Kb largest_free_block=48427008
+
+Compilation events (10 events):
+Event: 13.828 Thread 0x00007f0614188800  750             java.util.TreeMap::getFirstEntry (26 bytes)
+Event: 13.829 Thread 0x00007f0614188800 nmethod 750 0x00007f06111c7590 code [0x00007f06111c76c0, 0x00007f06111c7778]
+Event: 14.267 Thread 0x00007f061418a800  751             java.util.ArrayDeque::addLast (53 bytes)
+Event: 14.268 Thread 0x00007f061418a800 nmethod 751 0x00007f06111c99d0 code [0x00007f06111c9b20, 0x00007f06111c9c88]
+Event: 16.705 Thread 0x00007f0614188800  752             org.voltcore.agreement.RestrictedPriorityQueue::updateQueueState (338 bytes)
+Event: 16.705 Thread 0x00007f061418a800  753             org.voltcore.agreement.RestrictedPriorityQueue::executeStateChange (84 bytes)
+Event: 16.708 Thread 0x00007f061418a800 nmethod 753 0x00007f06111c96d0 code [0x00007f06111c9820, 0x00007f06111c9948]
+Event: 16.713 Thread 0x00007f0614188800 nmethod 752 0x00007f06111cae90 code [0x00007f06111cb060, 0x00007f06111cb690]
+Event: 16.764 Thread 0x00007f061418a800  754             org.voltdb.VoltTableRow::getLong (253 bytes)
+Event: 16.769 Thread 0x00007f061418a800 nmethod 754 0x00007f06111cbf50 code [0x00007f06111cc180, 0x00007f06111ccae0]
+
+GC Heap History (10 events):
+Event: 7.276 GC heap before
+{Heap before GC invocations=4 (full 0):
+ par new generation   total 613440K, used 548135K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,  99% used [0x0000000775a00000, 0x0000000796ad0fc8, 0x0000000796e90000)
+  from space 68096K,   9% used [0x0000000796e90000, 0x0000000797508c98, 0x000000079b110000)
+  to   space 68096K,   0% used [0x000000079b110000, 0x000000079b110000, 0x000000079f390000)
+ concurrent mark-sweep generation total 1415616K, used 13846K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29397K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+Event: 7.286 GC heap after
+Heap after GC invocations=5 (full 0):
+ par new generation   total 613440K, used 64562K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,   0% used [0x0000000775a00000, 0x0000000775a00000, 0x0000000796e90000)
+  from space 68096K,  94% used [0x000000079b110000, 0x000000079f01ca80, 0x000000079f390000)
+  to   space 68096K,   0% used [0x0000000796e90000, 0x0000000796e90000, 0x000000079b110000)
+ concurrent mark-sweep generation total 1415616K, used 13846K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29397K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+}
+Event: 7.406 GC heap before
+{Heap before GC invocations=5 (full 0):
+ par new generation   total 613440K, used 605149K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,  99% used [0x0000000775a00000, 0x00000007969eab28, 0x0000000796e90000)
+  from space 68096K,  94% used [0x000000079b110000, 0x000000079f01ca80, 0x000000079f390000)
+  to   space 68096K,   0% used [0x0000000796e90000, 0x0000000796e90000, 0x000000079b110000)
+ concurrent mark-sweep generation total 1415616K, used 13846K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29418K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+Event: 7.420 GC heap after
+Heap after GC invocations=6 (full 0):
+ par new generation   total 613440K, used 68096K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,   0% used [0x0000000775a00000, 0x0000000775a00000, 0x0000000796e90000)
+  from space 68096K, 100% used [0x0000000796e90000, 0x000000079b110000, 0x000000079b110000)
+  to   space 68096K,   0% used [0x000000079b110000, 0x000000079b110000, 0x000000079f390000)
+ concurrent mark-sweep generation total 1415616K, used 24054K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29418K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+}
+Event: 7.549 GC heap before
+{Heap before GC invocations=6 (full 0):
+ par new generation   total 613440K, used 611034K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,  99% used [0x0000000775a00000, 0x0000000796c36808, 0x0000000796e90000)
+  from space 68096K, 100% used [0x0000000796e90000, 0x000000079b110000, 0x000000079b110000)
+  to   space 68096K,   0% used [0x000000079b110000, 0x000000079b110000, 0x000000079f390000)
+ concurrent mark-sweep generation total 1415616K, used 24054K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29491K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+Event: 7.561 GC heap after
+Heap after GC invocations=7 (full 0):
+ par new generation   total 613440K, used 65625K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,   0% used [0x0000000775a00000, 0x0000000775a00000, 0x0000000796e90000)
+  from space 68096K,  96% used [0x000000079b110000, 0x000000079f126408, 0x000000079f390000)
+  to   space 68096K,   0% used [0x0000000796e90000, 0x0000000796e90000, 0x000000079b110000)
+ concurrent mark-sweep generation total 1415616K, used 25348K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29491K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+}
+Event: 7.648 GC heap before
+{Heap before GC invocations=7 (full 0):
+ par new generation   total 613440K, used 602928K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,  98% used [0x0000000775a00000, 0x00000007966b5e70, 0x0000000796e90000)
+  from space 68096K,  96% used [0x000000079b110000, 0x000000079f126408, 0x000000079f390000)
+  to   space 68096K,   0% used [0x0000000796e90000, 0x0000000796e90000, 0x000000079b110000)
+ concurrent mark-sweep generation total 1415616K, used 25348K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29498K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+Event: 7.652 GC heap after
+Heap after GC invocations=8 (full 0):
+ par new generation   total 613440K, used 7001K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,   0% used [0x0000000775a00000, 0x0000000775a00000, 0x0000000796e90000)
+  from space 68096K,  10% used [0x0000000796e90000, 0x0000000797566510, 0x000000079b110000)
+  to   space 68096K,   0% used [0x000000079b110000, 0x000000079b110000, 0x000000079f390000)
+ concurrent mark-sweep generation total 1415616K, used 27079K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29498K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+}
+Event: 7.738 GC heap before
+{Heap before GC invocations=8 (full 0):
+ par new generation   total 613440K, used 548347K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,  99% used [0x0000000775a00000, 0x0000000796aa87f8, 0x0000000796e90000)
+  from space 68096K,  10% used [0x0000000796e90000, 0x0000000797566510, 0x000000079b110000)
+  to   space 68096K,   0% used [0x000000079b110000, 0x000000079b110000, 0x000000079f390000)
+ concurrent mark-sweep generation total 1415616K, used 27079K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29512K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+Event: 7.745 GC heap after
+Heap after GC invocations=9 (full 0):
+ par new generation   total 613440K, used 35698K [0x0000000775a00000, 0x000000079f390000, 0x000000079f390000)
+  eden space 545344K,   0% used [0x0000000775a00000, 0x0000000775a00000, 0x0000000796e90000)
+  from space 68096K,  52% used [0x000000079b110000, 0x000000079d3ec810, 0x000000079f390000)
+  to   space 68096K,   0% used [0x0000000796e90000, 0x0000000796e90000, 0x000000079b110000)
+ concurrent mark-sweep generation total 1415616K, used 27079K [0x000000079f390000, 0x00000007f5a00000, 0x00000007f5a00000)
+ concurrent-mark-sweep perm gen total 65536K, used 29512K [0x00000007f5a00000, 0x00000007f9a00000, 0x0000000800000000)
+}
+
+Deoptimization events (10 events):
+Event: 17.354 Thread 0x00007f0614ad7800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111a0634 method=java.nio.Bits.getLongB(Ljava/nio/ByteBuffer;I)J @ 2
+Event: 17.354 Thread 0x00007f0614ae1800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111a0634 method=java.nio.Bits.getLongB(Ljava/nio/ByteBuffer;I)J @ 2
+Event: 17.354 Thread 0x00007f0614ab5800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111a0634 method=java.nio.Bits.getLongB(Ljava/nio/ByteBuffer;I)J @ 2
+Event: 17.354 Thread 0x00007f0614add800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111a0abc method=java.nio.Bits.getLongB(Ljava/nio/ByteBuffer;I)J @ 2
+Event: 17.354 Thread 0x00007f0614b86800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111a0634 method=java.nio.Bits.getLongB(Ljava/nio/ByteBuffer;I)J @ 2
+Event: 17.354 Thread 0x00007f0614ad7800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111b4904 method=org.voltdb.jni.ExecutionEngineJNI.coreExecutePlanFragments(I[J[J[Ljava/lang/Object;JJJJJ)[Lorg/voltdb/VoltTable; @ 122
+Event: 17.354 Thread 0x00007f0614ab9000 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111b4904 method=org.voltdb.jni.ExecutionEngineJNI.coreExecutePlanFragments(I[J[J[Ljava/lang/Object;JJJJJ)[Lorg/voltdb/VoltTable; @ 122
+Event: 17.354 Thread 0x00007f0614ab5800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111b4904 method=org.voltdb.jni.ExecutionEngineJNI.coreExecutePlanFragments(I[J[J[Ljava/lang/Object;JJJJJ)[Lorg/voltdb/VoltTable; @ 122
+Event: 17.354 Thread 0x00007f0614abe000 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111b4904 method=org.voltdb.jni.ExecutionEngineJNI.coreExecutePlanFragments(I[J[J[Ljava/lang/Object;JJJJJ)[Lorg/voltdb/VoltTable; @ 122
+Event: 17.354 Thread 0x00007f0614add800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f06111b4904 method=org.voltdb.jni.ExecutionEngineJNI.coreExecutePlanFragments(I[J[J[Ljava/lang/Object;JJJJJ)[Lorg/voltdb/VoltTable; @ 122
+
+Internal exceptions (10 events):
+Event: 17.352 Thread 0x00007f0614917800 Threw 0x000000077770c2d8 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.352 Thread 0x00007f0614917800 Threw 0x000000077771bf30 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.352 Thread 0x00007f0614917800 Threw 0x000000077771ed10 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.352 Thread 0x00007f0614917800 Threw 0x000000077772c760 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.353 Thread 0x00007f0614917800 Threw 0x000000077772f658 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.353 Thread 0x00007f0614917800 Threw 0x00000007777305d0 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.353 Thread 0x00007f0614917800 Threw 0x00000007920578e0 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.353 Thread 0x00007f0564002800 Threw 0x00000007920a38c8 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.353 Thread 0x00007f0614b86800 Threw 0x0000000790afdda8 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jvm.cpp:1322
+Event: 17.477 Thread 0x00007f0614945000 Threw 0x000000077d274378 at /build/openjdk-7-zaTxYK/openjdk-7-7u91-2.6.3/build/openjdk/hotspot/src/share/vm/prims/jni.cpp:721
+
+Events (10 events):
+Event: 17.448 Thread 0x00007f0614906000 Thread exited: 0x00007f0614906000
+Event: 17.448 Thread 0x00007f0614adf000 Thread exited: 0x00007f0614adf000
+Event: 17.448 Thread 0x00007f061490c000 Thread exited: 0x00007f061490c000
+Event: 17.449 Thread 0x00007f0614907800 Thread exited: 0x00007f0614907800
+Event: 17.453 Thread 0x00007f0528002000 Thread exited: 0x00007f0528002000
+Event: 17.461 Thread 0x00007f0524156000 Thread exited: 0x00007f0524156000
+Event: 17.461 Thread 0x00007f0614ac7000 Thread exited: 0x00007f0614ac7000
+Event: 17.462 Thread 0x00007f06148ec800 Thread exited: 0x00007f06148ec800
+Event: 17.486 Executing VM operation: RevokeBias
+Event: 17.487 Executing VM operation: RevokeBias done
+
+
+Dynamic libraries:
+00400000-00401000 r-xp 00000000 fc:00 90446880                           /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+00600000-00601000 r--p 00000000 fc:00 90446880                           /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+00601000-00602000 rw-p 00001000 fc:00 90446880                           /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+01e26000-02922000 rw-p 00000000 00:00 0                                  [heap]
+200000000-600000000 ---p 00000000 00:00 0 
+775a00000-7f9a00000 rw-p 00000000 00:00 0 
+7f9a00000-800000000 rw-p 00000000 00:00 0 
+800000000-800100000 rw-s b55dd000 00:05 11809                            /dev/nvidiactl
+800100000-801900000 ---p 00000000 00:00 0 
+801900000-801a00000 rw-s 64f6bf000 00:05 11809                           /dev/nvidiactl
+801a00000-804200000 ---p 00000000 00:00 0 
+804200000-804300000 rw-s 6d9860000 00:05 11809                           /dev/nvidiactl
+804300000-805b00000 ---p 00000000 00:00 0 
+805b00000-805c00000 rw-s 6c3322000 00:05 11809                           /dev/nvidiactl
+805c00000-807800000 ---p 00000000 00:00 0 
+807800000-807900000 rw-s 6dbdfa000 00:05 11809                           /dev/nvidiactl
+807900000-809100000 ---p 00000000 00:00 0 
+809100000-809200000 rw-s b24f9000 00:05 11809                            /dev/nvidiactl
+809200000-809e00000 ---p 00000000 00:00 0 
+809e00000-809f00000 rw-s 6e09a5000 00:05 11809                           /dev/nvidiactl
+809f00000-80a000000 rw-s 6e69aa000 00:05 11809                           /dev/nvidiactl
+80a000000-80b100000 ---p 00000000 00:00 0 
+80b100000-80b200000 rw-s 6cd64f000 00:05 11809                           /dev/nvidiactl
+80b200000-80c300000 ---p 00000000 00:00 0 
+80c300000-80c400000 rw-s 6bd8d9000 00:05 11809                           /dev/nvidiactl
+80c400000-80e000000 ---p 00000000 00:00 0 
+80e000000-80e100000 rw-s 6c6576000 00:05 11809                           /dev/nvidiactl
+80e100000-813d00000 ---p 00000000 00:00 0 
+813d00000-813e00000 rw-s 6c298d000 00:05 11809                           /dev/nvidiactl
+813e00000-814f00000 ---p 00000000 00:00 0 
+814f00000-815000000 rw-s 6b978e000 00:05 11809                           /dev/nvidiactl
+815000000-81d100000 ---p 00000000 00:00 0 
+81d100000-81d200000 rw-s 6d3fd3000 00:05 11809                           /dev/nvidiactl
+81d200000-81e700000 ---p 00000000 00:00 0 
+81e700000-81e800000 rw-s 6c02ae000 00:05 11809                           /dev/nvidiactl
+81e800000-822500000 ---p 00000000 00:00 0 
+822500000-822600000 rw-s a8397000 00:05 11809                            /dev/nvidiactl
+822600000-823700000 ---p 00000000 00:00 0 
+823700000-823800000 rw-s 5aa07c000 00:05 11809                           /dev/nvidiactl
+823800000-823d00000 ---p 00000000 00:00 0 
+823d00000-823e00000 rw-s 6c6c18000 00:05 11809                           /dev/nvidiactl
+823e00000-824b00000 ---p 00000000 00:00 0 
+824b00000-824c00000 rw-s 5bc5fd000 00:05 11809                           /dev/nvidiactl
+824c00000-825100000 ---p 00000000 00:00 0 
+825100000-825200000 rw-s b5b22000 00:05 11809                            /dev/nvidiactl
+825200000-825600000 ---p 00000000 00:00 0 
+825600000-825700000 rw-s 6c220a000 00:05 11809                           /dev/nvidiactl
+825700000-825800000 ---p 00000000 00:00 0 
+825800000-825900000 rw-s 5a0795000 00:05 11809                           /dev/nvidiactl
+825900000-825f00000 ---p 00000000 00:00 0 
+825f00000-826000000 rw-s 6c8b20000 00:05 11809                           /dev/nvidiactl
+826000000-826500000 ---p 00000000 00:00 0 
+826500000-826600000 rw-s 6c0802000 00:05 11809                           /dev/nvidiactl
+826600000-826700000 ---p 00000000 00:00 0 
+826700000-826800000 rw-s 8fccf000 00:05 11809                            /dev/nvidiactl
+826800000-826900000 rw-s 5b0b07000 00:05 11809                           /dev/nvidiactl
+826900000-826b00000 ---p 00000000 00:00 0 
+826b00000-826c00000 rw-s 6c362d000 00:05 11809                           /dev/nvidiactl
+826c00000-827c00000 ---p 00000000 00:00 0 
+827c00000-827d00000 rw-s 6e0b0a000 00:05 11809                           /dev/nvidiactl
+827d00000-827e00000 ---p 00000000 00:00 0 
+827e00000-827f00000 rw-s 5aa7bd000 00:05 11809                           /dev/nvidiactl
+827f00000-828000000 rw-s 6e0b68000 00:05 11809                           /dev/nvidiactl
+828000000-828400000 ---p 00000000 00:00 0 
+828400000-828500000 rw-s 5bf090000 00:05 11809                           /dev/nvidiactl
+828500000-848900000 ---p 00000000 00:00 0 
+848900000-848a00000 rw-s 5a17fb000 00:05 11809                           /dev/nvidiactl
+848a00000-848d00000 ---p 00000000 00:00 0 
+848d00000-848e00000 rw-s 8d975000 00:05 11809                            /dev/nvidiactl
+848e00000-849800000 ---p 00000000 00:00 0 
+849800000-849900000 rw-s 00000000 00:04 106163                           /dev/zero (deleted)
+849900000-84a2a0000 ---p 00000000 00:00 0 
+84a2a0000-84a3a1000 rw-s 00000000 00:04 102525                           /dev/zero (deleted)
+84a3a1000-1500000000 ---p 00000000 00:00 0 
+7f0492c10000-7f0492fe3000 rw-p 00000000 00:00 0 
+7f0493ad9000-7f0493bb9000 rw-s 6e0628000 00:05 11809                     /dev/nvidiactl
+7f049431b000-7f0494382000 rw-p 00000000 00:00 0 
+7f0494462000-7f0494562000 rw-s 5bc73a000 00:05 11809                     /dev/nvidiactl
+7f0494842000-7f0494942000 rw-s 5a3de8000 00:05 11809                     /dev/nvidiactl
+7f0494b22000-7f0494c22000 rw-s 6d78ad000 00:05 11809                     /dev/nvidiactl
+7f0494c89000-7f0494c8a000 ---p 00000000 00:00 0 
+7f0494c8a000-7f049548a000 rwxp 00000000 00:00 0 
+7f0495d8b000-7f0495d8c000 ---p 00000000 00:00 0 
+7f0495d8c000-7f049658c000 rwxp 00000000 00:00 0                          [stack:10935]
+7f04967f3000-7f0496bf3000 rw-s 5b1114000 00:05 11809                     /dev/nvidiactl
+7f04971f3000-7f04975f3000 rw-s 5a1b43000 00:05 11809                     /dev/nvidiactl
+7f04975f3000-7f04975f4000 ---p 00000000 00:00 0 
+7f04975f4000-7f0497df4000 rwxp 00000000 00:00 0 
+7f0497ef4000-7f04982f4000 rw-s 5b1c5c000 00:05 11809                     /dev/nvidiactl
+7f04988b4000-7f0498cb4000 rw-s 6cfc7a000 00:05 11809                     /dev/nvidiactl
+7f04994b5000-7f04998b5000 rw-s 67a3d2000 00:05 11809                     /dev/nvidiactl
+7f0499a1c000-7f0499e1c000 rw-s 64fd20000 00:05 11809                     /dev/nvidiactl
+7f049a31c000-7f049a71c000 rw-s 5a641a000 00:05 11809                     /dev/nvidiactl
+7f049a71c000-7f049ab1c000 rw-s 5b2cb5000 00:05 11809                     /dev/nvidiactl
+7f049ad1d000-7f049ad1e000 rw-p 00000000 00:00 0 
+7f049ad53000-7f049ad54000 rw-s efd85000 00:05 11817                      /dev/nvidia0
+7f049ad54000-7f049ad55000 rw-s 5a565d000 00:05 11809                     /dev/nvidiactl
+7f049ad57000-7f049ad58000 rw-s efd85000 00:05 11817                      /dev/nvidia0
+7f049ad58000-7f049ad59000 rw-s 5a17f8000 00:05 11809                     /dev/nvidiactl
+7f049ad59000-7f049ad5d000 rw-s e2780000 00:05 11817                      /dev/nvidia0
+7f049adc8000-7f049adc9000 rw-s efd84000 00:05 11817                      /dev/nvidia0
+7f049adc9000-7f049adca000 rw-s efd85000 00:05 11817                      /dev/nvidia0
+7f049adca000-7f049adcb000 rw-s 5d794b000 00:05 11809                     /dev/nvidiactl
+7f049adcd000-7f049adce000 rw-s efd85000 00:05 11817                      /dev/nvidia0
+7f049adce000-7f049adcf000 rw-s 5b9f61000 00:05 11809                     /dev/nvidiactl
+7f049adcf000-7f049add3000 rw-s e2740000 00:05 11817                      /dev/nvidia0
+7f049add3000-7f049add7000 rw-s e2720000 00:05 11817                      /dev/nvidia0
+7f049add7000-7f049add8000 rw-s efd85000 00:05 11817                      /dev/nvidia0
+7f049add8000-7f049add9000 rw-s 5a1b39000 00:05 11809                     /dev/nvidiactl
+7f049addd000-7f049adde000 rw-s efd85000 00:05 11817                      /dev/nvidia0
+7f049adde000-7f049addf000 rw-s 5b5f5b000 00:05 11809                     /dev/nvidiactl
+7f049addf000-7f049ade3000 rw-s e26e0000 00:05 11817                      /dev/nvidia0
+7f049ade4000-7f049ade5000 rw-s efd84000 00:05 11817                      /dev/nvidia0
+7f049ade6000-7f049ade7000 rw-s 5a863d000 00:05 11809                     /dev/nvidiactl
+7f049ade7000-7f049adeb000 rw-s e26c0000 00:05 11817                      /dev/nvidia0
+7f049adeb000-7f049adec000 rw-s efd84000 00:05 11817                      /dev/nvidia0
+7f049adec000-7f049aded000 rw-s 6c914e000 00:05 11809                     /dev/nvidiactl
+7f049aded000-7f049adf1000 rw-s e26a0000 00:05 11817                      /dev/nvidia0
+7f049adf1000-7f049adf2000 rw-s efd84000 00:05 11817                      /dev/nvidia0
+7f049adf6000-7f049adfa000 rw-s e2660000 00:05 11817                      /dev/nvidia0
+7f049adfa000-7f049adfb000 rw-s 770802000 00:05 11809                     /dev/nvidiactl
+7f049adfb000-7f049adfc000 rw-s 67a3c9000 00:05 11809                     /dev/nvidiactl
+7f049adfd000-7f049adfe000 rw-s efd84000 00:05 11817                      /dev/nvidia0
+7f049adfe000-7f049adff000 rw-s 5a6410000 00:05 11809                     /dev/nvidiactl
+7f049adff000-7f049ae03000 rw-s e2640000 00:05 11817                      /dev/nvidia0
+7f049aee3000-7f049b2e3000 rw-s 679fee000 00:05 11809                     /dev/nvidiactl
+7f049b2e3000-7f049b6e3000 rw-s 67a3d7000 00:05 11809                     /dev/nvidiactl
+7f049bbe3000-7f049bfe3000 rw-s 5a77e4000 00:05 11809                     /dev/nvidiactl
+7f049bfe3000-7f049bfe4000 rw-s efd84000 00:05 11817                      /dev/nvidia0
+7f049bfe4000-7f049bfe5000 rw-s 5aa4be000 00:05 11809                     /dev/nvidiactl
+7f049c0e5000-7f049c0e9000 rw-s e2620000 00:05 11817                      /dev/nvidia0
+7f049c0e9000-7f049c0ed000 rw-s e2600000 00:05 11817                      /dev/nvidia0
+7f049c0ed000-7f049c4ed000 rw-s 5a647c000 00:05 11809                     /dev/nvidiactl
+7f049c4ed000-7f049c4f1000 rw-s e25e0000 00:05 11817                      /dev/nvidia0
+7f049ce5d000-7f049ce5e000 rw-s efd83000 00:05 11817                      /dev/nvidia0
+7f049ce5e000-7f049ce62000 rw-s e25a0000 00:05 11817                      /dev/nvidia0
+7f049d663000-7f049d664000 rw-s 59f101000 00:05 11809                     /dev/nvidiactl
+7f049d664000-7f049d665000 rw-s efd83000 00:05 11817                      /dev/nvidia0
+7f049d665000-7f049da65000 rw-s 5a421f000 00:05 11809                     /dev/nvidiactl
+7f049da65000-7f049da66000 rw-s efd83000 00:05 11817                      /dev/nvidia0
+7f049db66000-7f049db67000 rw-s 5a27f5000 00:05 11809                     /dev/nvidiactl
+7f049db68000-7f049db69000 rw-s efd83000 00:05 11817                      /dev/nvidia0
+7f049db6a000-7f049db6b000 rw-s 5a8892000 00:05 11809                     /dev/nvidiactl
+7f049db6b000-7f049db6f000 rw-s e2580000 00:05 11817                      /dev/nvidia0
+7f049db6f000-7f049db70000 rw-s 5b6a95000 00:05 11809                     /dev/nvidiactl
+7f049db71000-7f049df71000 rw-s 5a4bca000 00:05 11809                     /dev/nvidiactl
+7f049e473000-7f049e474000 rw-s efd83000 00:05 11817                      /dev/nvidia0
+7f049e474000-7f049e874000 rw-s 5a9abb000 00:05 11809                     /dev/nvidiactl
+7f049e875000-7f049e879000 rw-s e2560000 00:05 11817                      /dev/nvidia0
+7f049e879000-7f049e87a000 rw-s 5a4215000 00:05 11809                     /dev/nvidiactl
+7f049ec7a000-7f049f07a000 rw-s 5a46b2000 00:05 11809                     /dev/nvidiactl
+7f049f07e000-7f049f082000 rw-s e2520000 00:05 11817                      /dev/nvidia0
+7f049f482000-7f049f882000 rw-s 6d0512000 00:05 11809                     /dev/nvidiactl
+7f049f886000-7f049f88a000 rw-s e24e0000 00:05 11817                      /dev/nvidia0
+7f049f88b000-7f049f88f000 rw-s e24c0000 00:05 11817                      /dev/nvidia0
+7f04a0096000-7f04a0097000 rw-s efd82000 00:05 11817                      /dev/nvidia0
+7f04a0498000-7f04a0499000 rw-s efd82000 00:05 11817                      /dev/nvidia0
+7f04a08a0000-7f04a08a1000 rw-s 6c8641000 00:05 11809                     /dev/nvidiactl
+7f04a08a3000-7f04a08a4000 rw-s efd82000 00:05 11817                      /dev/nvidia0
+7f04a08a4000-7f04a08a5000 rw-s 5a035a000 00:05 11809                     /dev/nvidiactl
+7f04a08a5000-7f04a08a6000 rw-s 5a6fb5000 00:05 11809                     /dev/nvidiactl
+7f04a0ca7000-7f04a10a7000 rw-s 6c9955000 00:05 11809                     /dev/nvidiactl
+7f04a14ac000-7f04a14b0000 rw-s e2440000 00:05 11817                      /dev/nvidia0
+7f04a14b4000-7f04a18b4000 rw-s 5b744b000 00:05 11809                     /dev/nvidiactl
+7f04a18b5000-7f04a1cb5000 rw-s 6cd99d000 00:05 11809                     /dev/nvidiactl
+7f04a1cb6000-7f04a1cba000 rw-s e2400000 00:05 11817                      /dev/nvidia0
+7f04a1cba000-7f04a1cbe000 rw-s e23e0000 00:05 11817                      /dev/nvidia0
+7f04a1cc0000-7f04a1cc1000 rw-s efd81000 00:05 11817                      /dev/nvidia0
+7f04a28c7000-7f04a28c8000 rw-s a80b2000 00:05 11809                      /dev/nvidiactl
+7f04a28c8000-7f04a28cc000 rw-s e23a0000 00:05 11817                      /dev/nvidia0
+7f04a28d0000-7f04a28d1000 rw-s efd81000 00:05 11817                      /dev/nvidia0
+7f04a2cd1000-7f04a2cd2000 rw-s 5b7441000 00:05 11809                     /dev/nvidiactl
+7f04a2cd3000-7f04a2cd4000 rw-s efd80000 00:05 11817                      /dev/nvidia0
+7f04a2cd4000-7f04a30d4000 rw-s 6df5e7000 00:05 11809                     /dev/nvidiactl
+7f04a30d8000-7f04a34d8000 rw-s 59c7b2000 00:05 11809                     /dev/nvidiactl
+7f04a34d9000-7f04a34dd000 rw-s e2340000 00:05 11817                      /dev/nvidia0
+7f04a34e0000-7f04a34e4000 rw-s e2320000 00:05 11817                      /dev/nvidia0
+7f04a34e5000-7f04a34e6000 rw-s a5e25000 00:05 11809                      /dev/nvidiactl
+7f04a3ce7000-7f04a3ce8000 rw-s efd80000 00:05 11817                      /dev/nvidia0
+7f04a3cec000-7f04a3ced000 rw-s 6cd994000 00:05 11809                     /dev/nvidiactl
+7f04a3ced000-7f04a40ed000 rw-s 6dd2d1000 00:05 11809                     /dev/nvidiactl
+7f04a44f5000-7f04a48f5000 rw-s 6d7f8d000 00:05 11809                     /dev/nvidiactl
+7f04a48f5000-7f04a48f9000 rw-s e22a0000 00:05 11817                      /dev/nvidia0
+7f04a48fd000-7f04a4901000 rw-s e2260000 00:05 11817                      /dev/nvidia0
+7f04a4903000-7f04a4904000 rw-s efd80000 00:05 11817                      /dev/nvidia0
+7f04a4d08000-7f04a4d09000 rw-s efd7f000 00:05 11817                      /dev/nvidia0
+7f04a4d09000-7f04a4d0a000 rw-s 6d7f3c000 00:05 11809                     /dev/nvidiactl
+7f04a4d0a000-7f04a510a000 rw-s 6dd04c000 00:05 11809                     /dev/nvidiactl
+7f04a510b000-7f04a550b000 rw-s 59d2dc000 00:05 11809                     /dev/nvidiactl
+7f04a5d0e000-7f04a5d12000 rw-s e2240000 00:05 11817                      /dev/nvidia0
+7f04a611a000-7f04a611b000 rw-s efd7f000 00:05 11817                      /dev/nvidia0
+7f04a651f000-7f04a6523000 rw-s e21c0000 00:05 11817                      /dev/nvidia0
+7f04a6523000-7f04a6524000 rw-s 59d2d2000 00:05 11809                     /dev/nvidiactl
+7f04a6524000-7f04a6525000 rw-s 8bce5000 00:05 11809                      /dev/nvidiactl
+7f04a652a000-7f04a692a000 rw-s 59d2f9000 00:05 11809                     /dev/nvidiactl
+7f04a692e000-7f04a6d2e000 rw-s 6d6da8000 00:05 11809                     /dev/nvidiactl
+7f04a6d2f000-7f04a6d33000 rw-s e2160000 00:05 11817                      /dev/nvidia0
+7f04a713b000-7f04a713f000 rw-s e2120000 00:05 11817                      /dev/nvidia0
+7f04a7542000-7f04a7543000 rw-s efd7f000 00:05 11817                      /dev/nvidia0
+7f04a7948000-7f04a7949000 rw-s 59beb5000 00:05 11809                     /dev/nvidiactl
+7f04a7d53000-7f04a7d54000 rw-s efd7e000 00:05 11817                      /dev/nvidia0
+7f04a8556000-7f04a8557000 rw-s 6d9c78000 00:05 11809                     /dev/nvidiactl
+7f04a8d5f000-7f04a915f000 rw-s 67f0e6000 00:05 11809                     /dev/nvidiactl
+7f04a9567000-7f04a9967000 rw-s a8174000 00:05 11809                      /dev/nvidiactl
+7f04a996c000-7f04a9970000 rw-s e2020000 00:05 11817                      /dev/nvidia0
+7f04a9970000-7f04a9974000 rw-s e2000000 00:05 11817                      /dev/nvidia0
+7f04a9977000-7f04a9978000 rw-s efd7d000 00:05 11817                      /dev/nvidia0
+7f04a9978000-7f04a9979000 rw-s efd7d000 00:05 11817                      /dev/nvidia0
+7f04a9d7a000-7f04a9d7b000 rw-s 6c4549000 00:05 11809                     /dev/nvidiactl
+7f04a9d7b000-7f04a9d7c000 rw-s 6d9c77000 00:05 11809                     /dev/nvidiactl
+7f04aad95000-7f04ab195000 rw-s 6d6633000 00:05 11809                     /dev/nvidiactl
+7f04ab59f000-7f04ab99f000 rw-s 6dcdae000 00:05 11809                     /dev/nvidiactl
+7f04ab99f000-7f04ab9a3000 rw-s e1f20000 00:05 11817                      /dev/nvidia0
+7f04ac1b4000-7f04ac1b5000 rw-s efd7c000 00:05 11817                      /dev/nvidia0
+7f04ac1b5000-7f04ac1b9000 rw-s e1ea0000 00:05 11817                      /dev/nvidia0
+7f04ac1ba000-7f04ac1bb000 rw-s 6bac3c000 00:05 11809                     /dev/nvidiactl
+7f04ac5bd000-7f04ac9bd000 rw-s 5bf6f5000 00:05 11809                     /dev/nvidiactl
+7f04acdc1000-7f04acdc5000 rw-s e1e60000 00:05 11817                      /dev/nvidia0
+7f04acdc5000-7f04acdc6000 rw-s efd7c000 00:05 11817                      /dev/nvidia0
+7f04ad9d3000-7f04ad9d4000 rw-s 6dcda1000 00:05 11809                     /dev/nvidiactl
+7f04ad9d4000-7f04ad9d5000 rw-s efd7b000 00:05 11817                      /dev/nvidia0
+7f04ae9ea000-7f04ae9eb000 rw-s b4588000 00:05 11809                      /dev/nvidiactl
+7f04ae9eb000-7f04aedeb000 rw-s 901ba000 00:05 11809                      /dev/nvidiactl
+7f04afa02000-7f04afa06000 rw-s e1d00000 00:05 11817                      /dev/nvidia0
+7f04afa07000-7f04afe07000 rw-s 6c424b000 00:05 11809                     /dev/nvidiactl
+7f04afe0c000-7f04afe10000 rw-s e1cc0000 00:05 11817                      /dev/nvidia0
+7f04afe10000-7f04afe11000 rw-s efd7a000 00:05 11817                      /dev/nvidia0
+7f04afe13000-7f04afe14000 rw-s 901b1000 00:05 11809                      /dev/nvidiactl
+7f04b1634000-7f04b1a34000 rw-s 5b617f000 00:05 11809                     /dev/nvidiactl
+7f04b1a3a000-7f04b1a3e000 rw-s e1be0000 00:05 11817                      /dev/nvidia0
+7f04b2647000-7f04b2648000 rw-s efd79000 00:05 11817                      /dev/nvidia0
+7f04b2a4c000-7f04b2a4d000 rw-s 8d7ae000 00:05 11809                      /dev/nvidiactl
+7f04b2e52000-7f04b3252000 rw-s 6ce61c000 00:05 11809                     /dev/nvidiactl
+7f04b3658000-7f04b365c000 rw-s e1b40000 00:05 11817                      /dev/nvidia0
+7f04b3a68000-7f04b3a69000 rw-s efd78000 00:05 11817                      /dev/nvidia0
+7f04b3e6a000-7f04b3e6b000 rw-s 59d7e1000 00:05 11809                     /dev/nvidiactl
+7f04b427a000-7f04b467a000 rw-s 8c3af000 00:05 11809                      /dev/nvidiactl
+7f04b4a7d000-7f04b4a81000 rw-s e1a80000 00:05 11817                      /dev/nvidia0
+7f04b4e88000-7f04b4e89000 rw-s efd78000 00:05 11817                      /dev/nvidia0
+7f04b4e8d000-7f04b4e8e000 rw-s 6c5373000 00:05 11809                     /dev/nvidiactl
+7f04b5692000-7f04b5a92000 rw-s 6ce62f000 00:05 11809                     /dev/nvidiactl
+7f04b669f000-7f04b66a3000 rw-s e19c0000 00:05 11817                      /dev/nvidia0
+7f04b82c0000-7f04b82e1000 rw-p 00000000 00:00 0 
+7f04b82e1000-7f04b82e2000 ---p 00000000 00:00 0 
+7f04b82e2000-7f04b8ae2000 rwxp 00000000 00:00 0                          [stack:10928]
+7f04b8ae2000-7f04b8ee2000 rw-s 6d3718000 00:05 11809                     /dev/nvidiactl
+7f04b9b75000-7f04b9b96000 rw-p 00000000 00:00 0 
+7f04b9b96000-7f04b9b97000 ---p 00000000 00:00 0 
+7f04b9b97000-7f04ba397000 rwxp 00000000 00:00 0                          [stack:10927]
+7f04ba397000-7f04ba3b8000 rw-p 00000000 00:00 0 
+7f04ba3b8000-7f04ba3b9000 ---p 00000000 00:00 0 
+7f04ba3b9000-7f04babb9000 rwxp 00000000 00:00 0                          [stack:10926]
+7f04babb9000-7f04bac4c000 rw-p 00000000 00:00 0 
+7f04bac6d000-7f04bac6e000 ---p 00000000 00:00 0 
+7f04bac6e000-7f04bb46e000 rwxp 00000000 00:00 0 
+7f04bb994000-7f04bb9b5000 rw-p 00000000 00:00 0 
+7f04bb9b5000-7f04bb9b6000 ---p 00000000 00:00 0 
+7f04bb9b6000-7f04bc1b6000 rwxp 00000000 00:00 0                          [stack:10924]
+7f04bc26a000-7f04bc26b000 ---p 00000000 00:00 0 
+7f04bc26b000-7f04bca6b000 rwxp 00000000 00:00 0 
+7f04bcefe000-7f04bd4ab000 rw-p 00000000 00:00 0 
+7f04bd8ab000-7f04bd8cc000 rw-p 00000000 00:00 0 
+7f04bddd5000-7f04bddf6000 rw-p 00000000 00:00 0 
+7f04be6cc000-7f04beda7000 rw-p 00000000 00:00 0 
+7f04bedc8000-7f04bee30000 rw-p 00000000 00:00 0 
+7f04bf230000-7f04bf5b3000 rw-p 00000000 00:00 0 
+7f04bf82f000-7f04bf871000 rw-p 00000000 00:00 0 
+7f04bfb1f000-7f04bfb40000 rw-p 00000000 00:00 0 
+7f04c0416000-7f04c0479000 rw-p 00000000 00:00 0 
+7f04c04bb000-7f04c04dc000 rw-p 00000000 00:00 0 
+7f04c04fd000-7f04c051e000 rw-p 00000000 00:00 0 
+7f04c053f000-7f04c0581000 rw-p 00000000 00:00 0 
+7f04c05a2000-7f04c05e4000 rw-p 00000000 00:00 0 
+7f04c0672000-7f04c29d7000 rw-p 00000000 00:00 0 
+7f04c29dd000-7f04c888c000 rw-p 00000000 00:00 0 
+7f04c888c000-7f04c888f000 ---p 00000000 00:00 0 
+7f04c888f000-7f04c88cd000 rwxp 00000000 00:00 0                          [stack:10817]
+7f04c88cd000-7f04cb870000 rw-p 00000000 00:00 0 
+7f04cb870000-7f04cba71000 rw-p 00000000 00:00 0 
+7f04cba71000-7f04cba74000 ---p 00000000 00:00 0 
+7f04cba74000-7f04cbab2000 rwxp 00000000 00:00 0                          [stack:10758]
+7f04cbab2000-7f04cbab5000 ---p 00000000 00:00 0 
+7f04cbab5000-7f04cbaf3000 rwxp 00000000 00:00 0                          [stack:10767]
+7f04cbaf3000-7f04cbaf6000 ---p 00000000 00:00 0 
+7f04cbaf6000-7f04cbb34000 rwxp 00000000 00:00 0                          [stack:10753]
+7f04cbb34000-7f04cbb37000 ---p 00000000 00:00 0 
+7f04cbb37000-7f04cbb75000 rwxp 00000000 00:00 0                          [stack:10711]
+7f04cbb75000-7f04cbb78000 ---p 00000000 00:00 0 
+7f04cbb78000-7f04cbbb6000 rwxp 00000000 00:00 0                          [stack:10710]
+7f04cbbb6000-7f04cbbb9000 ---p 00000000 00:00 0 
+7f04cbbb9000-7f04cbbf7000 rwxp 00000000 00:00 0                          [stack:10709]
+7f04cbbf7000-7f04cbbfa000 ---p 00000000 00:00 0 
+7f04cbbfa000-7f04cbcf8000 rwxp 00000000 00:00 0                          [stack:10713]
+7f04cbdf9000-7f04cbdfc000 ---p 00000000 00:00 0 
+7f04cbdfc000-7f04cbe3a000 rwxp 00000000 00:00 0                          [stack:10704]
+7f04cbe3a000-7f04cbe4f000 r-xp 00000000 fc:00 35127368                   /tmp/jna4744931294506865406.tmp
+7f04cbe4f000-7f04cbf4e000 ---p 00015000 fc:00 35127368                   /tmp/jna4744931294506865406.tmp
+7f04cbf4e000-7f04cbf50000 rw-p 00014000 fc:00 35127368                   /tmp/jna4744931294506865406.tmp
+7f04cbf50000-7f04cbf53000 ---p 00000000 00:00 0 
+7f04cbf53000-7f04cbf91000 rwxp 00000000 00:00 0                          [stack:10703]
+7f04cbf91000-7f04cbf94000 ---p 00000000 00:00 0 
+7f04cbf94000-7f04cc092000 rwxp 00000000 00:00 0                          [stack:10712]
+7f04cc092000-7f04cc095000 ---p 00000000 00:00 0 
+7f04cc095000-7f04cc0d3000 rwxp 00000000 00:00 0                          [stack:10700]
+7f04cc0d3000-7f04cc0d6000 ---p 00000000 00:00 0 
+7f04cc0d6000-7f04cc114000 rwxp 00000000 00:00 0                          [stack:10699]
+7f04cc155000-7f04cc218000 rw-p 00000000 00:00 0 
+7f04cc218000-7f04cc2f8000 rw-s 6e1e07000 00:05 11809                     /dev/nvidiactl
+7f04cc2f8000-7f04cc3d8000 rw-s 6d2c93000 00:05 11809                     /dev/nvidiactl
+7f04cc3d8000-7f04cc419000 rw-p 00000000 00:00 0 
+7f04cc419000-7f04cc519000 rw-s 5aa7bf000 00:05 11809                     /dev/nvidiactl
+7f04cc519000-7f04cc580000 rw-p 00000000 00:00 0 
+7f04cc580000-7f04cc581000 rw-s efd76000 00:05 11817                      /dev/nvidia0
+7f04cc582000-7f04cc583000 rw-s 6c69e1000 00:05 11809                     /dev/nvidiactl
+7f04cc58b000-7f04cc58f000 rw-s e18c0000 00:05 11817                      /dev/nvidia0
+7f04cc597000-7f04cc660000 rw-p 00000000 00:00 0 
+7f04cc660000-7f04cc760000 rw-s 6d2ca8000 00:05 11809                     /dev/nvidiactl
+7f04cc760000-7f04cc860000 rw-s 64b2b0000 00:05 11809                     /dev/nvidiactl
+7f04cc860000-7f04cc960000 rw-s 5aeeda000 00:05 11809                     /dev/nvidiactl
+7f04cc960000-7f04cca40000 rw-s 6d3831000 00:05 11809                     /dev/nvidiactl
+7f04cca40000-7f04ccb40000 rw-s 5a5350000 00:05 11809                     /dev/nvidiactl
+7f04ccb40000-7f04ccc20000 rw-s 6cb3de000 00:05 11809                     /dev/nvidiactl
+7f04ccc20000-7f04ccd20000 rw-s 5a407a000 00:05 11809                     /dev/nvidiactl
+7f04ccd20000-7f04ccd21000 ---p 00000000 00:00 0 
+7f04ccd21000-7f04cd521000 rwxp 00000000 00:00 0                          [stack:10697]
+7f04cd521000-7f04cd5c9000 rw-p 00000000 00:00 0 
+7f04cd5c9000-7f04cd6c9000 rw-s 6ccc5f000 00:05 11809                     /dev/nvidiactl
+7f04cd6c9000-7f04cd6ca000 ---p 00000000 00:00 0 
+7f04cd6ca000-7f04cdeca000 rwxp 00000000 00:00 0                          [stack:10696]
+7f04cdeca000-7f04cdf31000 rw-p 00000000 00:00 0 
+7f04cdf31000-7f04ce031000 rw-s 6c086c000 00:05 11809                     /dev/nvidiactl
+7f04ce031000-7f04ce131000 rw-s 5a74fe000 00:05 11809                     /dev/nvidiactl
+7f04ce131000-7f04ce531000 rw-s 6d6f33000 00:05 11809                     /dev/nvidiactl
+7f04ce531000-7f04ce611000 rw-s 6d9785000 00:05 11809                     /dev/nvidiactl
+7f04ce611000-7f04ce711000 rw-s b5b33000 00:05 11809                      /dev/nvidiactl
+7f04ce711000-7f04ceb11000 rw-s 64a90d000 00:05 11809                     /dev/nvidiactl
+7f04ceb11000-7f04cec11000 rw-s 5bbc8e000 00:05 11809                     /dev/nvidiactl
+7f04cec11000-7f04ced11000 rw-s 5bbc93000 00:05 11809                     /dev/nvidiactl
+7f04ced11000-7f04ced78000 rw-p 00000000 00:00 0 
+7f04ced78000-7f04cee78000 rw-s 59ef03000 00:05 11809                     /dev/nvidiactl
+7f04cee78000-7f04cf278000 rw-s 6dee89000 00:05 11809                     /dev/nvidiactl
+7f04cf278000-7f04cf279000 ---p 00000000 00:00 0 
+7f04cf279000-7f04cfa79000 rwxp 00000000 00:00 0                          [stack:10695]
+7f04cfa79000-7f04cfe79000 rw-s 6dc28c000 00:05 11809                     /dev/nvidiactl
+7f04cfe79000-7f04cfe7a000 ---p 00000000 00:00 0 
+7f04cfe7a000-7f04d067a000 rwxp 00000000 00:00 0                          [stack:10694]
+7f04d067a000-7f04d077a000 rw-s 6f2d7c000 00:05 11809                     /dev/nvidiactl
+7f04d077a000-7f04d087a000 rw-s 5a8ff2000 00:05 11809                     /dev/nvidiactl
+7f04d087a000-7f04d095a000 rw-s 6cc182000 00:05 11809                     /dev/nvidiactl
+7f04d095a000-7f04d0d5a000 rw-s 6e183f000 00:05 11809                     /dev/nvidiactl
+7f04d0d5a000-7f04d115a000 rw-s 6dc2a8000 00:05 11809                     /dev/nvidiactl
+7f04d115a000-7f04d155a000 rw-s 6e0317000 00:05 11809                     /dev/nvidiactl
+7f04d155a000-7f04d195a000 rw-s 6d6f61000 00:05 11809                     /dev/nvidiactl
+7f04d195a000-7f04d19c1000 rw-p 00000000 00:00 0 
+7f04d19c1000-7f04d1ac1000 rw-s 6db27e000 00:05 11809                     /dev/nvidiactl
+7f04d1ac1000-7f04d1ac2000 ---p 00000000 00:00 0 
+7f04d1ac2000-7f04d22c2000 rwxp 00000000 00:00 0                          [stack:10693]
+7f04d22c2000-7f04d23c2000 rw-s 5a189e000 00:05 11809                     /dev/nvidiactl
+7f04d23c2000-7f04d27c2000 rw-s 6e1862000 00:05 11809                     /dev/nvidiactl
+7f04d27c2000-7f04d28c2000 rw-s 5a3ff7000 00:05 11809                     /dev/nvidiactl
+7f04d28c2000-7f04d2cc2000 rw-s 6dbd23000 00:05 11809                     /dev/nvidiactl
+7f04d2cc2000-7f04d30c2000 rw-s 6cb122000 00:05 11809                     /dev/nvidiactl
+7f04d30c2000-7f04d34c2000 rw-s a366b000 00:05 11809                      /dev/nvidiactl
+7f04d34c2000-7f04d38c2000 rw-s 5b18f8000 00:05 11809                     /dev/nvidiactl
+7f04d38c2000-7f04d38c3000 ---p 00000000 00:00 0 
+7f04d38c3000-7f04d40c3000 rwxp 00000000 00:00 0                          [stack:10692]
+7f04d40c3000-7f04d44c3000 rw-s 6f2e1c000 00:05 11809                     /dev/nvidiactl
+7f04d44c3000-7f04d48c3000 rw-s 59ddf6000 00:05 11809                     /dev/nvidiactl
+7f04d48c3000-7f04d4cc3000 rw-s 6d4252000 00:05 11809                     /dev/nvidiactl
+7f04d4cc3000-7f04d50c3000 rw-s 6d80c1000 00:05 11809                     /dev/nvidiactl
+7f04d50c3000-7f04d54c3000 rw-s 6d4a17000 00:05 11809                     /dev/nvidiactl
+7f04d54c3000-7f04d58c3000 rw-s 6dfb23000 00:05 11809                     /dev/nvidiactl
+7f04d58c3000-7f04d5cc3000 rw-s 6dbad6000 00:05 11809                     /dev/nvidiactl
+7f04d5cc3000-7f04d5cc4000 rw-s 6d4249000 00:05 11809                     /dev/nvidiactl
+7f04d5cc4000-7f04d5cc5000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04d5cd9000-7f04d5cda000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5cec000-7f04d5ced000 rwxp 00000000 00:00 0 
+7f04d5ced000-7f04d5cee000 r--p 00000000 00:00 0 
+7f04d5cee000-7f04d5cef000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5cef000-7f04d5cf0000 rw-s 6cffcb000 00:05 11809                     /dev/nvidiactl
+7f04d5cf0000-7f04d5cf1000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5cf1000-7f04d5cf2000 rw-s 64ab7f000 00:05 11809                     /dev/nvidiactl
+7f04d5cf2000-7f04d5cf6000 rw-s e1700000 00:05 11817                      /dev/nvidia0
+7f04d5cf6000-7f04d5cf7000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5cf7000-7f04d5cfb000 rw-s e16e0000 00:05 11817                      /dev/nvidia0
+7f04d5cfb000-7f04d5cfc000 rw-s 5a74fb000 00:05 11809                     /dev/nvidiactl
+7f04d5cfc000-7f04d5cfd000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5cfd000-7f04d5cfe000 rw-s 64a904000 00:05 11809                     /dev/nvidiactl
+7f04d5cfe000-7f04d5d02000 rw-s e16c0000 00:05 11817                      /dev/nvidia0
+7f04d5d02000-7f04d5d06000 rw-s e16a0000 00:05 11817                      /dev/nvidia0
+7f04d5d06000-7f04d5d07000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5d07000-7f04d5d08000 rw-s 6c2207000 00:05 11809                     /dev/nvidiactl
+7f04d5d08000-7f04d5d09000 rw-s 6dee80000 00:05 11809                     /dev/nvidiactl
+7f04d5d09000-7f04d5d0a000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5d0a000-7f04d5d0b000 rw-s 6dc283000 00:05 11809                     /dev/nvidiactl
+7f04d5d0b000-7f04d5d0c000 rw-s efd74000 00:05 11817                      /dev/nvidia0
+7f04d5d0c000-7f04d5d0d000 rw-s 6db263000 00:05 11809                     /dev/nvidiactl
+7f04d5d0d000-7f04d5d11000 rw-s e1680000 00:05 11817                      /dev/nvidia0
+7f04d5d11000-7f04d5d15000 rw-s e1660000 00:05 11817                      /dev/nvidia0
+7f04d5d15000-7f04d5d19000 rw-s e1640000 00:05 11817                      /dev/nvidia0
+7f04d5d19000-7f04d5d1a000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d1a000-7f04d5d1b000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d1b000-7f04d5d1c000 rw-s 6d27ce000 00:05 11809                     /dev/nvidiactl
+7f04d5d1c000-7f04d5d1d000 rw-s 6e1832000 00:05 11809                     /dev/nvidiactl
+7f04d5d1d000-7f04d5d21000 rw-s e1620000 00:05 11817                      /dev/nvidia0
+7f04d5d21000-7f04d5d22000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d22000-7f04d5d23000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d23000-7f04d5d24000 rw-s 5c1a31000 00:05 11809                     /dev/nvidiactl
+7f04d5d24000-7f04d5d25000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d25000-7f04d5d26000 rw-s 6c6c15000 00:05 11809                     /dev/nvidiactl
+7f04d5d26000-7f04d5d2a000 rw-s e1600000 00:05 11817                      /dev/nvidia0
+7f04d5d2a000-7f04d5d2e000 rw-s e15e0000 00:05 11817                      /dev/nvidia0
+7f04d5d2e000-7f04d5d6f000 rw-p 00000000 00:00 0 
+7f04d5d6f000-7f04d5d73000 rw-s e14e0000 00:05 11817                      /dev/nvidia0
+7f04d5d73000-7f04d5d74000 rw-s 6c3a07000 00:05 11809                     /dev/nvidiactl
+7f04d5d74000-7f04d5d78000 rw-s e15c0000 00:05 11817                      /dev/nvidia0
+7f04d5d78000-7f04d5d7c000 rw-s e15a0000 00:05 11817                      /dev/nvidia0
+7f04d5d7c000-7f04d5d80000 rw-s e1580000 00:05 11817                      /dev/nvidia0
+7f04d5d80000-7f04d5d81000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d81000-7f04d5d82000 rw-s 59f6af000 00:05 11809                     /dev/nvidiactl
+7f04d5d82000-7f04d5d83000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d83000-7f04d5d84000 rw-s efd73000 00:05 11817                      /dev/nvidia0
+7f04d5d84000-7f04d5d85000 rw-s 6d27cd000 00:05 11809                     /dev/nvidiactl
+7f04d5d85000-7f04d5d86000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04d5d86000-7f04d5d87000 rw-s 6c3a06000 00:05 11809                     /dev/nvidiactl
+7f04d5d87000-7f04d5d8b000 rw-s e1560000 00:05 11817                      /dev/nvidia0
+7f04d5d8b000-7f04d5d8c000 rw-s 5b18ef000 00:05 11809                     /dev/nvidiactl
+7f04d5d8c000-7f04d5d8d000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04d5d8d000-7f04d5d8e000 rw-s 6cb119000 00:05 11809                     /dev/nvidiactl
+7f04d5d8e000-7f04d5d92000 rw-s e1540000 00:05 11817                      /dev/nvidia0
+7f04d5d92000-7f04d5d93000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04d5d93000-7f04d5d94000 rw-s 5a67ff000 00:05 11809                     /dev/nvidiactl
+7f04d5d94000-7f04d5d95000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04d5d95000-7f04d5d96000 rw-s 6f2e13000 00:05 11809                     /dev/nvidiactl
+7f04d5d96000-7f04d5d97000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04d5d97000-7f04d5d9b000 rw-s e1520000 00:05 11817                      /dev/nvidia0
+7f04d5d9b000-7f04d5d9c000 rw-s 5a3ff4000 00:05 11809                     /dev/nvidiactl
+7f04d5d9c000-7f04d5da0000 rw-s e1500000 00:05 11817                      /dev/nvidia0
+7f04d5da0000-7f04d5da1000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04d5da1000-7f04d5da5000 rw-s e14c0000 00:05 11817                      /dev/nvidia0
+7f04d5da5000-7f04d5da6000 rw-s 6d80b8000 00:05 11809                     /dev/nvidiactl
+7f04d5da6000-7f04d5e86000 rw-s 5b5ca1000 00:05 11809                     /dev/nvidiactl
+7f04d5e86000-7f04d6286000 rw-s 6f2e36000 00:05 11809                     /dev/nvidiactl
+7f04d6286000-7f04d6686000 rw-s 6d0891000 00:05 11809                     /dev/nvidiactl
+7f04d6686000-7f04d6a86000 rw-s b253b000 00:05 11809                      /dev/nvidiactl
+7f04d6a86000-7f04d6e86000 rw-s 6c5004000 00:05 11809                     /dev/nvidiactl
+7f04d6e86000-7f04d6eed000 rw-p 00000000 00:00 0 
+7f04d6eed000-7f04d6fed000 rw-s 5ab2a5000 00:05 11809                     /dev/nvidiactl
+7f04d6fed000-7f04d73ed000 rw-s 6df888000 00:05 11809                     /dev/nvidiactl
+7f04d73ed000-7f04d77ed000 rw-s 59f867000 00:05 11809                     /dev/nvidiactl
+7f04d77ed000-7f04d78ed000 rw-s 64fb99000 00:05 11809                     /dev/nvidiactl
+7f04d78ed000-7f04d7ced000 rw-s 6c7cdb000 00:05 11809                     /dev/nvidiactl
+7f04d7ced000-7f04d80ed000 rw-s 6d89ff000 00:05 11809                     /dev/nvidiactl
+7f04d80ed000-7f04d84ed000 rw-s 6b5853000 00:05 11809                     /dev/nvidiactl
+7f04d84ed000-7f04d88ed000 rw-s 902b1000 00:05 11809                      /dev/nvidiactl
+7f04d88ed000-7f04d8ced000 rw-s 6c605b000 00:05 11809                     /dev/nvidiactl
+7f04d8ced000-7f04d8ded000 rw-s 6c7287000 00:05 11809                     /dev/nvidiactl
+7f04d8ded000-7f04d91ed000 rw-s 6db4c9000 00:05 11809                     /dev/nvidiactl
+7f04d91ed000-7f04d91ee000 ---p 00000000 00:00 0 
+7f04d91ee000-7f04d99ee000 rwxp 00000000 00:00 0                          [stack:10691]
+7f04d99ee000-7f04d9dee000 rw-s 6b55b2000 00:05 11809                     /dev/nvidiactl
+7f04d9dee000-7f04da1ee000 rw-s 6b5646000 00:05 11809                     /dev/nvidiactl
+7f04da1ee000-7f04da5ee000 rw-s 6d6391000 00:05 11809                     /dev/nvidiactl
+7f04da5ee000-7f04da9ee000 rw-s 8bdfc000 00:05 11809                      /dev/nvidiactl
+7f04da9ee000-7f04dadee000 rw-s 6c96cc000 00:05 11809                     /dev/nvidiactl
+7f04dadee000-7f04db1ee000 rw-s 6c3c29000 00:05 11809                     /dev/nvidiactl
+7f04db1ee000-7f04db5ee000 rw-s 5af08e000 00:05 11809                     /dev/nvidiactl
+7f04db5ee000-7f04db9ee000 rw-s 6c606c000 00:05 11809                     /dev/nvidiactl
+7f04db9ee000-7f04dbdee000 rw-s 8d5e5000 00:05 11809                      /dev/nvidiactl
+7f04dbdee000-7f04dc1ee000 rw-s 67ac81000 00:05 11809                     /dev/nvidiactl
+7f04dc1ee000-7f04dc5ee000 rw-s 6dbef3000 00:05 11809                     /dev/nvidiactl
+7f04dc5ee000-7f04dc9ee000 rw-s 6ca93f000 00:05 11809                     /dev/nvidiactl
+7f04dc9ee000-7f04dcdee000 rw-s 6d8868000 00:05 11809                     /dev/nvidiactl
+7f04dcdee000-7f04dd1ee000 rw-s 6e051f000 00:05 11809                     /dev/nvidiactl
+7f04dd1ee000-7f04dd5ee000 rw-s 6cb4d4000 00:05 11809                     /dev/nvidiactl
+7f04dd5ee000-7f04dd9ee000 rw-s 5a9d58000 00:05 11809                     /dev/nvidiactl
+7f04dd9ee000-7f04dddee000 rw-s 6c3c4e000 00:05 11809                     /dev/nvidiactl
+7f04dddee000-7f04de1ee000 rw-s 6cb4e9000 00:05 11809                     /dev/nvidiactl
+7f04de1ee000-7f04de5ee000 rw-s 67b492000 00:05 11809                     /dev/nvidiactl
+7f04de5ee000-7f04de9ee000 rw-s 6d309c000 00:05 11809                     /dev/nvidiactl
+7f04de9ee000-7f04dedee000 rw-s 67bb6c000 00:05 11809                     /dev/nvidiactl
+7f04dedee000-7f04df1ee000 rw-s 6ca186000 00:05 11809                     /dev/nvidiactl
+7f04df1ee000-7f04df1ef000 rw-s efd72000 00:05 11817                      /dev/nvidia0
+7f04df1ef000-7f04df1f0000 rw-s 6c79b1000 00:05 11809                     /dev/nvidiactl
+7f04df1f0000-7f04df1f4000 rw-s e14a0000 00:05 11817                      /dev/nvidia0
+7f04df1f4000-7f04df1f5000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df1f5000-7f04df1f9000 rw-s e1480000 00:05 11817                      /dev/nvidia0
+7f04df1f9000-7f04df1fa000 rw-s 6dfb1a000 00:05 11809                     /dev/nvidiactl
+7f04df1fa000-7f04df1fe000 rw-s e1460000 00:05 11817                      /dev/nvidia0
+7f04df1fe000-7f04df202000 rw-s e1440000 00:05 11817                      /dev/nvidia0
+7f04df202000-7f04df203000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df203000-7f04df207000 rw-s e1420000 00:05 11817                      /dev/nvidia0
+7f04df207000-7f04df208000 rw-s 5d7af1000 00:05 11809                     /dev/nvidiactl
+7f04df208000-7f04df209000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df209000-7f04df20a000 rw-s 6ca100000 00:05 11809                     /dev/nvidiactl
+7f04df20a000-7f04df20b000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df20b000-7f04df20f000 rw-s e1400000 00:05 11817                      /dev/nvidia0
+7f04df20f000-7f04df210000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df210000-7f04df211000 rw-s 5a3ff3000 00:05 11809                     /dev/nvidiactl
+7f04df211000-7f04df212000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df212000-7f04df216000 rw-s e13e0000 00:05 11817                      /dev/nvidia0
+7f04df216000-7f04df217000 rw-s 5a3ff2000 00:05 11809                     /dev/nvidiactl
+7f04df217000-7f04df21b000 rw-s e13c0000 00:05 11817                      /dev/nvidia0
+7f04df21b000-7f04df21c000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df21c000-7f04df21d000 rw-s 5a3ff1000 00:05 11809                     /dev/nvidiactl
+7f04df21d000-7f04df21e000 rw-s 6c7282000 00:05 11809                     /dev/nvidiactl
+7f04df21e000-7f04df21f000 rw-s efd71000 00:05 11817                      /dev/nvidia0
+7f04df21f000-7f04df220000 rw-s 6c02ab000 00:05 11809                     /dev/nvidiactl
+7f04df220000-7f04df224000 rw-s e13a0000 00:05 11817                      /dev/nvidia0
+7f04df224000-7f04df228000 rw-s e1380000 00:05 11817                      /dev/nvidia0
+7f04df228000-7f04df22c000 rw-s e1360000 00:05 11817                      /dev/nvidia0
+7f04df22c000-7f04df230000 rw-s e1340000 00:05 11817                      /dev/nvidia0
+7f04df230000-7f04df231000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df231000-7f04df232000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df232000-7f04df233000 rw-s 6b9668000 00:05 11809                     /dev/nvidiactl
+7f04df233000-7f04df234000 rw-s 6b584a000 00:05 11809                     /dev/nvidiactl
+7f04df234000-7f04df235000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df235000-7f04df236000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df236000-7f04df23a000 rw-s e1320000 00:05 11817                      /dev/nvidia0
+7f04df23a000-7f04df23b000 rw-s 6d5693000 00:05 11809                     /dev/nvidiactl
+7f04df23b000-7f04df23c000 rw-s 6c7cd2000 00:05 11809                     /dev/nvidiactl
+7f04df23c000-7f04df240000 rw-s e1300000 00:05 11817                      /dev/nvidia0
+7f04df240000-7f04df244000 rw-s e12e0000 00:05 11817                      /dev/nvidia0
+7f04df244000-7f04df248000 rw-s e12c0000 00:05 11817                      /dev/nvidia0
+7f04df248000-7f04df249000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df249000-7f04df24a000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df24a000-7f04df24b000 rw-s a8394000 00:05 11809                      /dev/nvidiactl
+7f04df24b000-7f04df24c000 rw-s 6db4bf000 00:05 11809                     /dev/nvidiactl
+7f04df24c000-7f04df24d000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df24d000-7f04df24e000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df24e000-7f04df24f000 rw-s efd70000 00:05 11817                      /dev/nvidia0
+7f04df24f000-7f04df250000 rw-s a355e000 00:05 11809                      /dev/nvidiactl
+7f04df250000-7f04df251000 rw-s b1a84000 00:05 11809                      /dev/nvidiactl
+7f04df251000-7f04df252000 rw-s 6b563d000 00:05 11809                     /dev/nvidiactl
+7f04df252000-7f04df256000 rw-s e12a0000 00:05 11817                      /dev/nvidia0
+7f04df256000-7f04df25a000 rw-s e1280000 00:05 11817                      /dev/nvidia0
+7f04df25a000-7f04df25b000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df25b000-7f04df25c000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df25c000-7f04df25d000 rw-s 6c7cce000 00:05 11809                     /dev/nvidiactl
+7f04df25d000-7f04df25e000 rw-s 6c8994000 00:05 11809                     /dev/nvidiactl
+7f04df25e000-7f04df262000 rw-s e1260000 00:05 11817                      /dev/nvidia0
+7f04df262000-7f04df266000 rw-s e1240000 00:05 11817                      /dev/nvidia0
+7f04df266000-7f04df26a000 rw-s e1220000 00:05 11817                      /dev/nvidia0
+7f04df26a000-7f04df26b000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df26b000-7f04df26c000 rw-s a3662000 00:05 11809                      /dev/nvidiactl
+7f04df26c000-7f04df270000 rw-s e1200000 00:05 11817                      /dev/nvidia0
+7f04df270000-7f04df271000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df271000-7f04df272000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df272000-7f04df273000 rw-s 5a7081000 00:05 11809                     /dev/nvidiactl
+7f04df273000-7f04df274000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df274000-7f04df278000 rw-s e11e0000 00:05 11817                      /dev/nvidia0
+7f04df278000-7f04df279000 rw-s 6c666a000 00:05 11809                     /dev/nvidiactl
+7f04df279000-7f04df27d000 rw-s e11c0000 00:05 11817                      /dev/nvidia0
+7f04df27d000-7f04df281000 rw-s e11a0000 00:05 11817                      /dev/nvidia0
+7f04df281000-7f04df282000 rw-s 6e0504000 00:05 11809                     /dev/nvidiactl
+7f04df282000-7f04df286000 rw-s e1180000 00:05 11817                      /dev/nvidia0
+7f04df286000-7f04df28a000 rw-s e1160000 00:05 11817                      /dev/nvidia0
+7f04df28a000-7f04df28b000 rw-s efd6f000 00:05 11817                      /dev/nvidia0
+7f04df28b000-7f04df28c000 rw-s 6cc678000 00:05 11809                     /dev/nvidiactl
+7f04df28c000-7f04df28d000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04df28d000-7f04df2ce000 rw-p 00000000 00:00 0 
+7f04df2ce000-7f04df6ce000 rw-s 6dc59b000 00:05 11809                     /dev/nvidiactl
+7f04df6ce000-7f04dface000 rw-s 6d3af0000 00:05 11809                     /dev/nvidiactl
+7f04dface000-7f04dfbae000 rw-s 7633ba000 00:05 11809                     /dev/nvidiactl
+7f04dfbae000-7f04dffae000 rw-s a24fa000 00:05 11809                      /dev/nvidiactl
+7f04dffae000-7f04e03ae000 rw-s 5c33cf000 00:05 11809                     /dev/nvidiactl
+7f04e03ae000-7f04e07ae000 rw-s 6dea02000 00:05 11809                     /dev/nvidiactl
+7f04e07ae000-7f04e0bae000 rw-s 67ac92000 00:05 11809                     /dev/nvidiactl
+7f04e0bae000-7f04e0cae000 rw-s a83f2000 00:05 11809                      /dev/nvidiactl
+7f04e0cae000-7f04e10ae000 rw-s 6b588d000 00:05 11809                     /dev/nvidiactl
+7f04e10ae000-7f04e14ae000 rw-s 5a6b34000 00:05 11809                     /dev/nvidiactl
+7f04e14ae000-7f04e15ae000 rw-s 6d5736000 00:05 11809                     /dev/nvidiactl
+7f04e15ae000-7f04e19ae000 rw-s 58c869000 00:05 11809                     /dev/nvidiactl
+7f04e19ae000-7f04e1dae000 rw-s a83ff000 00:05 11809                      /dev/nvidiactl
+7f04e1dae000-7f04e21ae000 rw-s 59e382000 00:05 11809                     /dev/nvidiactl
+7f04e21ae000-7f04e22ae000 rw-s 6d1459000 00:05 11809                     /dev/nvidiactl
+7f04e22ae000-7f04e26ae000 rw-s 6c50ca000 00:05 11809                     /dev/nvidiactl
+7f04e26ae000-7f04e2aae000 rw-s 6cda04000 00:05 11809                     /dev/nvidiactl
+7f04e2aae000-7f04e2eae000 rw-s 64a455000 00:05 11809                     /dev/nvidiactl
+7f04e2eae000-7f04e32ae000 rw-s 6c08fb000 00:05 11809                     /dev/nvidiactl
+7f04e32ae000-7f04e32af000 ---p 00000000 00:00 0 
+7f04e32af000-7f04e3aaf000 rwxp 00000000 00:00 0                          [stack:10690]
+7f04e3aaf000-7f04e3eaf000 rw-s 6e16c2000 00:05 11809                     /dev/nvidiactl
+7f04e3eaf000-7f04e42af000 rw-s 8cd65000 00:05 11809                      /dev/nvidiactl
+7f04e42af000-7f04e46af000 rw-s 6c3ef2000 00:05 11809                     /dev/nvidiactl
+7f04e46af000-7f04e4aaf000 rw-s 5a187f000 00:05 11809                     /dev/nvidiactl
+7f04e4aaf000-7f04e4eaf000 rw-s 59ed36000 00:05 11809                     /dev/nvidiactl
+7f04e4eaf000-7f04e52af000 rw-s a803b000 00:05 11809                      /dev/nvidiactl
+7f04e52af000-7f04e56af000 rw-s 6f4355000 00:05 11809                     /dev/nvidiactl
+7f04e56af000-7f04e5aaf000 rw-s 6dcf0d000 00:05 11809                     /dev/nvidiactl
+7f04e5aaf000-7f04e5eaf000 rw-s 6c41ee000 00:05 11809                     /dev/nvidiactl
+7f04e5eaf000-7f04e62af000 rw-s b259b000 00:05 11809                      /dev/nvidiactl
+7f04e62af000-7f04e66af000 rw-s 59fab2000 00:05 11809                     /dev/nvidiactl
+7f04e66af000-7f04e6aaf000 rw-s 6d2535000 00:05 11809                     /dev/nvidiactl
+7f04e6aaf000-7f04e6eaf000 rw-s 6c6a9e000 00:05 11809                     /dev/nvidiactl
+7f04e6eaf000-7f04e72af000 rw-s 6db17b000 00:05 11809                     /dev/nvidiactl
+7f04e72af000-7f04e76af000 rw-s b05b1000 00:05 11809                      /dev/nvidiactl
+7f04e76af000-7f04e7aaf000 rw-s 6bf721000 00:05 11809                     /dev/nvidiactl
+7f04e7aaf000-7f04e7eaf000 rw-s 6daaba000 00:05 11809                     /dev/nvidiactl
+7f04e7eaf000-7f04e82af000 rw-s 6b7b44000 00:05 11809                     /dev/nvidiactl
+7f04e82af000-7f04e86af000 rw-s b5415000 00:05 11809                      /dev/nvidiactl
+7f04e86af000-7f04e86e3000 r-xp 00000000 fc:00 35127367                   /tmp/snappy-1.1.0.1-af038720-ca0e-4688-92c1-149a00d0e824-libsnappyjava.so
+7f04e86e3000-7f04e88e2000 ---p 00034000 fc:00 35127367                   /tmp/snappy-1.1.0.1-af038720-ca0e-4688-92c1-149a00d0e824-libsnappyjava.so
+7f04e88e2000-7f04e88e5000 rw-p 00033000 fc:00 35127367                   /tmp/snappy-1.1.0.1-af038720-ca0e-4688-92c1-149a00d0e824-libsnappyjava.so
+7f04e88e5000-7f04e88f7000 rw-p 00000000 00:00 0 
+7f04e88f7000-7f04e8cf7000 rw-s 6c8db3000 00:05 11809                     /dev/nvidiactl
+7f04e8cf7000-7f04e90f7000 rw-s 5b72c2000 00:05 11809                     /dev/nvidiactl
+7f04e90f7000-7f04e90f8000 ---p 00000000 00:00 0 
+7f04e90f8000-7f04e98f8000 rwxp 00000000 00:00 0                          [stack:10689]
+7f04e98f8000-7f04e9cf8000 rw-s 6bf958000 00:05 11809                     /dev/nvidiactl
+7f04e9cf8000-7f04ea0f8000 rw-s 5a0f47000 00:05 11809                     /dev/nvidiactl
+7f04ea0f8000-7f04ea4f8000 rw-s 6d689b000 00:05 11809                     /dev/nvidiactl
+7f04ea4f8000-7f04ea8f8000 rw-s b4c64000 00:05 11809                      /dev/nvidiactl
+7f04ea8f8000-7f04eacf8000 rw-s 5a4ce6000 00:05 11809                     /dev/nvidiactl
+7f04eacf8000-7f04ec3fc000 rw-p 00000000 00:00 0 
+7f04ec3fc000-7f04ec7fc000 rw-s 5d7115000 00:05 11809                     /dev/nvidiactl
+7f04ec7fc000-7f04ed1fd000 rw-p 00000000 00:00 0 
+7f04ed1fd000-7f04ed200000 ---p 00000000 00:00 0 
+7f04ed200000-7f04ed2fe000 rwxp 00000000 00:00 0                          [stack:10682]
+7f04ed2fe000-7f04ed6fe000 rw-s 6be68e000 00:05 11809                     /dev/nvidiactl
+7f04ed6fe000-7f04ed6ff000 ---p 00000000 00:00 0 
+7f04ed6ff000-7f04edeff000 rwxp 00000000 00:00 0                          [stack:10681]
+7f04edeff000-7f04ee2ff000 rw-s 5bf7ae000 00:05 11809                     /dev/nvidiactl
+7f04ee2ff000-7f04ee3ff000 rw-s 6c0d5d000 00:05 11809                     /dev/nvidiactl
+7f04ee3ff000-7f04ee7ff000 rw-s 6c7093000 00:05 11809                     /dev/nvidiactl
+7f04ee7ff000-7f04eebff000 rw-s 6c7670000 00:05 11809                     /dev/nvidiactl
+7f04eebff000-7f04eefff000 rw-s 64bb70000 00:05 11809                     /dev/nvidiactl
+7f04eefff000-7f04f0000000 rw-p 00000000 00:00 0 
+7f04f0000000-7f04f0021000 rw-p 00000000 00:00 0 
+7f04f0021000-7f04f4000000 ---p 00000000 00:00 0 
+7f04f4000000-7f04f4001000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04f4001000-7f04f4002000 rw-s 6c3c20000 00:05 11809                     /dev/nvidiactl
+7f04f4002000-7f04f4003000 rw-s 5af085000 00:05 11809                     /dev/nvidiactl
+7f04f4003000-7f04f4007000 rw-s e1140000 00:05 11817                      /dev/nvidia0
+7f04f4007000-7f04f4008000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04f4008000-7f04f4009000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04f4009000-7f04f400a000 rw-s 64fe2b000 00:05 11809                     /dev/nvidiactl
+7f04f400a000-7f04f400b000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04f400b000-7f04f400f000 rw-s e1120000 00:05 11817                      /dev/nvidia0
+7f04f400f000-7f04f4010000 rw-s 6ca936000 00:05 11809                     /dev/nvidiactl
+7f04f4010000-7f04f4011000 rw-s 5af082000 00:05 11809                     /dev/nvidiactl
+7f04f4011000-7f04f4015000 rw-s e1100000 00:05 11817                      /dev/nvidia0
+7f04f4015000-7f04f4016000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04f4016000-7f04f4017000 rw-s 6b7b3e000 00:05 11809                     /dev/nvidiactl
+7f04f4017000-7f04f401b000 rw-s e10e0000 00:05 11817                      /dev/nvidia0
+7f04f401b000-7f04f401f000 rw-s e10c0000 00:05 11817                      /dev/nvidia0
+7f04f401f000-7f04f4023000 rw-s e10a0000 00:05 11817                      /dev/nvidia0
+7f04f4023000-7f04f4024000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f4024000-7f04f4025000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04f4025000-7f04f4026000 rw-s efd6e000 00:05 11817                      /dev/nvidia0
+7f04f4026000-7f04f4027000 rw-s 8bdf1000 00:05 11809                      /dev/nvidiactl
+7f04f4027000-7f04f4028000 rw-s 902a9000 00:05 11809                      /dev/nvidiactl
+7f04f4028000-7f04f402c000 rw-s e1080000 00:05 11817                      /dev/nvidia0
+7f04f402c000-7f04f402d000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f402d000-7f04f402e000 rw-s 8d5db000 00:05 11809                      /dev/nvidiactl
+7f04f402e000-7f04f402f000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f402f000-7f04f4030000 rw-s 6d3093000 00:05 11809                     /dev/nvidiactl
+7f04f4030000-7f04f4031000 rw-s 6ca935000 00:05 11809                     /dev/nvidiactl
+7f04f4031000-7f04f4032000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f4032000-7f04f4036000 rw-s e1060000 00:05 11817                      /dev/nvidia0
+7f04f4036000-7f04f403a000 rw-s e1040000 00:05 11817                      /dev/nvidia0
+7f04f403a000-7f04f403e000 rw-s e1020000 00:05 11817                      /dev/nvidia0
+7f04f403e000-7f04f4042000 rw-s e1000000 00:05 11817                      /dev/nvidia0
+7f04f4042000-7f04f4043000 rw-s 6cc674000 00:05 11809                     /dev/nvidiactl
+7f04f4043000-7f04f4047000 rw-s e0fe0000 00:05 11817                      /dev/nvidia0
+7f04f4047000-7f04f4048000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f4048000-7f04f404c000 rw-s e0fc0000 00:05 11817                      /dev/nvidia0
+7f04f404c000-7f04f404d000 rw-s 6ca934000 00:05 11809                     /dev/nvidiactl
+7f04f404d000-7f04f404e000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f404e000-7f04f40b5000 rw-p 00000000 00:00 0 
+7f04f40b5000-7f04f40b6000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f40b6000-7f04f40b7000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f40b7000-7f04f40bb000 rw-s e0fa0000 00:05 11817                      /dev/nvidia0
+7f04f40bb000-7f04f40bc000 rw-s 7633b6000 00:05 11809                     /dev/nvidiactl
+7f04f40bc000-7f04f40bd000 rw-s efd6d000 00:05 11817                      /dev/nvidia0
+7f04f40bd000-7f04f40c1000 rw-s e0f80000 00:05 11817                      /dev/nvidia0
+7f04f40c1000-7f04f40c2000 rw-s 5a29ef000 00:05 11809                     /dev/nvidiactl
+7f04f40c2000-7f04f40c3000 rw-s 58c86e000 00:05 11809                     /dev/nvidiactl
+7f04f40c3000-7f04f40c7000 rw-s e0f60000 00:05 11817                      /dev/nvidia0
+7f04f40c7000-7f04f40c8000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f40c8000-7f04f40c9000 rw-s 6d3ae9000 00:05 11809                     /dev/nvidiactl
+7f04f40c9000-7f04f40cd000 rw-s e0f40000 00:05 11817                      /dev/nvidia0
+7f04f40cd000-7f04f40ce000 rw-s 58c860000 00:05 11809                     /dev/nvidiactl
+7f04f40ce000-7f04f40cf000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f40cf000-7f04f40d0000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f40d0000-7f04f40d1000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f40d1000-7f04f40d2000 rw-s 5c33c6000 00:05 11809                     /dev/nvidiactl
+7f04f40d2000-7f04f40d3000 rw-s 6d3ae8000 00:05 11809                     /dev/nvidiactl
+7f04f40d3000-7f04f40d7000 rw-s e0f20000 00:05 11817                      /dev/nvidia0
+7f04f40d7000-7f04f40d8000 rw-s 6b5884000 00:05 11809                     /dev/nvidiactl
+7f04f40d8000-7f04f40d9000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f40d9000-7f04f40dd000 rw-s e0f00000 00:05 11817                      /dev/nvidia0
+7f04f40dd000-7f04f40de000 rw-s 777ac2000 00:05 11809                     /dev/nvidiactl
+7f04f40de000-7f04f40df000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f40df000-7f04f40e3000 rw-s e0ee0000 00:05 11817                      /dev/nvidia0
+7f04f40e3000-7f04f40e7000 rw-s e0ec0000 00:05 11817                      /dev/nvidia0
+7f04f40e7000-7f04f40eb000 rw-s e0ea0000 00:05 11817                      /dev/nvidia0
+7f04f40eb000-7f04f40ec000 rw-s efd6c000 00:05 11817                      /dev/nvidia0
+7f04f40ec000-7f04f40ed000 rw-s 64a44c000 00:05 11809                     /dev/nvidiactl
+7f04f40ed000-7f04f40ee000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04f40ee000-7f04f40ef000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04f40ef000-7f04f40f0000 rw-s 6d7a7f000 00:05 11809                     /dev/nvidiactl
+7f04f40f0000-7f04f40f4000 rw-s e0e80000 00:05 11817                      /dev/nvidia0
+7f04f40f4000-7f04f40f8000 rw-s e0e60000 00:05 11817                      /dev/nvidia0
+7f04f40f8000-7f04f40f9000 rw-s 9023c000 00:05 11809                      /dev/nvidiactl
+7f04f40f9000-7f04f44f9000 rw-s b2db3000 00:05 11809                      /dev/nvidiactl
+7f04f44f9000-7f04f4bfc000 rw-p 00000000 00:00 0 
+7f04f4bfc000-7f04f4cfc000 rw-s 6dbddc000 00:05 11809                     /dev/nvidiactl
+7f04f4cfc000-7f04f56fd000 rw-p 00000000 00:00 0 
+7f04f56fd000-7f04f5700000 ---p 00000000 00:00 0 
+7f04f5700000-7f04f57fe000 rwxp 00000000 00:00 0                          [stack:10680]
+7f04f57fe000-7f04f5bfe000 rw-s 6bd8df000 00:05 11809                     /dev/nvidiactl
+7f04f5bfe000-7f04f5bff000 ---p 00000000 00:00 0 
+7f04f5bff000-7f04f63ff000 rwxp 00000000 00:00 0                          [stack:10679]
+7f04f63ff000-7f04f67ff000 rw-s 59dd22000 00:05 11809                     /dev/nvidiactl
+7f04f67ff000-7f04f6bff000 rw-s a246e000 00:05 11809                      /dev/nvidiactl
+7f04f6bff000-7f04f6fff000 rw-s 6d689f000 00:05 11809                     /dev/nvidiactl
+7f04f6fff000-7f04f8000000 rw-p 00000000 00:00 0 
+7f04f8000000-7f04f8021000 rw-p 00000000 00:00 0 
+7f04f8021000-7f04fc000000 ---p 00000000 00:00 0 
+7f04fc000000-7f04fc001000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04fc001000-7f04fc002000 rw-s 6dd93a000 00:05 11809                     /dev/nvidiactl
+7f04fc002000-7f04fc006000 rw-s e0e40000 00:05 11817                      /dev/nvidia0
+7f04fc006000-7f04fc007000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04fc007000-7f04fc00b000 rw-s e0e20000 00:05 11817                      /dev/nvidia0
+7f04fc00b000-7f04fc00c000 rw-s 6c7a3f000 00:05 11809                     /dev/nvidiactl
+7f04fc00c000-7f04fc00d000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04fc00d000-7f04fc00e000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04fc00e000-7f04fc00f000 rw-s a2673000 00:05 11809                      /dev/nvidiactl
+7f04fc00f000-7f04fc010000 rw-s 6c7a3e000 00:05 11809                     /dev/nvidiactl
+7f04fc010000-7f04fc014000 rw-s e0e00000 00:05 11817                      /dev/nvidia0
+7f04fc014000-7f04fc018000 rw-s e0de0000 00:05 11817                      /dev/nvidia0
+7f04fc018000-7f04fc019000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc019000-7f04fc01d000 rw-s e0dc0000 00:05 11817                      /dev/nvidia0
+7f04fc01d000-7f04fc01e000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc01e000-7f04fc01f000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04fc01f000-7f04fc020000 rw-s 6d5df8000 00:05 11809                     /dev/nvidiactl
+7f04fc020000-7f04fc024000 rw-s e0da0000 00:05 11817                      /dev/nvidia0
+7f04fc024000-7f04fc025000 rw-s efd6b000 00:05 11817                      /dev/nvidia0
+7f04fc025000-7f04fc026000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc026000-7f04fc027000 rw-s 6dcf04000 00:05 11809                     /dev/nvidiactl
+7f04fc027000-7f04fc028000 rw-s 6c9308000 00:05 11809                     /dev/nvidiactl
+7f04fc028000-7f04fc029000 rw-s 6bfa6f000 00:05 11809                     /dev/nvidiactl
+7f04fc029000-7f04fc02a000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc02a000-7f04fc02b000 rw-s 6dcf03000 00:05 11809                     /dev/nvidiactl
+7f04fc02b000-7f04fc02c000 rw-s 59ed2d000 00:05 11809                     /dev/nvidiactl
+7f04fc02c000-7f04fc030000 rw-s e0d80000 00:05 11817                      /dev/nvidia0
+7f04fc030000-7f04fc034000 rw-s e0d60000 00:05 11817                      /dev/nvidia0
+7f04fc034000-7f04fc035000 rw-s 6d5df7000 00:05 11809                     /dev/nvidiactl
+7f04fc035000-7f04fc039000 rw-s e0d40000 00:05 11817                      /dev/nvidia0
+7f04fc039000-7f04fc03a000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc03a000-7f04fc03e000 rw-s e0d20000 00:05 11817                      /dev/nvidia0
+7f04fc03e000-7f04fc042000 rw-s e0d00000 00:05 11817                      /dev/nvidia0
+7f04fc042000-7f04fc043000 rw-s b453f000 00:05 11809                      /dev/nvidiactl
+7f04fc043000-7f04fc044000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc044000-7f04fc045000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f04fc045000-7f04fc046000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc046000-7f04fc04a000 rw-s e0ce0000 00:05 11817                      /dev/nvidia0
+7f04fc04a000-7f04fc04e000 rw-s e0cc0000 00:05 11817                      /dev/nvidia0
+7f04fc04e000-7f04fc04f000 rw-s efd6a000 00:05 11817                      /dev/nvidia0
+7f04fc04f000-7f04fc050000 rw-s 6bf708000 00:05 11809                     /dev/nvidiactl
+7f04fc050000-7f04fc051000 rw-s 59ed2c000 00:05 11809                     /dev/nvidiactl
+7f04fc051000-7f04fc052000 rw-s 59faa9000 00:05 11809                     /dev/nvidiactl
+7f04fc052000-7f04fc056000 rw-s e0ca0000 00:05 11817                      /dev/nvidia0
+7f04fc056000-7f04fc057000 rw-s 6c6a93000 00:05 11809                     /dev/nvidiactl
+7f04fc057000-7f04fc058000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f04fc058000-7f04fc05c000 rw-s e0c80000 00:05 11817                      /dev/nvidia0
+7f04fc05c000-7f04fc05d000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f04fc05d000-7f04fc061000 rw-s e0c60000 00:05 11817                      /dev/nvidia0
+7f04fc061000-7f04fc065000 rw-s e0c40000 00:05 11817                      /dev/nvidia0
+7f04fc065000-7f04fc0f8000 rw-p 00000000 00:00 0 
+7f04fc0f8000-7f04fc1f8000 rw-s 6c7a4d000 00:05 11809                     /dev/nvidiactl
+7f04fc1f8000-7f04fc5f8000 rw-s 6cbc56000 00:05 11809                     /dev/nvidiactl
+7f04fc5f8000-7f04fc7fa000 rw-p 00000000 00:00 0 
+7f04fc7fa000-7f04fcbfa000 rw-s 6e15a0000 00:05 11809                     /dev/nvidiactl
+7f04fcbfa000-7f04fdafc000 rw-p 00000000 00:00 0 
+7f04fdafc000-7f04fdaff000 ---p 00000000 00:00 0 
+7f04fdaff000-7f04fdbfd000 rwxp 00000000 00:00 0                          [stack:10677]
+7f04fdbfd000-7f04fdbfe000 ---p 00000000 00:00 0 
+7f04fdbfe000-7f04fe3fe000 rwxp 00000000 00:00 0                          [stack:10675]
+7f04fe3fe000-7f04fe3ff000 ---p 00000000 00:00 0 
+7f04fe3ff000-7f04febff000 rwxp 00000000 00:00 0                          [stack:10674]
+7f04febff000-7f04fefff000 rw-s 6b5f6b000 00:05 11809                     /dev/nvidiactl
+7f04fefff000-7f0500000000 rw-p 00000000 00:00 0 
+7f0500000000-7f0500acc000 rw-p 00000000 00:00 0 
+7f0500acc000-7f0504000000 ---p 00000000 00:00 0 
+7f0504000000-7f0504ad3000 rw-p 00000000 00:00 0 
+7f0504ad3000-7f0508000000 ---p 00000000 00:00 0 
+7f0508000000-7f0508021000 rw-p 00000000 00:00 0 
+7f0508021000-7f050c000000 ---p 00000000 00:00 0 
+7f050c0c3000-7f050c0c6000 ---p 00000000 00:00 0 
+7f050c0c6000-7f050c0fc000 rwxp 00000000 00:00 0                          [stack:10685]
+7f050c0fc000-7f050c4fc000 rw-s 59c2e5000 00:05 11809                     /dev/nvidiactl
+7f050c4fc000-7f050c8fc000 rw-s 5a2d9c000 00:05 11809                     /dev/nvidiactl
+7f050c8fc000-7f050d7fe000 rw-p 00000000 00:00 0 
+7f050d7fe000-7f050dbfe000 rw-s 5a44b4000 00:05 11809                     /dev/nvidiactl
+7f050dbfe000-7f050dffe000 rw-s 59e877000 00:05 11809                     /dev/nvidiactl
+7f050dffe000-7f050e3fe000 rw-s 6bf059000 00:05 11809                     /dev/nvidiactl
+7f050e3fe000-7f050e3ff000 ---p 00000000 00:00 0 
+7f050e3ff000-7f050ebff000 rwxp 00000000 00:00 0                          [stack:10671]
+7f050ebff000-7f050efff000 rw-s 5a299a000 00:05 11809                     /dev/nvidiactl
+7f050efff000-7f0510000000 rw-p 00000000 00:00 0 
+7f0510000000-7f0510021000 rw-p 00000000 00:00 0 
+7f0510021000-7f0514000000 ---p 00000000 00:00 0 
+7f0514000000-7f0514d41000 rw-p 00000000 00:00 0 
+7f0514d41000-7f0518000000 ---p 00000000 00:00 0 
+7f0518000000-7f0518021000 rw-p 00000000 00:00 0 
+7f0518021000-7f051c000000 ---p 00000000 00:00 0 
+7f051c000000-7f051c001000 rw-s 6c6a92000 00:05 11809                     /dev/nvidiactl
+7f051c001000-7f051c002000 rw-s a2657000 00:05 11809                      /dev/nvidiactl
+7f051c002000-7f051c003000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f051c003000-7f051c024000 rw-p 00000000 00:00 0 
+7f051c024000-7f051c025000 rw-s 6c6a91000 00:05 11809                     /dev/nvidiactl
+7f051c025000-7f051c029000 rw-s e0c20000 00:05 11817                      /dev/nvidia0
+7f051c029000-7f051c02a000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f051c02a000-7f051c02e000 rw-s e0c00000 00:05 11817                      /dev/nvidia0
+7f051c02e000-7f051c06f000 rw-p 00000000 00:00 0 
+7f051c06f000-7f051c070000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f051c070000-7f051c071000 rw-s 6daab0000 00:05 11809                     /dev/nvidiactl
+7f051c071000-7f051c072000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f051c072000-7f051c073000 rw-s 59fa4a000 00:05 11809                     /dev/nvidiactl
+7f051c073000-7f051c074000 rw-s 59ed2b000 00:05 11809                     /dev/nvidiactl
+7f051c074000-7f051c077000 ---p 00000000 00:00 0 
+7f051c077000-7f051c0f5000 rwxp 00000000 00:00 0                          [stack:10920]
+7f051c0f5000-7f051c2f7000 rw-p 00000000 00:00 0 
+7f051c2f7000-7f051c2fa000 ---p 00000000 00:00 0 
+7f051c2fa000-7f051c3f8000 rwxp 00000000 00:00 0                          [stack:10673]
+7f051c3f8000-7f051c7f8000 rw-s 59b4d5000 00:05 11809                     /dev/nvidiactl
+7f051c7f8000-7f051c9fa000 rw-p 00000000 00:00 0 
+7f051c9fa000-7f051cdfa000 rw-s 6be579000 00:05 11809                     /dev/nvidiactl
+7f051cdfa000-7f051dcfc000 rw-p 00000000 00:00 0 
+7f051dcfc000-7f051e0fc000 rw-s 6e127b000 00:05 11809                     /dev/nvidiactl
+7f051e0fc000-7f051e0ff000 ---p 00000000 00:00 0 
+7f051e0ff000-7f051e1fd000 rwxp 00000000 00:00 0                          [stack:10670]
+7f051e1fd000-7f051e5fd000 rw-s 6d7a97000 00:05 11809                     /dev/nvidiactl
+7f051e5fd000-7f051e9fd000 rw-s 6c445b000 00:05 11809                     /dev/nvidiactl
+7f051e9fd000-7f051edfd000 rw-s b3483000 00:05 11809                      /dev/nvidiactl
+7f051edfd000-7f051edfe000 ---p 00000000 00:00 0 
+7f051edfe000-7f051f5fe000 rwxp 00000000 00:00 0                          [stack:10668]
+7f051f5fe000-7f051f9fe000 rw-s 6caa2f000 00:05 11809                     /dev/nvidiactl
+7f051f9fe000-7f051fdfe000 rw-s 6e2246000 00:05 11809                     /dev/nvidiactl
+7f051fdfe000-7f0520000000 rw-p 00000000 00:00 0 
+7f0520000000-7f0520021000 rw-p 00000000 00:00 0 
+7f0520021000-7f0524000000 ---p 00000000 00:00 0 
+7f0524000000-7f0524aa2000 rw-p 00000000 00:00 0 
+7f0524aa2000-7f0528000000 ---p 00000000 00:00 0 
+7f0528000000-7f0528021000 rw-p 00000000 00:00 0 
+7f0528021000-7f052c000000 ---p 00000000 00:00 0 
+7f052c000000-7f052ca46000 rw-p 00000000 00:00 0 
+7f052ca46000-7f0530000000 ---p 00000000 00:00 0 
+7f0530000000-7f0530004000 rw-s e0be0000 00:05 11817                      /dev/nvidia0
+7f0530004000-7f0530008000 rw-s e0bc0000 00:05 11817                      /dev/nvidia0
+7f0530008000-7f0530009000 rw-s efd69000 00:05 11817                      /dev/nvidia0
+7f0530009000-7f053000a000 rw-s 6c52bf000 00:05 11809                     /dev/nvidiactl
+7f053000a000-7f053000e000 rw-s e0ba0000 00:05 11817                      /dev/nvidia0
+7f053000e000-7f053000f000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053000f000-7f0530010000 rw-s 59fa49000 00:05 11809                     /dev/nvidiactl
+7f0530010000-7f05300f0000 rw-s 5a325e000 00:05 11809                     /dev/nvidiactl
+7f05300f0000-7f05300f4000 rw-s e0b80000 00:05 11817                      /dev/nvidia0
+7f05300f4000-7f05300f8000 rw-s e0b60000 00:05 11817                      /dev/nvidia0
+7f05300f8000-7f05300fc000 rw-s e0b40000 00:05 11817                      /dev/nvidia0
+7f05300fc000-7f05310fd000 rw-p 00000000 00:00 0 
+7f05310fd000-7f05314fd000 rw-s b5296000 00:05 11809                      /dev/nvidiactl
+7f05314fd000-7f05323ff000 rw-p 00000000 00:00 0 
+7f05323ff000-7f05327ff000 rw-s 6b82ee000 00:05 11809                     /dev/nvidiactl
+7f05327ff000-7f0532bff000 rw-s 6c332f000 00:05 11809                     /dev/nvidiactl
+7f0532bff000-7f0532fff000 rw-s 6d1e44000 00:05 11809                     /dev/nvidiactl
+7f0532fff000-7f05333ff000 rw-s 6c880e000 00:05 11809                     /dev/nvidiactl
+7f05333ff000-7f0533400000 ---p 00000000 00:00 0 
+7f0533400000-7f0533c00000 rwxp 00000000 00:00 0                          [stack:10662]
+7f0533c00000-7f0534000000 rw-s 6c81a7000 00:05 11809                     /dev/nvidiactl
+7f0534000000-7f0534021000 rw-p 00000000 00:00 0 
+7f0534021000-7f0538000000 ---p 00000000 00:00 0 
+7f0538000000-7f0538021000 rw-p 00000000 00:00 0 
+7f0538021000-7f053c000000 ---p 00000000 00:00 0 
+7f053c000000-7f053c001000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053c001000-7f053c002000 rw-s 5a325b000 00:05 11809                     /dev/nvidiactl
+7f053c002000-7f053c006000 rw-s e0b20000 00:05 11817                      /dev/nvidia0
+7f053c006000-7f053c007000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053c007000-7f053c008000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053c008000-7f053c009000 rw-s 59ca32000 00:05 11809                     /dev/nvidiactl
+7f053c009000-7f053c00a000 rw-s 6d6892000 00:05 11809                     /dev/nvidiactl
+7f053c00a000-7f053c00e000 rw-s e0b00000 00:05 11817                      /dev/nvidia0
+7f053c00e000-7f053c00f000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053c00f000-7f053c010000 rw-s 6be685000 00:05 11809                     /dev/nvidiactl
+7f053c010000-7f053c011000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053c011000-7f053c012000 rw-s 6d7a7a000 00:05 11809                     /dev/nvidiactl
+7f053c012000-7f053c016000 rw-s e0ae0000 00:05 11817                      /dev/nvidia0
+7f053c016000-7f053c017000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053c017000-7f053c018000 rw-s 5b1a19000 00:05 11809                     /dev/nvidiactl
+7f053c018000-7f053c019000 rw-s efd68000 00:05 11817                      /dev/nvidia0
+7f053c019000-7f053c01d000 rw-s e0ac0000 00:05 11817                      /dev/nvidia0
+7f053c01d000-7f053c01e000 rw-s 6c708a000 00:05 11809                     /dev/nvidiactl
+7f053c01e000-7f053c022000 rw-s e0aa0000 00:05 11817                      /dev/nvidia0
+7f053c022000-7f053c026000 rw-s e0a80000 00:05 11817                      /dev/nvidia0
+7f053c026000-7f053c02a000 rw-s e0a60000 00:05 11817                      /dev/nvidia0
+7f053c02a000-7f053c02b000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f053c02b000-7f053c02c000 rw-s 6dbdd9000 00:05 11809                     /dev/nvidiactl
+7f053c02c000-7f053c02d000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f053c06e000-7f053c06f000 rw-s 6c0d59000 00:05 11809                     /dev/nvidiactl
+7f053c06f000-7f053c073000 rw-s e0a40000 00:05 11817                      /dev/nvidia0
+7f053c073000-7f053c077000 rw-s e0a20000 00:05 11817                      /dev/nvidia0
+7f053c0f9000-7f053c0fc000 ---p 00000000 00:00 0 
+7f053c0fc000-7f053c1fa000 rwxp 00000000 00:00 0                          [stack:10664]
+7f053c1fa000-7f053d8fe000 rw-p 00000000 00:00 0 
+7f053d8fe000-7f053dcfe000 rw-s 6de5ea000 00:05 11809                     /dev/nvidiactl
+7f053dcfe000-7f053e6ff000 rw-p 00000000 00:00 0 
+7f053e6ff000-7f053e702000 ---p 00000000 00:00 0 
+7f053e702000-7f053e800000 rwxp 00000000 00:00 0                          [stack:10661]
+7f053e800000-7f053ec00000 rw-s 77785f000 00:05 11809                     /dev/nvidiactl
+7f053ec00000-7f053f000000 rw-s 3f4d4000 00:05 11809                      /dev/nvidiactl
+7f053f000000-7f053f400000 rw-s 6ddada000 00:05 11809                     /dev/nvidiactl
+7f053f400000-7f053f800000 rw-s 59c465000 00:05 11809                     /dev/nvidiactl
+7f053f800000-7f053fc00000 rw-s 59ce2e000 00:05 11809                     /dev/nvidiactl
+7f053fc00000-7f0540000000 rw-s b5821000 00:05 11809                      /dev/nvidiactl
+7f0540000000-7f0540b04000 rw-p 00000000 00:00 0 
+7f0540b04000-7f0544000000 ---p 00000000 00:00 0 
+7f0544000000-7f0544001000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f0544001000-7f0544002000 rw-s 6dbdd8000 00:05 11809                     /dev/nvidiactl
+7f0544002000-7f0544006000 rw-s e0a00000 00:05 11817                      /dev/nvidia0
+7f0544006000-7f054400a000 rw-s e09e0000 00:05 11817                      /dev/nvidia0
+7f054400a000-7f054400b000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f054400b000-7f054400c000 rw-s 6c7a4a000 00:05 11809                     /dev/nvidiactl
+7f054400c000-7f054400d000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f054400d000-7f054400e000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f054400e000-7f054400f000 rw-s 6cbc4d000 00:05 11809                     /dev/nvidiactl
+7f054400f000-7f0544010000 rw-s 5a259e000 00:05 11809                     /dev/nvidiactl
+7f0544010000-7f0544014000 rw-s e09c0000 00:05 11817                      /dev/nvidia0
+7f0544014000-7f0544018000 rw-s e09a0000 00:05 11817                      /dev/nvidia0
+7f0544018000-7f0544019000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f0544019000-7f054401a000 rw-s 6c7a46000 00:05 11809                     /dev/nvidiactl
+7f054401a000-7f054401b000 rw-s efd67000 00:05 11817                      /dev/nvidia0
+7f054401b000-7f054401f000 rw-s e0980000 00:05 11817                      /dev/nvidia0
+7f054401f000-7f0544020000 rw-s a2656000 00:05 11809                      /dev/nvidiactl
+7f0544020000-7f0544021000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f0544021000-7f0544022000 rw-s 5aa73e000 00:05 11809                     /dev/nvidiactl
+7f0544022000-7f0544023000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f0544023000-7f0544027000 rw-s e0960000 00:05 11817                      /dev/nvidia0
+7f0544027000-7f0544028000 rw-s 6d6b9b000 00:05 11809                     /dev/nvidiactl
+7f0544028000-7f054402c000 rw-s e0940000 00:05 11817                      /dev/nvidia0
+7f054402c000-7f0544030000 rw-s e0920000 00:05 11817                      /dev/nvidia0
+7f0544030000-7f0544031000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f0544031000-7f0544032000 rw-s 6c9e0b000 00:05 11809                     /dev/nvidiactl
+7f0544032000-7f0544036000 rw-s e0900000 00:05 11817                      /dev/nvidia0
+7f0544036000-7f0544037000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f0544037000-7f054403b000 rw-s e08e0000 00:05 11817                      /dev/nvidia0
+7f054403b000-7f054403c000 rw-s 6e69a7000 00:05 11809                     /dev/nvidiactl
+7f054403c000-7f054403d000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f054403d000-7f054403e000 rw-s 6de7b4000 00:05 11809                     /dev/nvidiactl
+7f054403e000-7f054403f000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f054403f000-7f0544040000 rw-s 6bf050000 00:05 11809                     /dev/nvidiactl
+7f0544040000-7f0544044000 rw-s e08c0000 00:05 11817                      /dev/nvidia0
+7f0544044000-7f0544048000 rw-s e08a0000 00:05 11817                      /dev/nvidia0
+7f0544048000-7f0544049000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f0544049000-7f054404d000 rw-s e0880000 00:05 11817                      /dev/nvidia0
+7f054404d000-7f0544051000 rw-s e0860000 00:05 11817                      /dev/nvidia0
+7f0544051000-7f0544052000 rw-s 6dbdf6000 00:05 11809                     /dev/nvidiactl
+7f0544052000-7f0544053000 rw-s efd66000 00:05 11817                      /dev/nvidia0
+7f0544053000-7f0544054000 rw-s 6bb8a2000 00:05 11809                     /dev/nvidiactl
+7f0544054000-7f0544055000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f0544096000-7f0544097000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f0544097000-7f0544098000 rw-s 6e1272000 00:05 11809                     /dev/nvidiactl
+7f0544098000-7f0544099000 rw-s 6dbdfe000 00:05 11809                     /dev/nvidiactl
+7f0544099000-7f054409d000 rw-s e0840000 00:05 11817                      /dev/nvidia0
+7f054409d000-7f05440a1000 rw-s e0820000 00:05 11817                      /dev/nvidia0
+7f05440a1000-7f05440a5000 rw-s e0800000 00:05 11817                      /dev/nvidia0
+7f05440a5000-7f05440a6000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f05440a6000-7f05440a7000 rw-s 6dbdf3000 00:05 11809                     /dev/nvidiactl
+7f05440a7000-7f05440ab000 rw-s e07e0000 00:05 11817                      /dev/nvidia0
+7f05440ab000-7f05440ac000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f05440ac000-7f05440ad000 rw-s 6e2243000 00:05 11809                     /dev/nvidiactl
+7f05440ad000-7f05440ae000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f05440ae000-7f05440b2000 rw-s e07c0000 00:05 11817                      /dev/nvidia0
+7f05440b2000-7f05440b3000 rw-s 6caa26000 00:05 11809                     /dev/nvidiactl
+7f05440b3000-7f05440b7000 rw-s e07a0000 00:05 11817                      /dev/nvidia0
+7f05440b7000-7f05440bb000 rw-s e0780000 00:05 11817                      /dev/nvidia0
+7f05440fc000-7f05444fc000 rw-s 6c3942000 00:05 11809                     /dev/nvidiactl
+7f05444fc000-7f05448fc000 rw-s 5a6c68000 00:05 11809                     /dev/nvidiactl
+7f05448fc000-7f05448fd000 ---p 00000000 00:00 0 
+7f05448fd000-7f05450fd000 rwxp 00000000 00:00 0                          [stack:10659]
+7f05450fd000-7f05454fd000 rw-s 6df830000 00:05 11809                     /dev/nvidiactl
+7f05454fd000-7f05469ff000 rw-p 00000000 00:00 0 
+7f05469ff000-7f0546dff000 rw-s 6ccb53000 00:05 11809                     /dev/nvidiactl
+7f0546dff000-7f0547800000 rw-p 00000000 00:00 0 
+7f0547800000-7f0547c00000 rw-s 5a7c91000 00:05 11809                     /dev/nvidiactl
+7f0547c00000-7f0548000000 rw-s 6daee9000 00:05 11809                     /dev/nvidiactl
+7f0548000000-7f0548021000 rw-p 00000000 00:00 0 
+7f0548021000-7f054c000000 ---p 00000000 00:00 0 
+7f054c000000-7f054c021000 rw-p 00000000 00:00 0 
+7f054c021000-7f0550000000 ---p 00000000 00:00 0 
+7f0550000000-7f0550021000 rw-p 00000000 00:00 0 
+7f0550021000-7f0554000000 ---p 00000000 00:00 0 
+7f0554000000-7f0554b22000 rw-p 00000000 00:00 0 
+7f0554b22000-7f0558000000 ---p 00000000 00:00 0 
+7f0558000000-7f0558021000 rw-p 00000000 00:00 0 
+7f0558021000-7f055c000000 ---p 00000000 00:00 0 
+7f055c000000-7f055c021000 rw-p 00000000 00:00 0 
+7f055c021000-7f0560000000 ---p 00000000 00:00 0 
+7f0560000000-7f0560024000 rw-p 00000000 00:00 0 
+7f0560024000-7f0564000000 ---p 00000000 00:00 0 
+7f0564000000-7f0564021000 rw-p 00000000 00:00 0 
+7f0564021000-7f0568000000 ---p 00000000 00:00 0 
+7f0568000000-7f0568021000 rw-p 00000000 00:00 0 
+7f0568021000-7f056c000000 ---p 00000000 00:00 0 
+7f056c000000-7f056c021000 rw-p 00000000 00:00 0 
+7f056c021000-7f0570000000 ---p 00000000 00:00 0 
+7f0570000000-7f057002d000 rw-p 00000000 00:00 0 
+7f057002d000-7f0574000000 ---p 00000000 00:00 0 
+7f0574000000-7f0574049000 rw-p 00000000 00:00 0 
+7f0574049000-7f0578000000 ---p 00000000 00:00 0 
+7f0578000000-7f057804a000 rw-p 00000000 00:00 0 
+7f057804a000-7f057c000000 ---p 00000000 00:00 0 
+7f057c000000-7f057c021000 rw-p 00000000 00:00 0 
+7f057c021000-7f0580000000 ---p 00000000 00:00 0 
+7f0580000000-7f0580001000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f0580001000-7f0580002000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f0580002000-7f0580003000 rw-s 6ca211000 00:05 11809                     /dev/nvidiactl
+7f0580003000-7f0580004000 rw-s efd65000 00:05 11817                      /dev/nvidia0
+7f0580004000-7f0580005000 rw-s 59c936000 00:05 11809                     /dev/nvidiactl
+7f0580005000-7f0580006000 rw-s 58cb2f000 00:05 11809                     /dev/nvidiactl
+7f0580006000-7f058000a000 rw-s e0760000 00:05 11817                      /dev/nvidia0
+7f058000a000-7f058000e000 rw-s e0740000 00:05 11817                      /dev/nvidia0
+7f058000e000-7f0580012000 rw-s e0720000 00:05 11817                      /dev/nvidia0
+7f0580012000-7f0580013000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f0580013000-7f0580014000 rw-s b3498000 00:05 11809                      /dev/nvidiactl
+7f0580014000-7f0580015000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f0580015000-7f0580016000 rw-s 6df7d5000 00:05 11809                     /dev/nvidiactl
+7f0580016000-7f058001a000 rw-s e0700000 00:05 11817                      /dev/nvidia0
+7f058001a000-7f058001e000 rw-s e06e0000 00:05 11817                      /dev/nvidia0
+7f058001e000-7f058001f000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f058001f000-7f0580020000 rw-s 6c81a6000 00:05 11809                     /dev/nvidiactl
+7f0580020000-7f0580021000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f0580021000-7f0580022000 rw-s 6de5e9000 00:05 11809                     /dev/nvidiactl
+7f0580022000-7f0580026000 rw-s e06c0000 00:05 11817                      /dev/nvidia0
+7f0580026000-7f0580027000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f0580027000-7f058002b000 rw-s e06a0000 00:05 11817                      /dev/nvidia0
+7f058002b000-7f058002c000 rw-s b4110000 00:05 11809                      /dev/nvidiactl
+7f058002c000-7f058002d000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f058002d000-7f0580031000 rw-s e0680000 00:05 11817                      /dev/nvidia0
+7f0580031000-7f0580032000 rw-s 77785e000 00:05 11809                     /dev/nvidiactl
+7f0580032000-7f0580036000 rw-s e0660000 00:05 11817                      /dev/nvidia0
+7f0580036000-7f0580037000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f0580037000-7f0580038000 rw-s 6ddad8000 00:05 11809                     /dev/nvidiactl
+7f0580038000-7f0580039000 rw-s efd64000 00:05 11817                      /dev/nvidia0
+7f0580039000-7f058003a000 rw-s 59c464000 00:05 11809                     /dev/nvidiactl
+7f058007b000-7f058007f000 rw-s e0640000 00:05 11817                      /dev/nvidia0
+7f058007f000-7f0580083000 rw-s e0620000 00:05 11817                      /dev/nvidia0
+7f0580083000-7f0580084000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f0580084000-7f0580085000 rw-s b4fc8000 00:05 11809                      /dev/nvidiactl
+7f0580085000-7f0580086000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f0580086000-7f0580087000 rw-s 91a17000 00:05 11809                      /dev/nvidiactl
+7f0580087000-7f058008b000 rw-s e0600000 00:05 11817                      /dev/nvidia0
+7f058008b000-7f058008f000 rw-s e05e0000 00:05 11817                      /dev/nvidia0
+7f058008f000-7f0580090000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f0580090000-7f0580091000 rw-s 59b534000 00:05 11809                     /dev/nvidiactl
+7f0580091000-7f0580293000 rw-p 00000000 00:00 0 
+7f0580293000-7f0580297000 rw-s e05c0000 00:05 11817                      /dev/nvidia0
+7f0580297000-7f0580298000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f0580298000-7f0580299000 rw-s 6c4803000 00:05 11809                     /dev/nvidiactl
+7f0580299000-7f058029c000 ---p 00000000 00:00 0 
+7f058029c000-7f058039a000 rwxp 00000000 00:00 0                          [stack:10658]
+7f058039a000-7f058039e000 rw-s e05a0000 00:05 11817                      /dev/nvidia0
+7f058039e000-7f058039f000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f058039f000-7f05803a0000 rw-s 6ccb52000 00:05 11809                     /dev/nvidiactl
+7f05803a0000-7f05803a4000 rw-s e0580000 00:05 11817                      /dev/nvidia0
+7f05803a4000-7f05803a5000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f05803a5000-7f05803a6000 rw-s 5a7c90000 00:05 11809                     /dev/nvidiactl
+7f05803e7000-7f05803eb000 rw-s e0560000 00:05 11817                      /dev/nvidia0
+7f05803eb000-7f05807eb000 rw-s 5b6082000 00:05 11809                     /dev/nvidiactl
+7f05807eb000-7f05807ef000 rw-s e0540000 00:05 11817                      /dev/nvidia0
+7f05807ef000-7f0580bef000 rw-s 6d519e000 00:05 11809                     /dev/nvidiactl
+7f0580bef000-7f0580bf3000 rw-s e0520000 00:05 11817                      /dev/nvidia0
+7f0580bf3000-7f0580bf4000 ---p 00000000 00:00 0 
+7f0580bf4000-7f05813f4000 rwxp 00000000 00:00 0                          [stack:10656]
+7f05813f4000-7f05834f9000 rw-p 00000000 00:00 0 
+7f05834f9000-7f0583a63000 r-xp 00000000 fc:00 60686856                   /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so
+7f0583a63000-7f0583c62000 ---p 0056a000 fc:00 60686856                   /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so
+7f0583c62000-7f0583c7a000 r--p 00569000 fc:00 60686856                   /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so
+7f0583c7a000-7f0583c81000 rw-p 00581000 fc:00 60686856                   /home/anh/work/anh/VoltDB/voltdb/libvoltdb-5.1.so
+7f0583c81000-7f0583c82000 rw-p 00000000 00:00 0 
+7f0583c82000-7f0583c85000 ---p 00000000 00:00 0 
+7f0583c85000-7f0583cc3000 rwxp 00000000 00:00 0                          [stack:10654]
+7f0583d04000-7f0583d07000 ---p 00000000 00:00 0 
+7f0583d07000-7f0583e05000 rwxp 00000000 00:00 0                          [stack:10655]
+7f0583e05000-7f0583e08000 r--s 00017000 fc:00 90704895                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/jce.jar
+7f0583e08000-7f0583e0b000 ---p 00000000 00:00 0 
+7f0583e0b000-7f0583e41000 rwxp 00000000 00:00 0                          [stack:10651]
+7f0583e41000-7f0583e44000 ---p 00000000 00:00 0 
+7f0583e44000-7f0583e7a000 rwxp 00000000 00:00 0                          [stack:10650]
+7f0584000000-7f0584021000 rw-p 00000000 00:00 0 
+7f0584021000-7f0588000000 ---p 00000000 00:00 0 
+7f0588000000-7f0588021000 rw-p 00000000 00:00 0 
+7f0588021000-7f058c000000 ---p 00000000 00:00 0 
+7f058c000000-7f058c021000 rw-p 00000000 00:00 0 
+7f058c021000-7f0590000000 ---p 00000000 00:00 0 
+7f0590000000-7f059010a000 rw-p 00000000 00:00 0 
+7f059010a000-7f0594000000 ---p 00000000 00:00 0 
+7f0594000000-7f0594021000 rw-p 00000000 00:00 0 
+7f0594021000-7f0598000000 ---p 00000000 00:00 0 
+7f0598000000-7f0598021000 rw-p 00000000 00:00 0 
+7f0598021000-7f059c000000 ---p 00000000 00:00 0 
+7f059c000000-7f059c021000 rw-p 00000000 00:00 0 
+7f059c021000-7f05a0000000 ---p 00000000 00:00 0 
+7f05a0000000-7f05a0021000 rw-p 00000000 00:00 0 
+7f05a0021000-7f05a4000000 ---p 00000000 00:00 0 
+7f05a4000000-7f05a402e000 rw-p 00000000 00:00 0 
+7f05a402e000-7f05a8000000 ---p 00000000 00:00 0 
+7f05a8000000-7f05a8021000 rw-p 00000000 00:00 0 
+7f05a8021000-7f05ac000000 ---p 00000000 00:00 0 
+7f05ac000000-7f05ac021000 rw-p 00000000 00:00 0 
+7f05ac021000-7f05b0000000 ---p 00000000 00:00 0 
+7f05b0000000-7f05b0062000 rw-p 00000000 00:00 0 
+7f05b0062000-7f05b4000000 ---p 00000000 00:00 0 
+7f05b4000000-7f05b4021000 rw-p 00000000 00:00 0 
+7f05b4021000-7f05b8000000 ---p 00000000 00:00 0 
+7f05b8000000-7f05b8021000 rw-p 00000000 00:00 0 
+7f05b8021000-7f05bc000000 ---p 00000000 00:00 0 
+7f05bc000000-7f05bc718000 rw-p 00000000 00:00 0 
+7f05bc718000-7f05c0000000 ---p 00000000 00:00 0 
+7f05c0000000-7f05c0021000 rw-p 00000000 00:00 0 
+7f05c0021000-7f05c4000000 ---p 00000000 00:00 0 
+7f05c4000000-7f05c4021000 rw-p 00000000 00:00 0 
+7f05c4021000-7f05c8000000 ---p 00000000 00:00 0 
+7f05c8000000-7f05c8bcb000 rw-p 00000000 00:00 0 
+7f05c8bcb000-7f05cc000000 ---p 00000000 00:00 0 
+7f05cc000000-7f05cc021000 rw-p 00000000 00:00 0 
+7f05cc021000-7f05d0000000 ---p 00000000 00:00 0 
+7f05d0000000-7f05d0021000 rw-p 00000000 00:00 0 
+7f05d0021000-7f05d4000000 ---p 00000000 00:00 0 
+7f05d4000000-7f05d4021000 rw-p 00000000 00:00 0 
+7f05d4021000-7f05d8000000 ---p 00000000 00:00 0 
+7f05d8000000-7f05d8021000 rw-p 00000000 00:00 0 
+7f05d8021000-7f05dc000000 ---p 00000000 00:00 0 
+7f05dc000000-7f05dc021000 rw-p 00000000 00:00 0 
+7f05dc021000-7f05e0000000 ---p 00000000 00:00 0 
+7f05e0000000-7f05e0021000 rw-p 00000000 00:00 0 
+7f05e0021000-7f05e4000000 ---p 00000000 00:00 0 
+7f05e4000000-7f05e4021000 rw-p 00000000 00:00 0 
+7f05e4021000-7f05e8000000 ---p 00000000 00:00 0 
+7f05e8000000-7f05e8001000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f05e8001000-7f05e8002000 rw-s 6daee8000 00:05 11809                     /dev/nvidiactl
+7f05e8187000-7f05e8188000 rw-p 00000000 00:00 0 
+7f05e8188000-7f05e818d000 r--s 0004e000 fc:00 90704936                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/jsse.jar
+7f05e818d000-7f05e8190000 ---p 00000000 00:00 0 
+7f05e8190000-7f05e828e000 rwxp 00000000 00:00 0                          [stack:10637]
+7f05e828e000-7f05e8291000 ---p 00000000 00:00 0 
+7f05e8291000-7f05e838f000 rwxp 00000000 00:00 0                          [stack:10636]
+7f05e838f000-7f05e8392000 ---p 00000000 00:00 0 
+7f05e8392000-7f05e8490000 rwxp 00000000 00:00 0                          [stack:10635]
+7f05e8490000-7f05e8493000 ---p 00000000 00:00 0 
+7f05e8493000-7f05e8591000 rwxp 00000000 00:00 0                          [stack:10634]
+7f05e8591000-7f05e8594000 ---p 00000000 00:00 0 
+7f05e8594000-7f05e8692000 rwxp 00000000 00:00 0                          [stack:10633]
+7f05e8692000-7f05e8695000 ---p 00000000 00:00 0 
+7f05e8695000-7f05e8793000 rwxp 00000000 00:00 0                          [stack:10632]
+7f05e8793000-7f05e8796000 ---p 00000000 00:00 0 
+7f05e8796000-7f05e87d4000 rwxp 00000000 00:00 0                          [stack:10631]
+7f05e87d4000-7f05e87dc000 r-xp 00000000 fc:00 90704912                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libmanagement.so
+7f05e87dc000-7f05e89db000 ---p 00008000 fc:00 90704912                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libmanagement.so
+7f05e89db000-7f05e89dc000 r--p 00007000 fc:00 90704912                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libmanagement.so
+7f05e89dc000-7f05e89dd000 rw-p 00008000 fc:00 90704912                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libmanagement.so
+7f05e89dd000-7f05e89e0000 ---p 00000000 00:00 0 
+7f05e89e0000-7f05e8a1e000 rwxp 00000000 00:00 0                          [stack:10630]
+7f05e8a1e000-7f05e8a28000 r--s 000ae000 fc:00 90704943                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/resources.jar
+7f05e8a28000-7f05e8a2b000 r--s 0002f000 fc:00 55184495                   /home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+7f05e8a2b000-7f05e8a2f000 r--s 00035000 fc:00 55184488                   /home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar
+7f05e8a2f000-7f05e8a93000 r--s 005a0000 fc:00 55184483                   /home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar
+7f05e8a93000-7f05e8ad7000 r--s 00325000 fc:00 55184498                   /home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar
+7f05e8ad7000-7f05e8b36000 r--s 00582000 fc:00 55184730                   /home/anh/work/anh/VoltDB/lib/scala-library.jar
+7f05e8b36000-7f05e8b67000 rw-p 00000000 00:00 0 
+7f05e8b67000-7f05e8ba4000 r-xp 00000000 fc:00 114819091                  /lib/x86_64-linux-gnu/libpcre.so.3.13.1
+7f05e8ba4000-7f05e8da3000 ---p 0003d000 fc:00 114819091                  /lib/x86_64-linux-gnu/libpcre.so.3.13.1
+7f05e8da3000-7f05e8da4000 r--p 0003c000 fc:00 114819091                  /lib/x86_64-linux-gnu/libpcre.so.3.13.1
+7f05e8da4000-7f05e8da5000 rw-p 0003d000 fc:00 114819091                  /lib/x86_64-linux-gnu/libpcre.so.3.13.1
+7f05e8da5000-7f05e8dac000 r-xp 00000000 fc:00 90180922                   /usr/lib/x86_64-linux-gnu/libffi.so.6.0.1
+7f05e8dac000-7f05e8fab000 ---p 00007000 fc:00 90180922                   /usr/lib/x86_64-linux-gnu/libffi.so.6.0.1
+7f05e8fab000-7f05e8fac000 r--p 00006000 fc:00 90180922                   /usr/lib/x86_64-linux-gnu/libffi.so.6.0.1
+7f05e8fac000-7f05e8fad000 rw-p 00007000 fc:00 90180922                   /usr/lib/x86_64-linux-gnu/libffi.so.6.0.1
+7f05e8fad000-7f05e8fc4000 r-xp 00000000 fc:00 114819167                  /lib/x86_64-linux-gnu/libresolv-2.19.so
+7f05e8fc4000-7f05e91c4000 ---p 00017000 fc:00 114819167                  /lib/x86_64-linux-gnu/libresolv-2.19.so
+7f05e91c4000-7f05e91c5000 r--p 00017000 fc:00 114819167                  /lib/x86_64-linux-gnu/libresolv-2.19.so
+7f05e91c5000-7f05e91c6000 rw-p 00018000 fc:00 114819167                  /lib/x86_64-linux-gnu/libresolv-2.19.so
+7f05e91c6000-7f05e91c8000 rw-p 00000000 00:00 0 
+7f05e91c8000-7f05e91e8000 r-xp 00000000 fc:00 114819166                  /lib/x86_64-linux-gnu/libselinux.so.1
+7f05e91e8000-7f05e93e7000 ---p 00020000 fc:00 114819166                  /lib/x86_64-linux-gnu/libselinux.so.1
+7f05e93e7000-7f05e93e8000 r--p 0001f000 fc:00 114819166                  /lib/x86_64-linux-gnu/libselinux.so.1
+7f05e93e8000-7f05e93e9000 rw-p 00020000 fc:00 114819166                  /lib/x86_64-linux-gnu/libselinux.so.1
+7f05e93e9000-7f05e93eb000 rw-p 00000000 00:00 0 
+7f05e93eb000-7f05e93ee000 r-xp 00000000 fc:00 90182591                   /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0.4002.0
+7f05e93ee000-7f05e95ed000 ---p 00003000 fc:00 90182591                   /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0.4002.0
+7f05e95ed000-7f05e95ee000 r--p 00002000 fc:00 90182591                   /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0.4002.0
+7f05e95ee000-7f05e95ef000 rw-p 00003000 fc:00 90182591                   /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0.4002.0
+7f05e95ef000-7f05e96f5000 r-xp 00000000 fc:00 114823051                  /lib/x86_64-linux-gnu/libglib-2.0.so.0.4002.0
+7f05e96f5000-7f05e98f4000 ---p 00106000 fc:00 114823051                  /lib/x86_64-linux-gnu/libglib-2.0.so.0.4002.0
+7f05e98f4000-7f05e98f5000 r--p 00105000 fc:00 114823051                  /lib/x86_64-linux-gnu/libglib-2.0.so.0.4002.0
+7f05e98f5000-7f05e98f6000 rw-p 00106000 fc:00 114823051                  /lib/x86_64-linux-gnu/libglib-2.0.so.0.4002.0
+7f05e98f6000-7f05e98f7000 rw-p 00000000 00:00 0 
+7f05e98f7000-7f05e9946000 r-xp 00000000 fc:00 90182592                   /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.4002.0
+7f05e9946000-7f05e9b46000 ---p 0004f000 fc:00 90182592                   /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.4002.0
+7f05e9b46000-7f05e9b47000 r--p 0004f000 fc:00 90182592                   /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.4002.0
+7f05e9b47000-7f05e9b48000 rw-p 00050000 fc:00 90182592                   /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.4002.0
+7f05e9b48000-7f05e9cb4000 r-xp 00000000 fc:00 90182594                   /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.4002.0
+7f05e9cb4000-7f05e9eb3000 ---p 0016c000 fc:00 90182594                   /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.4002.0
+7f05e9eb3000-7f05e9eb7000 r--p 0016b000 fc:00 90182594                   /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.4002.0
+7f05e9eb7000-7f05e9eb9000 rw-p 0016f000 fc:00 90182594                   /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.4002.0
+7f05e9eb9000-7f05e9ebb000 rw-p 00000000 00:00 0 
+7f05e9ebb000-7f05e9ed2000 r-xp 00000000 fc:00 90704932                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnet.so
+7f05e9ed2000-7f05ea0d1000 ---p 00017000 fc:00 90704932                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnet.so
+7f05ea0d1000-7f05ea0d2000 r--p 00016000 fc:00 90704932                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnet.so
+7f05ea0d2000-7f05ea0d3000 rw-p 00017000 fc:00 90704932                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnet.so
+7f05ea0d3000-7f05ea0e3000 r-xp 00000000 fc:00 90704904                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnio.so
+7f05ea0e3000-7f05ea2e3000 ---p 00010000 fc:00 90704904                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnio.so
+7f05ea2e3000-7f05ea2e4000 r--p 00010000 fc:00 90704904                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnio.so
+7f05ea2e4000-7f05ea2e5000 rw-p 00011000 fc:00 90704904                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libnio.so
+7f05ea2e5000-7f05ea353000 r--s 0078f000 fc:00 60686857                   /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar
+7f05ea353000-7f05ea354000 ---p 00000000 00:00 0 
+7f05ea354000-7f05ea454000 rwxp 00000000 00:00 0                          [stack:10629]
+7f05ea454000-7f05ea457000 ---p 00000000 00:00 0 
+7f05ea457000-7f05ea555000 rwxp 00000000 00:00 0                          [stack:10628]
+7f05ea555000-7f05ea558000 ---p 00000000 00:00 0 
+7f05ea558000-7f05ea656000 rwxp 00000000 00:00 0                          [stack:10627]
+7f05ea656000-7f05ea659000 ---p 00000000 00:00 0 
+7f05ea659000-7f05ea757000 rwxp 00000000 00:00 0                          [stack:10626]
+7f05ea757000-7f05ea75a000 ---p 00000000 00:00 0 
+7f05ea75a000-7f05ea858000 rwxp 00000000 00:00 0                          [stack:10625]
+7f05ea858000-7f05ea85b000 ---p 00000000 00:00 0 
+7f05ea85b000-7f05ea959000 rwxp 00000000 00:00 0                          [stack:10624]
+7f05ea959000-7f05eb129000 r--p 00000000 fc:00 90184193                   /usr/lib/locale/locale-archive
+7f05eb129000-7f05eb12c000 ---p 00000000 00:00 0 
+7f05eb12c000-7f05eb22a000 rwxp 00000000 00:00 0                          [stack:10623]
+7f05eb22a000-7f05eb22d000 ---p 00000000 00:00 0 
+7f05eb22d000-7f05eb32b000 rwxp 00000000 00:00 0                          [stack:10622]
+7f05eb32b000-7f05eb32c000 ---p 00000000 00:00 0 
+7f05eb32c000-7f05eb42c000 rwxp 00000000 00:00 0                          [stack:10621]
+7f05eb42c000-7f05eb475000 rw-p 00000000 00:00 0 
+7f05eb475000-7f05eb627000 r--s 01d2e000 fc:00 90704898                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/rt.jar
+7f05eb627000-7f05ec000000 rw-p 00000000 00:00 0 
+7f05ec000000-7f05ec021000 rw-p 00000000 00:00 0 
+7f05ec021000-7f05f0000000 ---p 00000000 00:00 0 
+7f05f0000000-7f05f0001000 rw-s efd63000 00:05 11817                      /dev/nvidia0
+7f05f0001000-7f05f0002000 rw-s 5b602f000 00:05 11809                     /dev/nvidiactl
+7f05f0002000-7f05f0007000 r--s 00038000 fc:00 55184494                   /home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar
+7f05f0007000-7f05f0009000 r--s 00005000 fc:00 55184732                   /home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar
+7f05f0009000-7f05f000a000 r--s 00004000 fc:00 55184490                   /home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar
+7f05f000a000-7f05f0018000 r--s 000b1000 fc:00 55184489                   /home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar
+7f05f0018000-7f05f001b000 r--s 00014000 fc:00 55184735                   /home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar
+7f05f001b000-7f05f001f000 r--s 00023000 fc:00 55184484                   /home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar
+7f05f001f000-7f05f0022000 r--s 0001b000 fc:00 55184731                   /home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar
+7f05f0022000-7f05f002b000 r--s 0006d000 fc:00 55184499                   /home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar
+7f05f002b000-7f05f0032000 r--s 00047000 fc:00 55184487                   /home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar
+7f05f0032000-7f05f0036000 r--s 000d0000 fc:00 55184496                   /home/anh/work/anh/VoltDB/lib/jna.jar
+7f05f0036000-7f05f003c000 r--s 00068000 fc:00 55184501                   /home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar
+7f05f003c000-7f05f01c8000 rw-p 00000000 00:00 0 
+7f05f01c8000-7f05f01c9000 ---p 00000000 00:00 0 
+7f05f01c9000-7f05f02c9000 rwxp 00000000 00:00 0                          [stack:10620]
+7f05f02c9000-7f05f4000000 rw-p 00000000 00:00 0 
+7f05f4000000-7f05f4021000 rw-p 00000000 00:00 0 
+7f05f4021000-7f05f8000000 ---p 00000000 00:00 0 
+7f05f8000000-7f05f8021000 rw-p 00000000 00:00 0 
+7f05f8021000-7f05fc000000 ---p 00000000 00:00 0 
+7f05fc000000-7f05fc021000 rw-p 00000000 00:00 0 
+7f05fc021000-7f0600000000 ---p 00000000 00:00 0 
+7f0600000000-7f0600021000 rw-p 00000000 00:00 0 
+7f0600021000-7f0604000000 ---p 00000000 00:00 0 
+7f0604000000-7f0604021000 rw-p 00000000 00:00 0 
+7f0604021000-7f0608000000 ---p 00000000 00:00 0 
+7f0608000000-7f0608021000 rw-p 00000000 00:00 0 
+7f0608021000-7f060c000000 ---p 00000000 00:00 0 
+7f060c000000-7f060c021000 rw-p 00000000 00:00 0 
+7f060c021000-7f0610000000 ---p 00000000 00:00 0 
+7f0610000000-7f0610002000 r--s 0000e000 fc:00 55184482                   /home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar
+7f0610002000-7f0610005000 r--s 0001c000 fc:00 55184736                   /home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar
+7f0610005000-7f0610007000 r--s 0000c000 fc:00 55184738                   /home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar
+7f0610007000-7f0610009000 r--s 00016000 fc:00 55184492                   /home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar
+7f0610009000-7f061000f000 r--s 00033000 fc:00 55184480                   /home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar
+7f061000f000-7f0610011000 r--s 00011000 fc:00 55184737                   /home/anh/work/anh/VoltDB/lib/tomcat-juli.jar
+7f0610011000-7f0610013000 r--s 00014000 fc:00 55184491                   /home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar
+7f0610013000-7f0610018000 r--s 00047000 fc:00 55184493                   /home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar
+7f0610018000-7f061038e000 rw-p 00000000 00:00 0 
+7f061038e000-7f061038f000 ---p 00000000 00:00 0 
+7f061038f000-7f061048f000 rwxp 00000000 00:00 0                          [stack:10619]
+7f061048f000-7f0610490000 ---p 00000000 00:00 0 
+7f0610490000-7f0610590000 rwxp 00000000 00:00 0                          [stack:10618]
+7f0610590000-7f0610612000 rw-p 00000000 00:00 0 
+7f0610612000-7f0610645000 rw-p 00000000 00:00 0 
+7f0610645000-7f0611000000 rw-p 00000000 00:00 0 
+7f0611000000-7f0611270000 rwxp 00000000 00:00 0 
+7f0611270000-7f0614c7f000 rw-p 00000000 00:00 0 
+7f0614c7f000-7f0618000000 ---p 00000000 00:00 0 
+7f0618000000-7f0618002000 r--s 00000000 fc:00 55184733                   /home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar
+7f0618002000-7f0618004000 r--s 00009000 fc:00 55184479                   /home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar
+7f0618004000-7f0618010000 r--s 00084000 fc:00 55184485                   /home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar
+7f0618010000-7f0618019000 r--s 00062000 fc:00 55184477                   /home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar
+7f0618019000-7f061853a000 rw-p 00000000 00:00 0 
+7f061853a000-7f061856d000 rw-p 00000000 00:00 0 
+7f061856d000-7f061856e000 rw-p 00000000 00:00 0 
+7f061856e000-7f061856f000 ---p 00000000 00:00 0 
+7f061856f000-7f061866f000 rwxp 00000000 00:00 0                          [stack:10617]
+7f061866f000-7f0618670000 ---p 00000000 00:00 0 
+7f0618670000-7f0618770000 rwxp 00000000 00:00 0                          [stack:10616]
+7f0618770000-7f0618771000 ---p 00000000 00:00 0 
+7f0618771000-7f0618871000 rwxp 00000000 00:00 0                          [stack:10615]
+7f0618871000-7f0618872000 ---p 00000000 00:00 0 
+7f0618872000-7f0618972000 rwxp 00000000 00:00 0                          [stack:10614]
+7f0618972000-7f0618973000 ---p 00000000 00:00 0 
+7f0618973000-7f0618a73000 rwxp 00000000 00:00 0                          [stack:10613]
+7f0618a73000-7f0618a74000 ---p 00000000 00:00 0 
+7f0618a74000-7f0618b74000 rwxp 00000000 00:00 0                          [stack:10612]
+7f0618b74000-7f0618b75000 ---p 00000000 00:00 0 
+7f0618b75000-7f0618c75000 rwxp 00000000 00:00 0                          [stack:10611]
+7f0618c75000-7f0618c76000 ---p 00000000 00:00 0 
+7f0618c76000-7f0618d76000 rwxp 00000000 00:00 0                          [stack:10610]
+7f0618d76000-7f0618d7e000 r-xp 00000000 fc:00 90704908                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libzip.so
+7f0618d7e000-7f0618f7d000 ---p 00008000 fc:00 90704908                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libzip.so
+7f0618f7d000-7f0618f7e000 r--p 00007000 fc:00 90704908                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libzip.so
+7f0618f7e000-7f0618f7f000 rw-p 00008000 fc:00 90704908                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libzip.so
+7f0618f7f000-7f0618f8a000 r-xp 00000000 fc:00 114819169                  /lib/x86_64-linux-gnu/libnss_files-2.19.so
+7f0618f8a000-7f0619189000 ---p 0000b000 fc:00 114819169                  /lib/x86_64-linux-gnu/libnss_files-2.19.so
+7f0619189000-7f061918a000 r--p 0000a000 fc:00 114819169                  /lib/x86_64-linux-gnu/libnss_files-2.19.so
+7f061918a000-7f061918b000 rw-p 0000b000 fc:00 114819169                  /lib/x86_64-linux-gnu/libnss_files-2.19.so
+7f061918b000-7f0619196000 r-xp 00000000 fc:00 114823278                  /lib/x86_64-linux-gnu/libnss_nis-2.19.so
+7f0619196000-7f0619395000 ---p 0000b000 fc:00 114823278                  /lib/x86_64-linux-gnu/libnss_nis-2.19.so
+7f0619395000-7f0619396000 r--p 0000a000 fc:00 114823278                  /lib/x86_64-linux-gnu/libnss_nis-2.19.so
+7f0619396000-7f0619397000 rw-p 0000b000 fc:00 114823278                  /lib/x86_64-linux-gnu/libnss_nis-2.19.so
+7f0619397000-7f06193ae000 r-xp 00000000 fc:00 114820048                  /lib/x86_64-linux-gnu/libnsl-2.19.so
+7f06193ae000-7f06195ad000 ---p 00017000 fc:00 114820048                  /lib/x86_64-linux-gnu/libnsl-2.19.so
+7f06195ad000-7f06195ae000 r--p 00016000 fc:00 114820048                  /lib/x86_64-linux-gnu/libnsl-2.19.so
+7f06195ae000-7f06195af000 rw-p 00017000 fc:00 114820048                  /lib/x86_64-linux-gnu/libnsl-2.19.so
+7f06195af000-7f06195b1000 rw-p 00000000 00:00 0 
+7f06195b1000-7f06195ba000 r-xp 00000000 fc:00 114820047                  /lib/x86_64-linux-gnu/libnss_compat-2.19.so
+7f06195ba000-7f06197b9000 ---p 00009000 fc:00 114820047                  /lib/x86_64-linux-gnu/libnss_compat-2.19.so
+7f06197b9000-7f06197ba000 r--p 00008000 fc:00 114820047                  /lib/x86_64-linux-gnu/libnss_compat-2.19.so
+7f06197ba000-7f06197bb000 rw-p 00009000 fc:00 114820047                  /lib/x86_64-linux-gnu/libnss_compat-2.19.so
+7f06197bb000-7f06197e6000 r-xp 00000000 fc:00 90704916                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libjava.so
+7f06197e6000-7f06199e6000 ---p 0002b000 fc:00 90704916                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libjava.so
+7f06199e6000-7f06199e7000 r--p 0002b000 fc:00 90704916                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libjava.so
+7f06199e7000-7f06199e9000 rw-p 0002c000 fc:00 90704916                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libjava.so
+7f06199e9000-7f06199f9000 r-xp 00000000 fc:00 90704928                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libverify.so
+7f06199f9000-7f0619bf8000 ---p 00010000 fc:00 90704928                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libverify.so
+7f0619bf8000-7f0619bfa000 r--p 0000f000 fc:00 90704928                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libverify.so
+7f0619bfa000-7f0619bfb000 rw-p 00011000 fc:00 90704928                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/libverify.so
+7f0619bfb000-7f061a71f000 r-xp 00000000 fc:00 90835966                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server/libjvm.so
+7f061a71f000-7f061a91f000 ---p 00b24000 fc:00 90835966                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server/libjvm.so
+7f061a91f000-7f061a9b9000 r--p 00b24000 fc:00 90835966                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server/libjvm.so
+7f061a9b9000-7f061a9dc000 rw-p 00bbe000 fc:00 90835966                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server/libjvm.so
+7f061a9dc000-7f061aa0a000 rw-p 00000000 00:00 0 
+7f061aa0a000-7f061aa22000 r-xp 00000000 fc:00 114823166                  /lib/x86_64-linux-gnu/libz.so.1.2.8
+7f061aa22000-7f061ac21000 ---p 00018000 fc:00 114823166                  /lib/x86_64-linux-gnu/libz.so.1.2.8
+7f061ac21000-7f061ac22000 r--p 00017000 fc:00 114823166                  /lib/x86_64-linux-gnu/libz.so.1.2.8
+7f061ac22000-7f061ac23000 rw-p 00018000 fc:00 114823166                  /lib/x86_64-linux-gnu/libz.so.1.2.8
+7f061ac23000-7f061ac39000 r-xp 00000000 fc:00 114822980                  /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f061ac39000-7f061ae38000 ---p 00016000 fc:00 114822980                  /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f061ae38000-7f061ae39000 rw-p 00015000 fc:00 114822980                  /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f061ae39000-7f061af1f000 r-xp 00000000 fc:00 90179770                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.19
+7f061af1f000-7f061b11e000 ---p 000e6000 fc:00 90179770                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.19
+7f061b11e000-7f061b126000 r--p 000e5000 fc:00 90179770                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.19
+7f061b126000-7f061b128000 rw-p 000ed000 fc:00 90179770                   /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.19
+7f061b128000-7f061b13d000 rw-p 00000000 00:00 0 
+7f061b13d000-7f061b242000 r-xp 00000000 fc:00 114819168                  /lib/x86_64-linux-gnu/libm-2.19.so
+7f061b242000-7f061b441000 ---p 00105000 fc:00 114819168                  /lib/x86_64-linux-gnu/libm-2.19.so
+7f061b441000-7f061b442000 r--p 00104000 fc:00 114819168                  /lib/x86_64-linux-gnu/libm-2.19.so
+7f061b442000-7f061b443000 rw-p 00105000 fc:00 114819168                  /lib/x86_64-linux-gnu/libm-2.19.so
+7f061b443000-7f061b44a000 r-xp 00000000 fc:00 114822933                  /lib/x86_64-linux-gnu/librt-2.19.so
+7f061b44a000-7f061b649000 ---p 00007000 fc:00 114822933                  /lib/x86_64-linux-gnu/librt-2.19.so
+7f061b649000-7f061b64a000 r--p 00006000 fc:00 114822933                  /lib/x86_64-linux-gnu/librt-2.19.so
+7f061b64a000-7f061b64b000 rw-p 00007000 fc:00 114822933                  /lib/x86_64-linux-gnu/librt-2.19.so
+7f061b64b000-7f061b664000 r-xp 00000000 fc:00 114820056                  /lib/x86_64-linux-gnu/libpthread-2.19.so
+7f061b664000-7f061b863000 ---p 00019000 fc:00 114820056                  /lib/x86_64-linux-gnu/libpthread-2.19.so
+7f061b863000-7f061b864000 r--p 00018000 fc:00 114820056                  /lib/x86_64-linux-gnu/libpthread-2.19.so
+7f061b864000-7f061b865000 rw-p 00019000 fc:00 114820056                  /lib/x86_64-linux-gnu/libpthread-2.19.so
+7f061b865000-7f061b869000 rw-p 00000000 00:00 0 
+7f061b869000-7f061b86c000 r-xp 00000000 fc:00 114819172                  /lib/x86_64-linux-gnu/libdl-2.19.so
+7f061b86c000-7f061ba6b000 ---p 00003000 fc:00 114819172                  /lib/x86_64-linux-gnu/libdl-2.19.so
+7f061ba6b000-7f061ba6c000 r--p 00002000 fc:00 114819172                  /lib/x86_64-linux-gnu/libdl-2.19.so
+7f061ba6c000-7f061ba6d000 rw-p 00003000 fc:00 114819172                  /lib/x86_64-linux-gnu/libdl-2.19.so
+7f061ba6d000-7f061bc28000 r-xp 00000000 fc:00 114820055                  /lib/x86_64-linux-gnu/libc-2.19.so
+7f061bc28000-7f061be27000 ---p 001bb000 fc:00 114820055                  /lib/x86_64-linux-gnu/libc-2.19.so
+7f061be27000-7f061be2b000 r--p 001ba000 fc:00 114820055                  /lib/x86_64-linux-gnu/libc-2.19.so
+7f061be2b000-7f061be2d000 rw-p 001be000 fc:00 114820055                  /lib/x86_64-linux-gnu/libc-2.19.so
+7f061be2d000-7f061be32000 rw-p 00000000 00:00 0 
+7f061be32000-7f061be3f000 r-xp 00000000 fc:00 90704929                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/jli/libjli.so
+7f061be3f000-7f061c03e000 ---p 0000d000 fc:00 90704929                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/jli/libjli.so
+7f061c03e000-7f061c03f000 r--p 0000c000 fc:00 90704929                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/jli/libjli.so
+7f061c03f000-7f061c040000 rw-p 0000d000 fc:00 90704929                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/jli/libjli.so
+7f061c040000-7f061c043000 r-xp 00000000 fc:00 90177932                   /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0
+7f061c043000-7f061c242000 ---p 00003000 fc:00 90177932                   /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0
+7f061c242000-7f061c243000 r--p 00002000 fc:00 90177932                   /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0
+7f061c243000-7f061c244000 rw-p 00003000 fc:00 90177932                   /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0
+7f061c244000-7f061c29f000 r-xp 00000000 fc:00 99225066                   /usr/local/cuda-7.5/lib64/libcudart.so.7.5.18
+7f061c29f000-7f061c49e000 ---p 0005b000 fc:00 99225066                   /usr/local/cuda-7.5/lib64/libcudart.so.7.5.18
+7f061c49e000-7f061c4a2000 rw-p 0005a000 fc:00 99225066                   /usr/local/cuda-7.5/lib64/libcudart.so.7.5.18
+7f061c4a2000-7f061d084000 r-xp 00000000 fc:00 90177933                   /usr/lib/x86_64-linux-gnu/libcuda.so.352.55
+7f061d084000-7f061d283000 ---p 00be2000 fc:00 90177933                   /usr/lib/x86_64-linux-gnu/libcuda.so.352.55
+7f061d283000-7f061d441000 rw-p 00be1000 fc:00 90177933                   /usr/lib/x86_64-linux-gnu/libcuda.so.352.55
+7f061d441000-7f061d457000 rw-p 00000000 00:00 0 
+7f061d457000-7f061d47a000 r-xp 00000000 fc:00 114820051                  /lib/x86_64-linux-gnu/ld-2.19.so
+7f061d47a000-7f061d47d000 r--s 00067000 fc:00 55184734                   /home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar
+7f061d47d000-7f061d481000 r--s 0003c000 fc:00 55184497                   /home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar
+7f061d481000-7f061d48b000 rw-p 00000000 00:00 0 
+7f061d48b000-7f061d541000 rw-p 00000000 00:00 0 
+7f061d541000-7f061d544000 ---p 00000000 00:00 0 
+7f061d544000-7f061d642000 rwxp 00000000 00:00 0                          [stack:10609]
+7f061d642000-7f061d649000 rw-p 00000000 00:00 0 
+7f061d649000-7f061d64e000 r--s 00046000 fc:00 55184481                   /home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar
+7f061d64e000-7f061d651000 r--s 00012000 fc:00 55184500                   /home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar
+7f061d651000-7f061d657000 r--s 0003f000 fc:00 55184486                   /home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar
+7f061d657000-7f061d65b000 r--s 0003c000 fc:00 90835729                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/ext/sunpkcs11.jar
+7f061d65b000-7f061d65f000 r--s 00034000 fc:00 90835727                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/ext/sunjce_provider.jar
+7f061d65f000-7f061d663000 r--s 00085000 fc:00 90835723                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/ext/localedata.jar
+7f061d663000-7f061d664000 r--s 00002000 fc:00 90835731                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/ext/dnsns.jar
+7f061d664000-7f061d666000 r--s 00012000 fc:00 90835464                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/ext/zipfs.jar
+7f061d666000-7f061d668000 r--s 00006000 fc:00 90571055                   /usr/share/java/java-atk-wrapper.jar
+7f061d668000-7f061d66b000 r--s 0000f000 fc:00 90835725                   /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/ext/icedtea-sound.jar
+7f061d66b000-7f061d673000 rw-s 00000000 fc:00 35389581                   /tmp/hsperfdata_anh/10608
+7f061d673000-7f061d674000 rw-p 00000000 00:00 0 
+7f061d674000-7f061d675000 r--p 00000000 00:00 0 
+7f061d675000-7f061d679000 rw-p 00000000 00:00 0 
+7f061d679000-7f061d67a000 r--p 00022000 fc:00 114820051                  /lib/x86_64-linux-gnu/ld-2.19.so
+7f061d67a000-7f061d67b000 rw-p 00023000 fc:00 114820051                  /lib/x86_64-linux-gnu/ld-2.19.so
+7f061d67b000-7f061d67c000 rw-p 00000000 00:00 0 
+7ffdc2454000-7ffdc2473000 rwxp 00000000 00:00 0                          [stack]
+7ffdc2473000-7ffdc2476000 rw-p 00000000 00:00 0 
+7ffdc2479000-7ffdc247b000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+
+VM Arguments:
+jvm_args: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb 
+java_command: org.voltdb.VoltDB create host localhost:3021
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre/
+PATH=/opt/ros/indigo/bin:/home/anh/ros_drivers/devel/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda/bin:/home/anh/work/anh/VoltDB/bin
+LD_LIBRARY_PATH=/home/anh/ros_drivers/devel/lib:/home/anh/ros_drivers/devel/lib/x86_64-linux-gnu:/opt/ros/indigo/lib/x86_64-linux-gnu:/opt/ros/indigo/lib:/usr/lib/:/usr/lib64/:/usr/local/cuda/lib:/usr/local/cuda/lib64
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libcuda.so:/usr/local/cuda/lib64/libcudart.so:/usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0
+SHELL=/bin/bash
+DISPLAY=:0
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0x9548f0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGBUS: [libjvm.so+0x9548f0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGFPE: [libjvm.so+0x7cb0b0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGPIPE: [libjvm.so+0x7cb0b0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGXFSZ: [libjvm.so+0x7cb0b0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGILL: [libjvm.so+0x7cb0b0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGUSR1: SIG_DFL, sa_mask[0]=0x00000000, sa_flags=0x00000000
+SIGUSR2: [libjvm.so+0x7caf50], sa_mask[0]=0x00000000, sa_flags=0x10000004
+SIGHUP: [libjvm.so+0x7cb130], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGINT: [libjvm.so+0x7cb130], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGTERM: [libjvm.so+0x7cb130], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGQUIT: [libjvm.so+0x7cb130], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGTRAP: SIG_DFL, sa_mask[0]=0x00000000, sa_flags=0x00000000
+
+
+---------------  S Y S T E M  ---------------
+
+OS:Ubuntu 14.04 (trusty)
+uname:Linux 3.13.0-74-generic #118-Ubuntu SMP Thu Dec 17 22:52:10 UTC 2015 x86_64
+libc:glibc 2.19 NPTL 2.19 
+rlimit: STACK 8192k, CORE 0k, NPROC 256201, NOFILE 4096, AS infinity
+load average:0.70 0.57 0.64
+
+/proc/meminfo:
+MemTotal:       32888668 kB
+MemFree:        22902564 kB
+Buffers:          474356 kB
+Cached:          2261496 kB
+SwapCached:            0 kB
+Active:          6925052 kB
+Inactive:        1521088 kB
+Active(anon):    5711268 kB
+Inactive(anon):   105040 kB
+Active(file):    1213784 kB
+Inactive(file):  1416048 kB
+Unevictable:         144 kB
+Mlocked:             144 kB
+SwapTotal:      33492988 kB
+SwapFree:       33492988 kB
+Dirty:             77004 kB
+Writeback:             0 kB
+AnonPages:       5710232 kB
+Mapped:          1198356 kB
+Shmem:            106024 kB
+Slab:             371716 kB
+SReclaimable:     309272 kB
+SUnreclaim:        62444 kB
+KernelStack:        6368 kB
+PageTables:        50604 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    49937320 kB
+Committed_AS:   11536016 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      174344 kB
+VmallocChunk:   34359558140 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:   4177920 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:     1533180 kB
+DirectMap2M:    10989568 kB
+DirectMap1G:    20971520 kB
+
+
+CPU:total 8 (4 cores per cpu, 2 threads per core) family 6 model 60 stepping 3, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, erms, ht, tsc, tscinvbit
+
+/proc/cpuinfo:
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 1000.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 0
+cpu cores	: 4
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 1
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 1200.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 1
+cpu cores	: 4
+apicid		: 2
+initial apicid	: 2
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 2
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 3601.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 2
+cpu cores	: 4
+apicid		: 4
+initial apicid	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 3
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 1400.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 3
+cpu cores	: 4
+apicid		: 6
+initial apicid	: 6
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 4
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 800.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 0
+cpu cores	: 4
+apicid		: 1
+initial apicid	: 1
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 5
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 2000.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 1
+cpu cores	: 4
+apicid		: 3
+initial apicid	: 3
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 6
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 1800.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 2
+cpu cores	: 4
+apicid		: 5
+initial apicid	: 5
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 7
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 60
+model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+stepping	: 3
+microcode	: 0x19
+cpu MHz		: 3601.000
+cache size	: 8192 KB
+physical id	: 0
+siblings	: 8
+core id		: 3
+cpu cores	: 4
+apicid		: 7
+initial apicid	: 7
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm
+bogomips	: 7195.38
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+
+
+Memory: 4k page, physical 32888668k(22902868k free), swap 33492988k(33492988k free)
+
+vm_info: OpenJDK 64-Bit Server VM (24.91-b01) for linux-amd64 JRE (1.7.0_91-b02), built on Nov 19 2015 06:14:37 by "buildd" with gcc 4.8.2
+
+time: Tue Jan 12 08:38:59 2016
+elapsed time: 18 seconds
+

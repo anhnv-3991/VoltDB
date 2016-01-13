@@ -195,6 +195,7 @@ bool GPUIJ::join(){
 	block_y = BLOCK_SIZE_Y;
 	grid_x = divUtility(part_size, block_x);
 	grid_y = divUtility(part_size, block_y);
+	block_y = 1;
 
 	gpu_size = grid_x * grid_y * block_x * block_y + 1;
 	if (gpu_size > MAX_LARGE_ARRAY_SIZE) {
@@ -220,10 +221,19 @@ bool GPUIJ::join(){
 
 	res = cuMemAlloc(&count_dev, gpu_size * sizeof(ulong));
 	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(count_dev) failed: res = %lu\n gpu_size = %u", (unsigned long)res, gpu_size);
+		printf("cuMemAlloc(count_dev) failed: res = %lu\n gpu_size = %u\n", (unsigned long)res, gpu_size);
 		return false;
 	}
 
+	ulong *test_count_dev = (ulong *)malloc(gpu_size * sizeof(ulong));
+	memset(test_count_dev, 0, gpu_size * sizeof(ulong));
+	res = cuMemcpyHtoD(count_dev, test_count_dev, gpu_size * sizeof(ulong));
+	if (res != CUDA_SUCCESS) {
+		printf("cuMemcpyHtoD(count_dev, test_count_dev) failed: res = %lu\n", (unsigned long)res);
+		return false;
+	}
+
+	free(test_count_dev);
 
 	/******* Allocate GPU buffer for join condition *********/
 	if (end_size_ > 1) {
@@ -292,18 +302,9 @@ bool GPUIJ::join(){
 			grid_x = divUtility(outer_part_size, block_x);
 			grid_y = divUtility(inner_part_size, block_y);
 			block_y = 1;
-			gpu_size = block_x * grid_x * grid_y + 1;
+			gpu_size = block_x * block_y * grid_x * grid_y + 1;
 
-
-			ulong *test_count_dev = (ulong *)malloc(gpu_size * sizeof(ulong));
-			memset(test_count_dev, 0, gpu_size * sizeof(ulong));
-			res = cuMemcpyHtoD(count_dev, test_count_dev, gpu_size * sizeof(ulong));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemcpyHtoD(count_dev, test_count_dev) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-
-			printf("block_x = %u; block_y = %u; grid_x = %u; grid_y = %u; gpu_size = %u; outer_part_size = %u; inner_part_size = %u\n", block_x, block_y, grid_x, grid_y, gpu_size, outer_part_size, inner_part_size);
+			printf("block_x = %u; block_y = %u; grid_x = %u; grid_y = %u; gpu_size = %u; outer_part_size = %u; inner_part_size = %u; outer_size_ = %d; inner_size_ = %d; part_size = %d\n", block_x, block_y, grid_x, grid_y, gpu_size, outer_part_size, inner_part_size, outer_size_, inner_size_, part_size);
 			/**** Copy IndexData to GPU memory ****/
 			res = cuMemcpyHtoD(outer_dev, outer_table_ + outer_idx, outer_part_size * sizeof(IndexData));
 			if (res != CUDA_SUCCESS) {
@@ -317,6 +318,13 @@ bool GPUIJ::join(){
 				return false;
 			}
 
+//			ulong *test_count_dev = (ulong *)malloc(gpu_size * sizeof(ulong));
+//			memset(test_count_dev, 0, gpu_size * sizeof(ulong));
+//			res = cuMemcpyHtoD(count_dev, test_count_dev, gpu_size * sizeof(ulong));
+//			if (res != CUDA_SUCCESS) {
+//				printf("cuMemcpyHtoD(count_dev, test_count_dev) failed: res = %lu\n", (unsigned long)res);
+//				return false;
+//			}
 //			GPUIJ::debug();
 //			int t;
 //			for (int i = 0; i < outer_part_size; i++) {
@@ -363,17 +371,17 @@ bool GPUIJ::join(){
 				return false;
 			}
 
-			res = cuMemcpyDtoH(test_count_dev, count_dev, gpu_size * sizeof(ulong));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemcpyDtoH(test_count_dev, count_dev) error: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-
-			for (int i = 0; i < gpu_size; i++) {
-				printf("count_dev[%d] = %lu\n", i, test_count_dev[i]);
-			}
-
-			free(test_count_dev);
+//			res = cuMemcpyDtoH(test_count_dev, count_dev, gpu_size * sizeof(ulong));
+//			if (res != CUDA_SUCCESS) {
+//				printf("cuMemcpyDtoH(test_count_dev, count_dev) error: res = %lu\n", (unsigned long)res);
+//				return false;
+//			}
+//
+//			for (int i = 0; i < gpu_size; i++) {
+//				printf("count_dev[%d] = %lu\n", i, test_count_dev[i]);
+//			}
+//
+//			free(test_count_dev);
 
 			if (!((new GPUSCAN<ulong, ulong4>)->getValue(count_dev, gpu_size, &jr_size))) {
 				printf("getValue(count_dev, gpu_size, &jr_size) error");
@@ -453,7 +461,7 @@ bool GPUIJ::join(){
 
 			result_size_ += jr_size;
 			jr_size = 0;
-			printf("Size of result: %d\n", result_size_);
+			//printf("Size of result: %d\n", result_size_);
 		}
 	}
 
@@ -488,7 +496,7 @@ bool GPUIJ::join(){
 		return false;
 	}
 
-	printf("Join Succeeded!\n");
+	//printf("Join Succeeded!\n");
 	return true;
 }
 
@@ -504,6 +512,7 @@ int GPUIJ::getResultSize() const
 
 uint GPUIJ::getPartitionSize() const
 {
+//	return PART_SIZE_;
 	uint part_size = DEFAULT_PART_SIZE_;
 	uint bigger_tuple_size = (outer_size_ > inner_size_) ? outer_size_ : inner_size_;
 
