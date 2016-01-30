@@ -35,7 +35,8 @@ void count(
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int k = blockIdx.y * gridDim.x * blockDim.x;
 
-  __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+  //__shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+  COLUMNDATA tiCD[BLOCK_SIZE_Y];
 
   /**
      TO DO : tiCD shoud be stored in parallel.but I have bug.
@@ -95,7 +96,8 @@ __global__ void join(
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int k = blockIdx.y * gridDim.x * blockDim.x;
 
-  __shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+  //__shared__ COLUMNDATA tiCD[BLOCK_SIZE_Y];
+  COLUMNDATA tiCD[BLOCK_SIZE_Y];
 
   if(threadIdx.x==0){
     for(uint j=0 ; j<BLOCK_SIZE_Y && BLOCK_SIZE_Y*blockIdx.y+j<rtn ; j++){

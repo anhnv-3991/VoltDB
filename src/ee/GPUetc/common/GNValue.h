@@ -40,6 +40,7 @@
 #include "ttmath/ttmathint.h"
 #include "common/types.h"
 #include "common/value_defs.h"
+#include "common/StringRef.h"
 #include "GPUetc/common/Gvalue_defs.h"
 #include "GPUetc/cudaheader.h"
 
@@ -445,6 +446,30 @@ class GNValue {
         return *reinterpret_cast<TTInt*>(retval);
     }
 */
+    CUDAH int8_t getObjectLengthLength() const {
+        return m_data[12];
+    }
+
+    CUDAH int32_t getObjectLength_withoutNull() const {
+        assert(isNull() == false);
+        assert(getValueType() == VALUE_TYPE_VARCHAR || getValueType() == VALUE_TYPE_VARBINARY);
+        // now safe to read and return the length preceding value.
+        return *reinterpret_cast<const int32_t *>(&m_data[8]);
+    }
+
+    CUDAH void* getObjectValue_withoutNull() const {
+        void* value;
+        if (m_sourceInlined) {
+            value = *reinterpret_cast<char* const*>(m_data) + getObjectLengthLength();
+        }
+        else {
+//            StringRef* sref = *reinterpret_cast<StringRef* const*>(m_data);
+//            value = sref->get() + getObjectLengthLength();
+        	printf("Not support non-inlined string. Return null...\n");
+        	value = NULL;
+        }
+        return value;
+    }
 
     CUDAH const bool& getBoolean() const {
         assert(getValueType() == VALUE_TYPE_BOOLEAN);
@@ -612,7 +637,7 @@ class GNValue {
     }
 
     CUDAH int compareTimestamp (const GNValue rhs) const {
-        //assert(m_valueType == VALUE_TYPE_TIMESTAMP);
+        assert(m_valueType == VALUE_TYPE_TIMESTAMP);
 
         // get the right hand side as a bigint
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
@@ -634,7 +659,7 @@ class GNValue {
 
     CUDAH int compareDoubleValue (const GNValue rhs) const {
 
-        //assert(m_valueType == VALUE_TYPE_DOUBLE);
+        assert(m_valueType == VALUE_TYPE_DOUBLE);
 
         const double lhsValue = getDouble();
         double rhsValue;
@@ -737,6 +762,57 @@ class GNValue {
     }
 
 */
+    CUDAH int GStrcmp(const char *left, const char *right, int length) const
+    {
+    	int i = 0;
+
+    	while (i < length) {
+    		if (left[i] < right[i]) {
+    			return -1;
+    		} else if (left[i] > right[i]) {
+    			return 1;
+    		}
+    		i++;
+    	}
+
+    	return 0;
+    }
+
+    //Compare string value
+    CUDAH int compareStringValue (const GNValue rhs) const {
+        assert(m_valueType == VALUE_TYPE_VARCHAR);
+
+        ValueType rhsType = rhs.getValueType();
+        if ((rhsType != VALUE_TYPE_VARCHAR) && (rhsType != VALUE_TYPE_VARBINARY)) {
+
+        }
+
+        assert(m_valueType == VALUE_TYPE_VARCHAR);
+
+        const int32_t leftLength = getObjectLength_withoutNull();
+        const int32_t rightLength = rhs.getObjectLength_withoutNull();
+        const char* left = reinterpret_cast<const char*>(getObjectValue_withoutNull());
+        const char* right = reinterpret_cast<const char*>(rhs.getObjectValue_withoutNull());
+        int min_length = (leftLength <= rightLength) ? leftLength : rightLength;
+
+        const int result = GStrcmp(left, right, min_length);
+        if (result == 0 && leftLength != rightLength) {
+            if (leftLength > rightLength) {
+                return  VALUE_COMPARE_GREATERTHAN;
+            } else {
+                return VALUE_COMPARE_LESSTHAN;
+            }
+        }
+        else if (result > 0) {
+            return VALUE_COMPARE_GREATERTHAN;
+        }
+        else if (result < 0) {
+            return VALUE_COMPARE_LESSTHAN;
+        }
+
+        return VALUE_COMPARE_EQUAL;
+    }
+    //End of comparing string value
 
 };
 
@@ -859,7 +935,7 @@ inline CUDAH void GNValue::initFromTupleStorage(const void *storage, ValueType t
 
 inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     assert(isNull() == false && rhs.isNull() == false);
-    assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
+    //assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
 
     switch (m_valueType) {
     case VALUE_TYPE_BIGINT:
@@ -875,7 +951,7 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     case VALUE_TYPE_DOUBLE:
         return compareDoubleValue(rhs);
     case VALUE_TYPE_VARCHAR:
-        //return compareStringValue(rhs);
+        return compareStringValue(rhs);
     case VALUE_TYPE_VARBINARY:
         //return compareBinaryValue(rhs);
     case VALUE_TYPE_DECIMAL:
@@ -899,7 +975,7 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
 
 inline CUDAH bool GNValue::isNull() const {
 
-    assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
+    //assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
 /*
     if (getValueType() == VALUE_TYPE_DECIMAL) {
         TTInt min;
@@ -960,7 +1036,7 @@ inline CUDAH GNValue GNValue::op_and(const GNValue rhs) const {
 }
 
 inline CUDAH GNValue GNValue::op_or(const GNValue rhs) const {
-	bool tmp = this->getBoolean() & rhs.getBoolean();
+	bool tmp = this->getBoolean() | rhs.getBoolean();
 
 	return (tmp) ? getTrue() : getFalse();
 }

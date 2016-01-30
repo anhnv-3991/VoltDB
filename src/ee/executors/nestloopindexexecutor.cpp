@@ -78,6 +78,7 @@
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 #include "expressions/comparisonexpression.h"
 #include "GPUetc/expressions/treeexpression.h"
+#include <sys/time.h>
 
 
 using namespace std;
@@ -181,6 +182,9 @@ void GNValueDebug(GNValue &column_data)
 
 bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 {
+	struct timeval start, finish;
+
+	gettimeofday(&start, NULL);
 
     NestLoopIndexPlanNode* node = dynamic_cast<NestLoopIndexPlanNode*>(m_abstractNode);
     assert(node);
@@ -303,17 +307,28 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	/************ Build Expression Tree *****************************/
 	TreeExpression end_ex_tree(end_expression);
+	printf("End ex tree:::");
+	end_ex_tree.debug();
 
 	TreeExpression post_ex_tree(post_expression);
+	printf("Post ex tree:::");
+	post_ex_tree.debug();
 
 	TreeExpression initial_ex_tree(initial_expression);
+	printf("Initial ex tree:::");
+	initial_ex_tree.debug();
 
 	TreeExpression skipNull_ex_tree(skipNullExpr);
+	printf("skipNull ex tree:::");
+	skipNull_ex_tree.debug();
 
 	TreeExpression prejoin_ex_tree(prejoin_expression);
-	//prejoin_ex_tree.debug();
+	printf("Prejoin ex tree:::");
+	prejoin_ex_tree.debug();
 
 	TreeExpression where_ex_tree(where_expression);
+	printf("Where ex tree:::");
+	where_ex_tree.debug();
 
 	/******************** Add for GPU join **************************/
 
@@ -346,10 +361,11 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	idx = 0;
 	while (search_it_out.next(outer_tuple)) {
 //		if (prejoin_expression == NULL || prejoin_expression->eval(&outer_tuple, NULL).isTrue()) {
-			index_data_out[idx].num = idx;
+			//index_data_out[idx].num = idx;
 			tmp_outer_tuple[idx] = outer_tuple;
 			for (int i = 0; i < outer_tuple.sizeInValues(); i++) {
 				NValue tmp_value = outer_tuple.getNValue(i);
+
 				setGNValue(&(index_data_out[idx].gn[i]), tmp_value);
 			}
 			idx++;
@@ -375,7 +391,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	idx = 0;
 	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
 //		if (prejoin_expression == NULL || prejoin_expression->eval(&tmp_tuple, NULL).isTrue()) {
-			index_data_in[idx].num = idx;
+			//index_data_in[idx].num = idx;
 			tmp_inner_tuple[idx] = inner_tuple;
 			for (int i = 0; i < inner_tuple.sizeInValues(); i++) {
 				NValue tmp_value = inner_tuple.getNValue(i);
@@ -390,12 +406,16 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	RESULT *join_result = NULL;
 	int result_size = 0;
     /* Copy data to GPU memory */
+	struct timeval join_start, join_end;
+
 	if (outer_size != 0 && inner_size != 0) {
 
 		GPUIJ gn(index_data_out, index_data_in, outer_size, inner_size, search_keys, inner_indices, end_ex_tree,
 					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree);
 
+		gettimeofday(&join_start, NULL);
 		ret = gn.join();
+		gettimeofday(&join_end, NULL);
 		if (ret != true) {
 			std::cout << "Error: gpu join failed." << std::endl;
 		} else {
@@ -404,8 +424,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
 			gn.getResult(join_result);
 
-			printf("Size of result = %d\n", result_size);
-			printf("Start writing output...\n");
+			//printf("Size of result = %d\n", result_size);
+			//printf("Start writing output...\n");
 			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
 				int l = join_result[i].lkey;
 				int r = join_result[i].rkey;
@@ -432,6 +452,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			}
 		}
 	}
+
+	printf("Elapsed time for joining: %ld\n", (join_end.tv_sec - join_start.tv_sec) * 1000000 + (join_end.tv_usec - join_start.tv_usec));
     /******************* End of adding GPU join ********************/
 
 
@@ -729,7 +751,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     cleanupInputTempTable(inner_table);
     cleanupInputTempTable(outer_table);
 
-    printf("End of JOIN\n");
+    //printf("End of JOIN\n");
     if (outer_size != 0) {
     	free(index_data_out);
     	free(tmp_outer_tuple);
@@ -743,6 +765,9 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     	free(join_result);
     }
 
+    gettimeofday(&finish, NULL);
+
+    printf("Elapsed time: %lu microseconds\n", ((finish.tv_sec - start.tv_sec) * 1000000 + finish.tv_usec - start.tv_usec));
 
     return (true);
 }

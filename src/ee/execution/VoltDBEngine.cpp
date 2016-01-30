@@ -220,7 +220,9 @@ public:
                 // Now call the execute method to actually perform
                 // whatever action it is that the node is supposed to
                 // do...
-                if (!executor->execute(params)) {
+            	//printf("Start executing...\n");
+            	bool res = executor->execute(params);
+                if (!res) {
                     VOLT_TRACE("The Executor's execution at position '%d'"
                                " failed for PlanFragment '%jd'",
                                ctr, (intmax_t)m_fragId);

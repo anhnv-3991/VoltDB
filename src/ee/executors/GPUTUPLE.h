@@ -9,7 +9,9 @@ namespace voltdb{
 
 //1blockでのスレッド数の定義。
 #define BLOCK_SIZE_X 512  //outer ,left
-#define BLOCK_SIZE_Y 512  //inner ,right
+//#define BLOCK_SIZE_Y 2048  //inner ,right
+#define BLOCK_SIZE_Y 4096
+
 
 #define PARTITION 64
 #define RADIX 6
@@ -42,11 +44,14 @@ typedef struct _COLUMNDATA{
 
 typedef struct _INDEXDATA {
 	GNValue gn[MAX_GNVALUE];
-	int num;
-} IndexData;
+} IndexData __attribute__((aligned(32)));
 
 typedef IndexData PostData;
 
+typedef struct _RESULT_BOUND {
+	int left;
+	int right;
+} ResBound;
 }
 
 #endif

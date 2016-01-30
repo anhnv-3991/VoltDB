@@ -20,8 +20,13 @@ finally join() store match tuple to result array .
 */
 
 extern "C" {
+
+__device__ GNValue eval(GTreeNode *tree_expression, int tree_size, int root, IndexData outer_tuple, IndexData inner_tuple)
+{
+	return GNValue::getNullValue();
+}
 //CUDAH int flag_test;
-CUDAH bool pushStack(GNValue *stack, int *top, GNValue new_val)
+__device__ bool pushStack(GNValue *stack, int *top, GNValue new_val)
 {
 	if (*top >= MAX_STACK_SIZE - 1) {
 		printf("Error: Full GPU stack!\n");
@@ -34,7 +39,7 @@ CUDAH bool pushStack(GNValue *stack, int *top, GNValue new_val)
 	return true;
 }
 
-CUDAH GNValue popStack(GNValue *stack, int *top)
+__device__ GNValue popStack(GNValue *stack, int *top)
 {
 	if (*top < 0) {
 		printf("Error: Empty GPU stack!\n");
@@ -46,7 +51,7 @@ CUDAH GNValue popStack(GNValue *stack, int *top)
 }
 
 //No more recursive
-CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_tuple, IndexData inner_tuple, GNValue *stack)
+__device__ bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_tuple, IndexData inner_tuple, GNValue *stack)
 {
 	int top = -1;
 	GNValue left, right;
@@ -168,7 +173,7 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 					return false;
 				}
 
-				if (!pushStack(stack, &top, left.op_lessThanOrEqual(right))) {
+				if (!pushStack(stack, &top, left.op_greaterThan(right))) {
 					printf("Error: Failed to push %d to stack! Exiting...\n", i);
 					return false;
 				}
@@ -196,12 +201,12 @@ CUDAH bool evaluate(GTreeNode *tree_expression, int tree_size, IndexData outer_t
 	return (popStack(stack, &top).isTrue()) ? true: false;
 }
 
-CUDAH void binarySearchIdx(int *search_key_indices,
-								int search_key_size,
-								int *key_indices,
-								int key_index_size,
-								IndexData search_key,
-								IndexData *search_array,
+__device__ void binarySearchIdx(const int * __restrict__ search_key_indices,
+								const int search_key_size,
+								const int * __restrict__ key_indices,
+								const int key_index_size,
+								const IndexData search_key,
+								const IndexData * __restrict__ search_array,
 								int left_bound,
 								int right_bound,
 								int *res_left,
@@ -225,27 +230,29 @@ CUDAH void binarySearchIdx(int *search_key_indices,
 			search_idx = search_key_indices[i];
 			if (search_idx >= MAX_GNVALUE)
 				return;
-			tmp_search = search_key.gn[search_idx];
+			//tmp_search = search_key.gn[search_idx];
 
-			if (tmp_search.getValueType() == VALUE_TYPE_INVALID || tmp_search.getValueType() == VALUE_TYPE_NULL) {
-				//printf("search key problem: search_idx = %d, num = %d\n", search_idx, search_key.num);
+			//if (tmp_search.getValueType() == VALUE_TYPE_INVALID || tmp_search.getValueType() == VALUE_TYPE_NULL) {
+			if (search_key.gn[search_idx].getValueType() == VALUE_TYPE_INVALID || search_key.gn[search_idx].getValueType() == VALUE_TYPE_NULL) {
 				middle = -1;
 				break;
 			}
 			if (i >= key_index_size)
 				return;
 			key_idx = key_indices[i];
+
 			if (key_idx >= MAX_GNVALUE)
 				return;
 			tmp_idx = search_array[middle].gn[key_idx];
 
-			if (tmp_idx.getValueType() == VALUE_TYPE_INVALID || tmp_idx.getValueType() == VALUE_TYPE_NULL) {
+			//if (tmp_idx.getValueType() == VALUE_TYPE_INVALID || tmp_idx.getValueType() == VALUE_TYPE_NULL) {
+			if (search_array[middle].gn[key_idx].getValueType() == VALUE_TYPE_INVALID || search_array[middle].gn[key_idx].getValueType() == VALUE_TYPE_NULL) {
 				middle = -1;
-				//printf("search key problem: middle = %d, num = %d, left = %d, right = %d\n", middle, search_key.num, left_bound, right_bound);
 				break;
 			}
 			//tmp_idx.debug();
-			res = tmp_search.compare_withoutNull(tmp_idx);
+			//res = tmp_search.compare_withoutNull(tmp_idx);
+			res = search_key.gn[search_idx].compare_withoutNull(search_array[middle].gn[key_idx]);
 			if (res != 0)
 				break;
 		}
@@ -267,16 +274,17 @@ CUDAH void binarySearchIdx(int *search_key_indices,
 				search_idx = search_key_indices[j];
 				if (search_idx >= MAX_GNVALUE)
 					return;
-				tmp_search = search_key.gn[search_idx];
+				//tmp_search = search_key.gn[search_idx];
 
 				if (j >= key_index_size)
 					return;
 				key_idx = key_indices[j];
 				if (key_idx >= MAX_GNVALUE)
 					return;
-				tmp_idx = search_array[left].gn[key_idx];
+				//tmp_idx = search_array[left].gn[key_idx];
 
-				res = tmp_search.compare_withoutNull(tmp_idx);
+				//res = tmp_search.compare_withoutNull(tmp_idx);
+				res = search_key.gn[search_idx].compare_withoutNull(search_array[left].gn[key_idx]);
 				if (res != 0)
 					break;
 			}
@@ -290,16 +298,17 @@ CUDAH void binarySearchIdx(int *search_key_indices,
 				search_idx = search_key_indices[j];
 				if (search_idx >= MAX_GNVALUE)
 					return;
-				tmp_search = search_key.gn[search_idx];
+				//tmp_search = search_key.gn[search_idx];
 
 				if (j >= key_index_size)
 					return;
 				key_idx = key_indices[j];
 				if (key_idx >= MAX_GNVALUE)
 					return;
-				tmp_idx = search_array[right].gn[key_idx];
+				//tmp_idx = search_array[right].gn[key_idx];
 
-				res = tmp_search.compare_withoutNull(tmp_idx);
+				//res = tmp_search.compare_withoutNull(tmp_idx);
+				res = search_key.gn[search_idx].compare_withoutNull(search_array[right].gn[key_idx]);
 				if (res != 0)
 					break;
 			}
@@ -317,6 +326,7 @@ void count(
           IndexData *outer_dev,
           IndexData *inner_dev,
           ulong *count_dev,
+          ResBound *res_bound,
           uint outer_part_size,
           uint inner_part_size,
           uint gpu_size,
@@ -334,54 +344,41 @@ void count(
 
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
-	bool res = true;
+	//bool res = true;
+	int left_bound = BLOCK_SIZE_Y * blockIdx.y;
+	int right_bound = (left_bound + BLOCK_SIZE_Y < inner_part_size) ? (left_bound + BLOCK_SIZE_Y - 1) : (inner_part_size - 1);
 
-	//printf("%u\n", outer_part_size);
+	count_dev[x + k] = 0;
+	res_bound[x + k].left = -1;
+	res_bound[x + k].right = -1;
 
-	//printf("x = %d, k = %d\n", x, k);
-	if (x < outer_part_size && x + k < gpu_size) {
-	//A global memory read is very slow.So repeating values is stored register memory
-		IndexData tmp_outer = outer_dev[x];
-		GNValue tmp_stack[MAX_STACK_SIZE];
-		int res_left = -1, res_right = -1;
-		int res_count = 0;
-		int left_bound = BLOCK_SIZE_Y * blockIdx.y;
-		//int right_bound = inner_part_size + left_bound - 1;
-		int right_bound = (left_bound + BLOCK_SIZE_Y < inner_part_size) ? (left_bound + BLOCK_SIZE_Y) : (inner_part_size - 1);
+	left_bound = 0;
+	right_bound = BLOCK_SIZE_Y - 1;
+	if (x < outer_part_size) {
+//	//A global memory read is very slow.So repeating values is stored register memory
+		//GNValue tmp_stack[MAX_STACK_SIZE];
+		int res_left = -1, res_right = -1, res_count = 0;
 
 		binarySearchIdx(search_key_indices,
 							search_keys_size,
 							key_indices,
 							key_index_size,
-							tmp_outer,
+							outer_dev[x],
 							inner_dev,
 							left_bound,
 							right_bound,
 							&res_left,
 							&res_right);
 
-
-
-		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size) {
-			while (res_left <= res_right) {
-				if (end_size > 0)
-					res = evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
-
-				if (post_size > 0)
-					res = evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
-
-				if (res)
-					res_count++;
-				res_left++;
-			}
-
-		}
+		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size && res_left <= res_right)
+			res_count = res_right - res_left + 1;
 
 		count_dev[x + k] = res_count;
+		res_bound[x + k].left = res_left;
+		res_bound[x + k].right = res_right;
 	}
 
-
-	if (x + k == (blockDim.x * gridDim.x * gridDim.y - 1) && x + k + 1 < gpu_size) {
+	if (x + k == (blockDim.x * gridDim.x * gridDim.y - 1)) {
 		count_dev[x + k + 1] = 0;
 	}
 }
@@ -398,52 +395,43 @@ __global__ void join(IndexData *outer_dev,
 						int end_size,
 						GTreeNode *post_ex_dev,
 						int post_size,
-						int *search_key_indices,
-						int search_keys_size,
-						int *key_indices,
-						int key_index_size)
+						ResBound *res_bound)
 {
 
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
 
-	if (x < outer_part_size && x + k < gpu_size) {
+	if (x < outer_part_size) {
+		GNValue tmp_stack[MAX_STACK_SIZE];
 		IndexData tmp_outer = outer_dev[x];
 		ulong writeloc = count_dev[x + k];
-		GNValue tmp_stack[MAX_STACK_SIZE];
 		bool res = true;
 		int res_left = -1, res_right = -1;
-		int left_bound = BLOCK_SIZE_Y * blockIdx.y;
-		//int right_bound = inner_part_size + left_bound - 1;
-		int right_bound = (left_bound + BLOCK_SIZE_Y < inner_part_size) ? (left_bound + BLOCK_SIZE_Y - 1) : (inner_part_size - 1);
 
-		//printf("writeloc = %d; x = %d; k = %d\n", writeloc, x, k);
-		binarySearchIdx(search_key_indices,
-							search_keys_size,
-							key_indices,
-							key_index_size,
-							tmp_outer,
-							inner_dev,
-							left_bound,
-							right_bound,
-							&res_left,
-							&res_right);
 
-		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size) {
+		res_left = res_bound[x + k].left;
+		res_right = res_bound[x + k].right;
+
+		res_left = 1;
+		res_right = 2;
+		if (res_left >= 0 && res_right >= 0 && res_right < inner_part_size && x % 1000 == 0) {
+
+			evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
 			while(res_left <= res_right) {
-				if (end_size > 0)
-					res = evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
+//				if (end_size > 0)
+//					res = evaluate(end_ex_dev, end_size, tmp_outer, inner_dev[res_left], tmp_stack);
 
 				if (post_size > 0)
 					res = evaluate(post_ex_dev, post_size, tmp_outer, inner_dev[res_left], tmp_stack);
 
 				if (res) {
-					result_dev[writeloc].lkey = tmp_outer.num;
-					result_dev[writeloc].rkey = inner_dev[res_left].num;
-					//printf("x = %d, k = %d\n", x, k);
-					//printf("tmp_outer.num = %d; inner_dev[res_left].num = %d; x = %d; k = %d; res_left = %d; writeloc = %lu\n", tmp_outer.num, inner_dev[res_left].num, x, k, res_left, writeloc);
-					writeloc++;
+					result_dev[writeloc].lkey = x;
+					result_dev[writeloc].rkey = res_left;
+				} else {
+					result_dev[writeloc].lkey = -1;
+					result_dev[writeloc].rkey = -1;
 				}
+				writeloc++;
 				res_left++;
 			}
 		}

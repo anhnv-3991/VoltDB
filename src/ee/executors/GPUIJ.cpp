@@ -15,6 +15,7 @@
 #include "common/types.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
+#include <sys/time.h>
 
 
 using namespace voltdb;
@@ -126,6 +127,7 @@ GPUIJ::~GPUIJ()
 }
 
 bool GPUIJ::join(){
+	int loop_count = 0;
 	CUresult res;
 	CUdevice dev;
 	CUcontext ctx;
@@ -135,6 +137,8 @@ bool GPUIJ::join(){
 	char *vd;
 	char path[256];
 
+	struct timeval allocate_start, allocate_end;
+	gettimeofday(&allocate_start, NULL);
 	if (outer_size_ == 0 || inner_size_ == 0) {
 		return true;
 	}
@@ -187,7 +191,7 @@ bool GPUIJ::join(){
 	/******** Calculate size of blocks, grids, and GPU buffers *********/
 	uint gpu_size, part_size;
 	ulong jr_size;
-	CUdeviceptr outer_dev, inner_dev, jresult_dev, count_dev, presum_dev, end_ex_dev, post_ex_dev, search_keys_dev, indices_dev;
+	CUdeviceptr outer_dev, inner_dev, jresult_dev, count_dev, presum_dev, end_ex_dev, post_ex_dev, search_keys_dev, indices_dev, res_bound;
 	uint block_x, block_y, grid_x, grid_y;
 
 	part_size = getPartitionSize();
@@ -225,15 +229,22 @@ bool GPUIJ::join(){
 		return false;
 	}
 
-	ulong *test_count_dev = (ulong *)malloc(gpu_size * sizeof(ulong));
-	memset(test_count_dev, 0, gpu_size * sizeof(ulong));
-	res = cuMemcpyHtoD(count_dev, test_count_dev, gpu_size * sizeof(ulong));
+	res = cuMemAlloc(&res_bound, gpu_size * sizeof(ResBound));
 	if (res != CUDA_SUCCESS) {
-		printf("cuMemcpyHtoD(count_dev, test_count_dev) failed: res = %lu\n", (unsigned long)res);
+		printf("cuMemAlloc(res_bound) failed: res = %lu\n gpu_size = %u\n", (unsigned long)res, gpu_size);
 		return false;
 	}
+//	ulong *test_count_dev = (ulong *)malloc(gpu_size * sizeof(ulong));
+//	memset(test_count_dev, 0, gpu_size * sizeof(ulong));
+//	res = cuMemcpyHtoD(count_dev, test_count_dev, gpu_size * sizeof(ulong));
+//	if (res != CUDA_SUCCESS) {
+//		printf("cuMemcpyHtoD(count_dev, test_count_dev) failed: res = %lu\n", (unsigned long)res);
+//		return false;
+//	}
+//
+//	free(test_count_dev);
 
-	free(test_count_dev);
+	//cudaMemset(&count_dev, 0, gpu_size * sizeof(ulong));
 
 	/******* Allocate GPU buffer for join condition *********/
 	if (end_size_ > 1) {
@@ -289,6 +300,7 @@ bool GPUIJ::join(){
 		return false;
 	}
 
+	struct timeval cstart, cend, pstart, pend, jstart, jend;
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
 	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
 		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size) {
@@ -304,7 +316,6 @@ bool GPUIJ::join(){
 			block_y = 1;
 			gpu_size = block_x * block_y * grid_x * grid_y + 1;
 
-			printf("block_x = %u; block_y = %u; grid_x = %u; grid_y = %u; gpu_size = %u; outer_part_size = %u; inner_part_size = %u; outer_size_ = %d; inner_size_ = %d; part_size = %d\n", block_x, block_y, grid_x, grid_y, gpu_size, outer_part_size, inner_part_size, outer_size_, inner_size_, part_size);
 			/**** Copy IndexData to GPU memory ****/
 			res = cuMemcpyHtoD(outer_dev, outer_table_ + outer_idx, outer_part_size * sizeof(IndexData));
 			if (res != CUDA_SUCCESS) {
@@ -318,6 +329,7 @@ bool GPUIJ::join(){
 				return false;
 			}
 
+			gettimeofday(&allocate_end, NULL);
 //			ulong *test_count_dev = (ulong *)malloc(gpu_size * sizeof(ulong));
 //			memset(test_count_dev, 0, gpu_size * sizeof(ulong));
 //			res = cuMemcpyHtoD(count_dev, test_count_dev, gpu_size * sizeof(ulong));
@@ -341,6 +353,7 @@ bool GPUIJ::join(){
 					(void *)&outer_dev,
 					(void *)&inner_dev,
 					(void *)&count_dev,
+					(void *)&res_bound,
 					(void *)&outer_part_size,
 					(void *)&inner_part_size,
 					(void *)&gpu_size,
@@ -354,6 +367,7 @@ bool GPUIJ::join(){
 					(void *)&indices_size_
 			};
 
+			gettimeofday(&cstart, NULL);
 			res = cuLaunchKernel(c_func, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, count_args, NULL);
 			if (res != CUDA_SUCCESS) {
 				printf("cuLaunchKernel(c_func) failed: res = %lu\n", (unsigned long)res);
@@ -365,7 +379,10 @@ bool GPUIJ::join(){
 				printf("cuCtxSynchronize(count) failed: res = %lu\n", (unsigned long)res);
 				return false;
 			}
+			gettimeofday(&cend, NULL);
 
+			//printf("Count time: %ld\n", (cend.tv_sec - cstart.tv_sec) * 1000000 + (cend.tv_usec - cstart.tv_usec));
+			gettimeofday(&pstart, NULL);
 			if (!((new GPUSCAN<ulong, ulong4>)->presum(&count_dev, gpu_size))) {
 				printf("Prefix(&count_dev, gpu_size) sum error.\n");
 				return false;
@@ -382,7 +399,6 @@ bool GPUIJ::join(){
 //			}
 //
 //			free(test_count_dev);
-
 			if (!((new GPUSCAN<ulong, ulong4>)->getValue(count_dev, gpu_size, &jr_size))) {
 				printf("getValue(count_dev, gpu_size, &jr_size) error");
 				return false;
@@ -393,11 +409,11 @@ bool GPUIJ::join(){
 				return false;
 			}
 
-			printf("jr_size = %lu\n", jr_size);
+			//printf("jr_size = %lu\n", jr_size);
 
-			if (jr_size == 0) {
-				continue;
-			}
+//			if (jr_size == 0) {
+//				continue;
+//			}
 
 			if (jr_size > 64 * 1024 * 1024) {
 				printf("One time result size is over???\n");
@@ -408,14 +424,18 @@ bool GPUIJ::join(){
 				printf("Result size is over???\n");
 				return true;
 			}
+			gettimeofday(&pend, NULL);
 
-
+			struct timeval realloc_start, realloc_end;
+			gettimeofday(&realloc_start, NULL);
 			join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size) * sizeof(RESULT));
 			res = cuMemAlloc(&jresult_dev, jr_size * sizeof(RESULT));
 			if (res != CUDA_SUCCESS) {
 				printf("cuMemAlloc(jresult_dev) failed: res = %lu\n", (unsigned long)res);
 				return false;
 			}
+			gettimeofday(&realloc_end, NULL);
+
 
 			void *join_args[] = {
 					(void *)&outer_dev,
@@ -429,12 +449,10 @@ bool GPUIJ::join(){
 					(void *)&end_size_,
 					(void *)&post_ex_dev,
 					(void *)&post_size_,
-					(void *)&search_keys_dev,
-					(void *)&search_keys_size_,
-					(void *)&indices_dev,
-					(void *)&indices_size_
+					(void *)&res_bound
 			};
 
+			gettimeofday(&jstart, NULL);
 			res = cuLaunchKernel(func, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, join_args, NULL);
 			if (res != CUDA_SUCCESS) {
 				printf("cuLaunchKernel(func) failed: res = %lu\n", (unsigned long)res);
@@ -446,7 +464,23 @@ bool GPUIJ::join(){
 				printf("cuCtxSynchronize(join) failed: res = %lu\n", (unsigned long)res);
 				return false;
 			}
+			gettimeofday(&jend, NULL);
 
+			printf("block_x = %u; block_y = %u; grid_x = %u; grid_y = %u; gpu_size = %u; outer_part_size = %u; inner_part_size = %u; outer_size_ = %d; inner_size_ = %d; part_size = %d\n"
+					"Elapsed time in GPU Count: %ld\n"
+					"Elapsed time in Prefix sum: %ld\n"
+					"Elapsed time in GPU Join: %ld\n"
+					"Elapsed time in whole GPU Join: %ld\n"
+					"Loop count = %d\n"
+					"Allocate time: %ld\n"
+					"Realloc time: %ld\n",block_x, block_y, grid_x, grid_y, gpu_size, outer_part_size, inner_part_size, outer_size_, inner_size_, part_size,
+					(cend.tv_sec - cstart.tv_sec) * 1000000 + (cend.tv_usec - cstart.tv_usec),
+					(pend.tv_sec - pstart.tv_sec) * 1000000 + (pend.tv_usec - pstart.tv_usec),
+					(jend.tv_sec - jstart.tv_sec) * 1000000 + (jend.tv_usec - jstart.tv_usec),
+					(jend.tv_sec - cstart.tv_sec) * 1000000 + (jend.tv_usec - cstart.tv_usec),
+					loop_count,
+					(allocate_end.tv_sec - allocate_start.tv_sec) * 1000000 + (allocate_end.tv_usec - allocate_start.tv_usec),
+					(realloc_end.tv_sec - realloc_start.tv_sec) * 1000000 + (realloc_end.tv_usec - realloc_start.tv_usec));
 			res = cuMemcpyDtoH(join_result_ + result_size_, jresult_dev, jr_size * sizeof(RESULT));
 			if (res != CUDA_SUCCESS) {
 				printf("cuMemcpyDtoH(join_result_[%u], jresult_dev) failed: res = %lu\n", result_size_, (unsigned long)res);
@@ -462,6 +496,8 @@ bool GPUIJ::join(){
 			result_size_ += jr_size;
 			jr_size = 0;
 			//printf("Size of result: %d\n", result_size_);
+			loop_count++;
+
 		}
 	}
 
@@ -481,6 +517,12 @@ bool GPUIJ::join(){
 	res = cuMemFree(count_dev);
 	if (res != CUDA_SUCCESS) {
 		printf("cuMemFree(count_dev) failed: res = %lu\n", (unsigned long)res);
+		return false;
+	}
+
+	res = cuMemFree(res_bound);
+	if (res != CUDA_SUCCESS) {
+		printf("cuMemFree(res_bound) failed: res = %lu\n", (unsigned long)res);
 		return false;
 	}
 
