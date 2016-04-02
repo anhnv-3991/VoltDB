@@ -1,0 +1,8 @@
+{
+    "log4jDst": [{
+        "format": "'.'yyyy-MM-dd",
+        "path": "/home/anh/work/anh/VoltDB/bin/log/volt.log"
+    }],
+    "pid": 18247,
+    "workingDir": "/home/anh/work/anh/VoltDB/bin"
+}

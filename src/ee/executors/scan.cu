@@ -297,7 +297,6 @@ template __global__ void getValue_kernel<uint>();
 template __global__ void getValue_kernel<ulong>();
 
 */
-
 template void GPUSCAN<uint,uint4>::initScan();
 template void GPUSCAN<uint,uint4>::closeScan();
 template size_t GPUSCAN<uint,uint4>::scanExclusiveMIN(uint *d_Dst,uint *d_Src,uint arrayLength);

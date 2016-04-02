@@ -65,6 +65,7 @@ TableIndex::TableIndex(const TupleSchema *keySchema, const TableIndexScheme &sch
 
 TableIndex::~TableIndex()
 {
+	//std::cout << "table index of table index" << std::endl;
     TupleSchema::freeTupleSchema(const_cast<TupleSchema*>(m_keySchema));
     const std::vector<AbstractExpression*> &indexed_expressions = getIndexedExpressions();
     for (int ii = 0; ii < indexed_expressions.size(); ++ii) {

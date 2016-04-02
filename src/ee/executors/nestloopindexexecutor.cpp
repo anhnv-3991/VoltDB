@@ -288,8 +288,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     int num_of_outer_cols = outer_table->columnCount();
     assert (outer_tuple.sizeInValues() == outer_table->columnCount());
     assert (inner_tuple.sizeInValues() == inner_table->columnCount());
-    //const TableTuple &null_tuple = m_null_tuple.tuple();
-    //int num_of_inner_cols = (m_joinType == JOIN_TYPE_LEFT)? null_tuple.sizeInValues() : 0;
+   // const TableTuple &null_tuple = m_null_tuple.tuple();
+    //nt num_of_inner_cols = (m_joinType == JOIN_TYPE_LEFT)? null_tuple.sizeInValues() : 0;
     ProgressMonitorProxy pmp(m_engine, this, inner_table);
 
     TableTuple join_tuple;
@@ -301,7 +301,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
         join_tuple = m_tmpOutputTable->tempTuple();
     }
 
-    //bool earlyReturned = false;
+    bool earlyReturned = false;
 
 
 
@@ -340,44 +340,41 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	/********** Get column data for end_expression (search keys) & post_expression from outer table ***************/
 	TableIterator search_it_out = outer_table->iterator(), search_it_in = inner_table->iterator();
-	IndexData *index_data_out = (IndexData *)malloc(sizeof(IndexData) * outer_size);
-	IndexData *index_data_in = (IndexData *)malloc(sizeof(IndexData) * inner_size);
+	//IndexData *index_data_out = (IndexData *)malloc(sizeof(IndexData) * outer_size);
+	GNValue *index_data_out = (GNValue *)malloc(sizeof(GNValue) * outer_size * outer_tuple.sizeInValues());
+	//IndexData *index_data_in = (IndexData *)malloc(sizeof(IndexData) * inner_size);
+	GNValue *index_data_in = (GNValue *)malloc(sizeof(GNValue) * inner_size * inner_tuple.sizeInValues());
 	TableTuple *tmp_outer_tuple = (TableTuple *)malloc(sizeof(TableTuple) * outer_size);
 	TableTuple *tmp_inner_tuple = (TableTuple *)malloc(sizeof(TableTuple) * inner_size);
 	std::vector<int> search_keys(0);
 	int idx;
 
+	struct timeval join_start, join_end;
 
+	gettimeofday(&join_start, NULL);
 
 	for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
 		int tmp = (dynamic_cast<TupleValueExpression *>(m_indexNode->getSearchKeyExpressions()[ctr]))->getColumnId();
-		//std::cout << "Search key " << ctr << " = " << tmp << std::endl;
+		std::cout << "Search key " << ctr << " = " << tmp << std::endl;
 		search_keys.push_back(tmp);
 	}
 
-//	for (int ctr = 0; ctr < inner_indices.size(); ctr++) {
-//		std::cout << "Inner index " << ctr << " = " << inner_indices[ctr] << std::endl;
-//	}
-	idx = 0;
-	while (search_it_out.next(outer_tuple)) {
-//		if (prejoin_expression == NULL || prejoin_expression->eval(&outer_tuple, NULL).isTrue()) {
-			//index_data_out[idx].num = idx;
-			tmp_outer_tuple[idx] = outer_tuple;
-			for (int i = 0; i < outer_tuple.sizeInValues(); i++) {
-				NValue tmp_value = outer_tuple.getNValue(i);
-
-				setGNValue(&(index_data_out[idx].gn[i]), tmp_value);
-			}
-			idx++;
-//		}
+	for (int ctr = 0; ctr < inner_indices.size(); ctr++) {
+		std::cout << "Inner index " << ctr << " = " << inner_indices[ctr] << std::endl;
 	}
+	idx = 0;
 
-//	for (int ctr = 0; ctr < outer_size; ctr++) {
-//		for (int i = 0; i < outer_tuple.sizeInValues(); i++) {
-//			GNValueDebug(index_data_out[ctr].gn[i]);
-//		}
-//		std::cout << std::endl;
-//	}
+	int col_outer = outer_tuple.sizeInValues();
+
+	while (search_it_out.next(outer_tuple)) {
+		tmp_outer_tuple[idx] = outer_tuple;
+		for (int i = 0; i < col_outer; i++) {
+			NValue tmp_value = outer_tuple.getNValue(i);
+
+			setGNValue(&index_data_out[idx * col_outer + i], tmp_value);
+		}
+		idx++;
+	}
 
 	/********** Get column data for end_expression (index keys) & post_expression from inner table ********************************/
 	IndexCursor index_cursor2(index->getTupleSchema());
@@ -389,33 +386,38 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	index->moveToEnd(begin, index_cursor2);
 
 	idx = 0;
-	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
-//		if (prejoin_expression == NULL || prejoin_expression->eval(&tmp_tuple, NULL).isTrue()) {
-			//index_data_in[idx].num = idx;
-			tmp_inner_tuple[idx] = inner_tuple;
-			for (int i = 0; i < inner_tuple.sizeInValues(); i++) {
-				NValue tmp_value = inner_tuple.getNValue(i);
+	int col_inner = inner_tuple.sizeInValues();
 
-				setGNValue(&(index_data_in[idx].gn[i]), tmp_value);
-			}
-			idx++;
-		//}
+	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
+		tmp_inner_tuple[idx] = inner_tuple;
+		for (int i = 0; i < col_inner; i++) {
+			NValue tmp_value = inner_tuple.getNValue(i);
+
+			//std::cout << tmp_value.debug() << ":::::";
+			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
+			if (index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_INVALID || index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_NULL)
+				printf("PROBLEM!\n");
+		}
+		//cout << std::endl;
+		idx++;
 	}
 
 	bool ret = true;
 	RESULT *join_result = NULL;
 	int result_size = 0;
     /* Copy data to GPU memory */
-	struct timeval join_start, join_end;
+
+	//int last_r;
 
 	if (outer_size != 0 && inner_size != 0) {
 
-		GPUIJ gn(index_data_out, index_data_in, outer_size, inner_size, search_keys, inner_indices, end_ex_tree,
+		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, search_keys, inner_indices, end_ex_tree,
 					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree);
 
-		gettimeofday(&join_start, NULL);
+
 		ret = gn.join();
 		gettimeofday(&join_end, NULL);
+
 		if (ret != true) {
 			std::cout << "Error: gpu join failed." << std::endl;
 		} else {
@@ -429,9 +431,10 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
 				int l = join_result[i].lkey;
 				int r = join_result[i].rkey;
+
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
 					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
-					//printf("i = %d; lkey = %d; rkey = %d\n", i, join_result[i].lkey, join_result[i].rkey);
+
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
 						join_tuple.setNValue(col_ctr,
@@ -441,14 +444,18 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
                 if (m_aggExec != NULL) {
                     if (m_aggExec->p_execute_tuple(join_tuple)) {
-                        // Get enough rows for LIMIT
-                        //earlyReturned = true;
+                    	// Get enough rows for LIMIT
+                        earlyReturned = true;
                         break;
                     }
                 } else {
                     m_tmpOutputTable->insertTempTuple(join_tuple);
                     pmp.countdownProgress();
                 }
+
+				if (earlyReturned) {
+					break;
+				}
 			}
 		}
 	}

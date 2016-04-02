@@ -191,8 +191,9 @@ namespace voltdb{
 
         closeScan();
 
-        cuMemFree(*d_Input);
-        *d_Input = d_Output;
+        //cuMemFree(*d_Input);
+        checkCudaErrors(cudaMemcpy((void *)*d_Input, (void*)d_Output, N * sizeof(T), cudaMemcpyDeviceToDevice));
+        checkCudaErrors(cudaFree((void *)d_Output));
 
         return SUCCESS;
 

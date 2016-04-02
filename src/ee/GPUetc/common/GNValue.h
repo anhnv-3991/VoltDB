@@ -293,19 +293,19 @@ class GNValue {
 				break;
 			}
 			case VALUE_TYPE_TINYINT: {
-				printf("VALUE TYPE TINYINT");
+				printf("VALUE TYPE TINYINT: %d", (int)getTinyInt());
 				break;
 			}
 			case VALUE_TYPE_SMALLINT: {
-				printf("VALUE TYPE SMALLINT");
+				printf("VALUE TYPE SMALLINT: %d", (int)getSmallInt());
 				break;
 			}
 			case VALUE_TYPE_INTEGER: {
-				printf("VALUE TYPE INTEGER");
+				printf("VALUE TYPE INTEGER: %d", (int)getInteger());
 				break;
 			}
 			case VALUE_TYPE_BIGINT: {
-				printf("VALUE TYPE BIGINT");
+				printf("VALUE TYPE BIGINT: %d", (int)getBigInt());
 				break;
 			}
 			case VALUE_TYPE_DOUBLE: {
@@ -346,6 +346,7 @@ class GNValue {
 			}
     	}
     }
+
   private:
 
     
@@ -510,11 +511,14 @@ class GNValue {
             //throwCastSQLException(type, VALUE_TYPE_BIGINT);
             return 0; // NOT REACHED
         }
+
     }
 
 
     template<typename T>
         CUDAH int compareValue (const T lhsValue, const T rhsValue) const {
+//    	return (lhsValue == rhsValue) ? VALUE_COMPARE_EQUAL :
+//    			((lhsValue > rhsValue) ? VALUE_COMPARE_GREATERTHAN : VALUE_COMPARE_LESSTHAN);
         if (lhsValue == rhsValue) {
             return VALUE_COMPARE_EQUAL;
         } else if (lhsValue > rhsValue){
@@ -522,6 +526,9 @@ class GNValue {
         } else {
             return VALUE_COMPARE_LESSTHAN;
         }
+
+//    	return (lhsValue == rhsValue) * VALUE_COMPARE_EQUAL + (lhsValue > rhsValue) * VALUE_COMPARE_GREATERTHAN +
+//    			(lhsValue < rhsValue) * VALUE_COMPARE_LESSTHAN;
     }
 
     CUDAH int compareDoubleValue (const double lhsValue, const double rhsValue) const {
@@ -546,16 +553,19 @@ class GNValue {
         else {
             return VALUE_COMPARE_EQUAL;
         }
+
+//    	return (lhsValue > rhsValue) ? VALUE_COMPARE_GREATERTHAN : ((lhsValue < rhsValue) ? VALUE_COMPARE_LESSTHAN : VALUE_COMPARE_EQUAL);
     }
 
     CUDAH int compareTinyInt (const GNValue rhs) const {
         assert(m_valueType == VALUE_TYPE_TINYINT);
 
         // get the right hand side as a bigint
+        /* 2016.02.22 */
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getTinyInt()), rhs.getDouble());
-/*
-        } 
+
+/*        }
         else if (rhs.getValueType() == VALUE_TYPE_DECIMAL) {
             const TTInt rhsValue = rhs.getDecimal();
             TTInt lhsValue(static_cast<int64_t>(getTinyInt()));
@@ -574,6 +584,7 @@ class GNValue {
         assert(m_valueType == VALUE_TYPE_SMALLINT);
 
         // get the right hand side as a bigint
+        /* 2016.02.22 */
         if (rhs.getValueType() == VALUE_TYPE_DOUBLE) {
             return compareDoubleValue(static_cast<double>(getSmallInt()), rhs.getDouble());
 /*
@@ -951,7 +962,7 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     case VALUE_TYPE_DOUBLE:
         return compareDoubleValue(rhs);
     case VALUE_TYPE_VARCHAR:
-        return compareStringValue(rhs);
+        //return compareStringValue(rhs);
     case VALUE_TYPE_VARBINARY:
         //return compareBinaryValue(rhs);
     case VALUE_TYPE_DECIMAL:
@@ -990,38 +1001,31 @@ inline CUDAH bool GNValue::isNull() const {
 // without null comparison
 inline CUDAH bool GNValue::op_equals_withoutNull(const GNValue *rhs) const {
     int temp = compare_withoutNull(*rhs);
-    if(temp == -3) return false;
     return temp == 0;
 }
 
 inline CUDAH bool GNValue::op_notEquals_withoutNull(const GNValue *rhs) const {
     int temp = compare_withoutNull(*rhs);
-    if(temp == -3) return false;
-    return temp != 0;
+    return temp != 0 && temp != -3;
 }
 
 inline CUDAH bool GNValue::op_lessThan_withoutNull(const GNValue *rhs) const {
     int temp = compare_withoutNull(*rhs);
-    if(temp == -3) return false;
-    return temp < 0;
+    return temp < 0 && temp != -3;
 }
 
 inline CUDAH bool GNValue::op_lessThanOrEqual_withoutNull(const GNValue *rhs) const {
     int temp = compare_withoutNull(*rhs);
-    if(temp == -3) return false;
-    return temp <= 0;
-
+    return temp <= 0 && temp != -3;
 }
 
 inline CUDAH bool GNValue::op_greaterThan_withoutNull(const GNValue *rhs) const {
     int temp = compare_withoutNull(*rhs);
-    if(temp == -3) return false;
     return temp > 0;
 }
 
 inline CUDAH bool GNValue::op_greaterThanOrEqual_withoutNull(const GNValue *rhs) const {
     int temp = compare_withoutNull(*rhs);
-    if(temp == -3) return false;
     return temp >= 0;
 }
 
@@ -1030,39 +1034,50 @@ inline CUDAH GNValue GNValue::op_negate(void) const {
 }
 
 inline CUDAH GNValue GNValue::op_and(const GNValue rhs) const {
-	bool tmp = this->getBoolean() & rhs.getBoolean();
+	bool tmp = getBoolean() & rhs.getBoolean();
 
 	return (tmp) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_or(const GNValue rhs) const {
-	bool tmp = this->getBoolean() | rhs.getBoolean();
+	bool tmp = getBoolean() | rhs.getBoolean();
 
 	return (tmp) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_equal(const GNValue rhs) const {
-	return (op_equals_withoutNull(&rhs)) ? getTrue() : getFalse();
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_notEqual(const GNValue rhs) const {
-	return (op_notEquals_withoutNull(&rhs)) ? getTrue() : getFalse();
+	int res = compare_withoutNull(rhs);
+	return (res != VALUE_COMPARE_EQUAL && res != VALUE_COMPARE_INVALID) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_lessThan(const GNValue rhs) const{
-	return (op_lessThan_withoutNull(&rhs)) ? getTrue() : getFalse();
+	//return (op_lessThan_withoutNull(&rhs)) ? getTrue() : getFalse();
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_LESSTHAN) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_lessThanOrEqual(const GNValue rhs) const {
-	return (op_lessThanOrEqual_withoutNull(&rhs)) ? getTrue() : getFalse();
+	//return (op_lessThanOrEqual_withoutNull(&rhs)) ? getTrue() : getFalse();
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_LESSTHAN || res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_greaterThan(const GNValue rhs) const {
-	return (op_greaterThan_withoutNull(&rhs)) ? getTrue() : getFalse();
+	//return (op_greaterThan_withoutNull(&rhs)) ? getTrue() : getFalse();
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_GREATERTHAN) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_greaterThanOrEqual(const GNValue rhs) const {
-	return (op_greaterThanOrEqual_withoutNull(&rhs)) ? getTrue() : getFalse();
+	//assert(isNull() == false && rhs.isNull() == false);
+	//return (op_greaterThanOrEqual_withoutNull(&rhs)) ? getTrue() : getFalse();
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_EQUAL || res == VALUE_COMPARE_GREATERTHAN) ? getTrue() : getFalse();
 }
 
 } // namespace voltdb

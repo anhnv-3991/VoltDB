@@ -71,7 +71,6 @@ public:
     }
 
     voltdb::NValue eval(const TableTuple *tuple1, const TableTuple *tuple2) const {
-    	std::cout << "Parameter Value Expression EVAL" << std::endl;
         assert(m_paramValue != NULL);
         return *m_paramValue;
     }

@@ -9,16 +9,33 @@
 
 using namespace voltdb;
 
-#define DEFAULT_PART_SIZE_ (256 * 1024)
+#define DEFAULT_PART_SIZE_ (1024 * 1024)
+//#define DEFAULT_PART_SIZE_ 1024
+//#define DEFAULT_PART_SIZE_ (128 * 1024)
 #define PART_SIZE_ 1024
 class GPUIJ {
 public:
 	GPUIJ();
 
-	GPUIJ(IndexData *outer_table,
-			IndexData *inner_table,
-			int outer_size,
-			int inner_size,
+//	GPUIJ(IndexData *outer_table,
+//			IndexData *inner_table,
+//			int outer_size,
+//			int inner_size,
+//			std::vector<int> search_idx,
+//			std::vector<int> indices,
+//			TreeExpression end_expression,
+//			TreeExpression post_expression,
+//			TreeExpression initial_expression,
+//			TreeExpression skipNullExpr,
+//			TreeExpression prejoin_expression,
+//			TreeExpression where_expression);
+
+	GPUIJ(GNValue *outer_table,
+			GNValue *inner_table,
+			int outer_rows,
+			int outer_cols,
+			int inner_rows,
+			int inner_cols,
 			std::vector<int> search_idx,
 			std::vector<int> indices,
 			TreeExpression end_expression,
@@ -39,9 +56,10 @@ public:
 	void debug();
 
 private:
-	IndexData *outer_table_;
-	IndexData *inner_table_;
-	int outer_size_, inner_size_;
+	//IndexData *outer_table_;
+	//IndexData *inner_table_;
+	GNValue *outer_table_, *inner_table_;
+	int outer_rows_, inner_rows_, outer_cols_, inner_cols_, outer_size_, inner_size_;
 	RESULT *join_result_;
 	int *search_keys_, *indices_;
 	int result_size_;

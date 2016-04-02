@@ -8,9 +8,9 @@
 namespace voltdb{
 
 //1blockでのスレッド数の定義。
-#define BLOCK_SIZE_X 512  //outer ,left
+#define BLOCK_SIZE_X 512//outer ,left
 //#define BLOCK_SIZE_Y 2048  //inner ,right
-#define BLOCK_SIZE_Y 4096
+#define BLOCK_SIZE_Y (1024 * 1024)
 
 
 #define PARTITION 64
@@ -22,7 +22,7 @@ namespace voltdb{
 
 #define PART_STANDARD 1
 #define JOIN_SHARED 256
-#define MAX_GNVALUE 5
+#define MAX_GNVALUE 10
 #define MAX_STACK_SIZE 10
 
 /*

@@ -20,10 +20,13 @@ public:
 		int tree_size = 0;
 
 		tree_size =	getExpressionLength(expression);
+		//int tmp_size = 1;
+		//tree_size =	getTreeSize(expression, tmp_size) + 1;
 		int root = 0;
 		tree_ = std::vector<GTreeNode>(tree_size);
 
-		buildTree(expression, &root);
+		buildPostExpression(expression, &root);
+		//buildTreeExpression(expression, 1);
 	}
 
 	void debug(void) {
@@ -86,7 +89,15 @@ public:
 					GNValue tmp_gnvalue = tree_[index].value;
 
 					setNValue(&tmp, tmp_gnvalue);
-					std::cout << "[" << index << "] VALUE TUPLE = " << tmp.debug().c_str()  << std::endl;
+					std::cout << "[" << index << "] CONSTANT = " << tmp.debug().c_str()  << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_VALUE_PARAMETER: {
+					NValue tmp;
+					GNValue tmp_gnvalue = tree_[index].value;
+
+					setNValue(&tmp, tmp_gnvalue);
+					std::cout << "[" << index << "] PARAMETER = " << tmp.debug().c_str()  << std::endl;
 					break;
 				}
 				case EXPRESSION_TYPE_VALUE_NULL:
@@ -173,7 +184,19 @@ private:
 		return (1 + left + right);
 	}
 
-	bool buildTree(const AbstractExpression *expression, int *index) {
+	int getTreeSize(const AbstractExpression *expression, int size) {
+		if (expression == NULL)
+			return size / 2;
+
+		int left, right;
+
+		left = getTreeSize(expression->getLeft(), size * 2);
+		right = getTreeSize(expression->getRight(), size * 2 + 1);
+
+		return (left > right) ? left : right;
+	}
+
+	bool buildPostExpression(const AbstractExpression *expression, int *index) {
 		if (expression == NULL) {
 			return true;
 		}
@@ -201,13 +224,13 @@ private:
 			case EXPRESSION_TYPE_OPERATOR_CONCAT:
 			case EXPRESSION_TYPE_OPERATOR_MOD:
 			case EXPRESSION_TYPE_OPERATOR_CAST: {
-				res = buildTree(expression->getLeft(), index);
+				res = buildPostExpression(expression->getLeft(), index);
 				if (!res) {
 					std::cout << "Error: cannot build left child at index = " << *index << std::endl;
 					return res;
 				}
 
-				res = buildTree(expression->getRight(), index);
+				res = buildPostExpression(expression->getRight(), index);
 				if (!res) {
 					std::cout << "Error: cannot build right child at index = " << *index << std::endl;
 					return res;
@@ -221,10 +244,89 @@ private:
 
 				break;
 			}
-			case EXPRESSION_TYPE_VALUE_CONSTANT: {
+			case EXPRESSION_TYPE_VALUE_CONSTANT:
+			case EXPRESSION_TYPE_VALUE_PARAMETER: {
 				NValue nvalue = expression->eval(NULL, NULL);
 
 				setGNValue(&(tree_[*index].value), nvalue);
+
+				break;
+			}
+			case EXPRESSION_TYPE_INVALID: {
+				res = false;
+
+				break;
+			}
+
+			case EXPRESSION_TYPE_VALUE_NULL:
+			default: {
+				break;
+			}
+		}
+
+		tree_[*index].type = expression->getExpressionType();
+		(*index)++;
+
+		return res;
+	}
+
+	bool buildTreeExpression(const AbstractExpression *expression, int index) {
+		if (expression == NULL) {
+			printf("Null expression");
+			return true;
+		}
+
+		if (tree_.size() < index) {
+			printf("Out of range. index = %d. size = %d\n", index, (int)(tree_.size()));
+			return false;
+		}
+
+		bool res = true;
+
+		tree_[index].type = expression->getExpressionType();
+
+		switch (expression->getExpressionType()) {
+			case EXPRESSION_TYPE_CONJUNCTION_AND:
+			case EXPRESSION_TYPE_CONJUNCTION_OR:
+			case EXPRESSION_TYPE_COMPARE_EQUAL:
+			case EXPRESSION_TYPE_COMPARE_NOTEQUAL:
+			case EXPRESSION_TYPE_COMPARE_LESSTHAN:
+			case EXPRESSION_TYPE_COMPARE_GREATERTHAN:
+			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO:
+			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO:
+			case EXPRESSION_TYPE_COMPARE_LIKE:
+			case EXPRESSION_TYPE_COMPARE_IN:
+			case EXPRESSION_TYPE_OPERATOR_PLUS:
+			case EXPRESSION_TYPE_OPERATOR_MINUS:
+			case EXPRESSION_TYPE_OPERATOR_MULTIPLY:
+			case EXPRESSION_TYPE_OPERATOR_CONCAT:
+			case EXPRESSION_TYPE_OPERATOR_MOD:
+			case EXPRESSION_TYPE_OPERATOR_CAST: {
+				res = buildTreeExpression(expression->getLeft(), index * 2);
+				if (!res) {
+					std::cout << "Error: cannot build left child at index = " << index * 2 << " type is " << expression->getExpressionType() << std::endl;
+					return res;
+				}
+
+				res = buildTreeExpression(expression->getRight(), index * 2 + 1);
+				if (!res) {
+					std::cout << "Error: cannot build right child at index = " << index * 2 + 1 << " type is " << expression->getExpressionType() << std::endl;
+					return res;
+				}
+
+				break;
+			}
+			case EXPRESSION_TYPE_VALUE_TUPLE: {
+				tree_[index].tuple_idx = (dynamic_cast<const TupleValueExpression *>(expression))->getTupleId();
+				tree_[index].column_idx = (dynamic_cast<const TupleValueExpression *>(expression))->getColumnId();
+
+				break;
+			}
+			case EXPRESSION_TYPE_VALUE_CONSTANT:
+			case EXPRESSION_TYPE_VALUE_PARAMETER: {
+				NValue nvalue = expression->eval(NULL, NULL);
+
+				setGNValue(&(tree_[index].value), nvalue);
 
 				break;
 			}
@@ -238,9 +340,6 @@ private:
 				break;
 			}
 		}
-
-		tree_[*index].type = expression->getExpressionType();
-		(*index)++;
 
 		return res;
 	}
