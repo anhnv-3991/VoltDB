@@ -48,6 +48,7 @@
 #include "expressions/abstractexpression.h"
 
 #include <sstream>
+#include <iostream>
 
 namespace voltdb {
 
@@ -95,6 +96,7 @@ std::string IndexScanPlanNode::debugInfo(const std::string &spacer) const
 
 void IndexScanPlanNode::loadFromJSONObject(PlannerDomValue obj)
 {
+	//std::cout << "Load from JSON Object" << std::endl;
     AbstractScanPlanNode::loadFromJSONObject(obj);
 
     std::string lookupTypeString = obj.valueForKey("LOOKUP_TYPE").asStr();

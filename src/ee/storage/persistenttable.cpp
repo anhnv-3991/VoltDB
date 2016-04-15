@@ -345,7 +345,7 @@ bool PersistentTable::insertTuple(TableTuple &source)
 
 void PersistentTable::insertPersistentTuple(TableTuple &source, bool fallible)
 {
-
+	//std::cout << "Insert Persistent Tuple" << std::endl;
     if (fallible && visibleTupleCount() >= m_tupleLimit) {
         char buffer [256];
         snprintf (buffer, 256, "Table %s exceeds table maximum row count %d",
@@ -639,6 +639,8 @@ void PersistentTable::updateTupleForUndo(char* tupleWithUnwantedValues,
                                          char* sourceTupleDataWithNewValues,
                                          bool revertIndexes)
 {
+
+	std::cout << "PersistentTable::updateTupleForUndo" << std::endl;
     TableTuple matchable(m_schema);
     // Get the address of the tuple in the table from one of the copies on hand.
     // Any TableScan OR a primary key lookup on an already updated index will find the tuple
@@ -857,6 +859,7 @@ TableTuple PersistentTable::lookupTuple(TableTuple tuple) {
 }
 
 void PersistentTable::insertIntoAllIndexes(TableTuple *tuple) {
+	std::cout << "PersistentTable::insertIntoAllIndexes" << std::endl;
     BOOST_FOREACH(TableIndex *index, m_indexes) {
         if (!index->addEntry(tuple)) {
             throwFatalException(
@@ -1199,6 +1202,7 @@ void PersistentTable::processRecoveryMessage(RecoveryProtoMsg* message, Pool *po
  * the tuple data.
  */
 size_t PersistentTable::hashCode() {
+	std::cout << "PersistentTable::hashCode" << std::endl;
     boost::scoped_ptr<TableIndex> pkeyIndex(TableIndexFactory::cloneEmptyTreeIndex(*m_pkeyIndex));
     TableIterator iter(this, m_data.begin());
     TableTuple tuple(schema());

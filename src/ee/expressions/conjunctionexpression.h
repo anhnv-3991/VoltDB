@@ -111,7 +111,7 @@ template<> inline NValue
 ConjunctionExpression<ConjunctionOr>::eval(const TableTuple *tuple1,
                                            const TableTuple *tuple2) const
 {
-	std::cout << "Conjunction Expression Or EVAL" << std::endl;
+	//std::cout << "Conjunction Expression Or EVAL" << std::endl;
     NValue leftBool = m_left->eval(tuple1, tuple2);
     // True True  -> True
     // True False -> True

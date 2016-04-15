@@ -48,6 +48,7 @@ bool TableCountExecutor::p_init(AbstractPlanNode* abstract_node,
 }
 
 bool TableCountExecutor::p_execute(const NValueArray &params) {
+	//std::cout << "table count executor" << std::endl;
     TableCountPlanNode* node = dynamic_cast<TableCountPlanNode*>(m_abstractNode);
     assert(node);
     assert(node->getPredicate() == NULL);

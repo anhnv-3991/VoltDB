@@ -1455,6 +1455,7 @@ void *eethread(void *ptr) {
 }
 
 int main(int argc, char **argv) {
+	printf("This is a test\n");
     //Create a pool ref to init the thread local in case a poll message comes early
     voltdb::ThreadLocalPool poolRef;
     const int pid = getpid();

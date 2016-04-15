@@ -142,7 +142,7 @@ namespace voltdb{
                 }
             }
 
-            printf("N = %d\n",N);
+            //printf("N = %d\n",N);
 
             checkCudaErrors(cudaMalloc((void **)&d_Output, N * sizeof(T)));
 
@@ -156,7 +156,7 @@ namespace voltdb{
 
             N = MAX_SHORT_ARRAY_SIZE * iDivUp(arrayLength,MAX_SHORT_ARRAY_SIZE);
 
-            printf("N = %d\n",N);
+            //printf("N = %d\n",N);
 
             checkCudaErrors(cudaMalloc((void **)&d_Output, N * sizeof(T)));
       
@@ -171,7 +171,7 @@ namespace voltdb{
 
             N = MAX_LARGE_ARRAY_SIZE * iDivUp(arrayLength,MAX_LARGE_ARRAY_SIZE);
 
-            printf("N = %d\n",N);
+            //printf("N = %d\n",N);
 
             checkCudaErrors(cudaMalloc((void **)&d_Output, N * sizeof(T)));
             //checkCudaErrors(cudaMemset((void *)d_Output,0,N*sizeof(uint)));
@@ -191,8 +191,9 @@ namespace voltdb{
 
         closeScan();
 
-        cuMemFree(*d_Input);
-        *d_Input = d_Output;
+        //cuMemFree(*d_Input);
+        checkCudaErrors(cudaMemcpy((void *)*d_Input, (void*)d_Output, N * sizeof(T), cudaMemcpyDeviceToDevice));
+        checkCudaErrors(cudaFree((void *)d_Output));
 
         return SUCCESS;
 
