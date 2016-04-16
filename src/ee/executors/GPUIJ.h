@@ -36,7 +36,7 @@ public:
 			int outer_cols,
 			int inner_rows,
 			int inner_cols,
-			std::vector<int> search_idx,
+			std::vector<TreeExpression> search_idx,
 			std::vector<int> indices,
 			TreeExpression end_expression,
 			TreeExpression post_expression,
@@ -61,11 +61,12 @@ private:
 	GNValue *outer_table_, *inner_table_;
 	int outer_rows_, inner_rows_, outer_cols_, inner_cols_, outer_size_, inner_size_;
 	RESULT *join_result_;
-	int *search_keys_, *indices_;
+	int *indices_;
 	int result_size_;
-	int end_size_, post_size_, initial_size_, skipNull_size_, prejoin_size_, where_size_, search_keys_size_, indices_size_;
+	int end_size_, post_size_, initial_size_, skipNull_size_, prejoin_size_, where_size_, indices_size_, *search_exp_size_, search_exp_num_;
 
 
+	GTreeNode *search_exp_;
 	GTreeNode *end_expression_;
 	GTreeNode *post_expression_;
 	GTreeNode *initial_expression_;
@@ -76,6 +77,7 @@ private:
 	uint getPartitionSize() const;
 	uint divUtility(uint divident, uint divisor) const;
 	bool getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression);
+	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);
 	void setNValue(NValue *nvalue, GNValue &gnvalue);
 	void debugGTrees(const GTreeNode *expression, int size);

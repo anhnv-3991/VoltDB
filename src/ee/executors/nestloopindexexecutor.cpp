@@ -304,7 +304,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     bool earlyReturned = false;
 
 
-
 	/************ Build Expression Tree *****************************/
 	TreeExpression end_ex_tree(end_expression);
 	printf("End ex tree:::");
@@ -349,14 +348,13 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	std::vector<int> search_keys(0);
 	int idx;
 
-	struct timeval join_start, join_end;
+	struct timeval join_start, join_end, write_start, write_end;
 
-	gettimeofday(&join_start, NULL);
+	std::vector<TreeExpression> gsearchKeyExpressions;
 
 	for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
-		int tmp = (dynamic_cast<TupleValueExpression *>(m_indexNode->getSearchKeyExpressions()[ctr]))->getColumnId();
-		std::cout << "Search key " << ctr << " = " << tmp << std::endl;
-		search_keys.push_back(tmp);
+		TreeExpression tmp(m_indexNode->getSearchKeyExpressions()[ctr]);
+		gsearchKeyExpressions.push_back(tmp);
 	}
 
 	for (int ctr = 0; ctr < inner_indices.size(); ctr++) {
@@ -411,7 +409,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	if (outer_size != 0 && inner_size != 0) {
 
-		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, search_keys, inner_indices, end_ex_tree,
+		gettimeofday(&join_start, NULL);
+		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
 					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree);
 
 
@@ -423,11 +422,13 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		} else {
 			result_size = gn.getResultSize();
 
+
 			join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
 			gn.getResult(join_result);
 
-			//printf("Size of result = %d\n", result_size);
-			//printf("Start writing output...\n");
+
+			printf("Size of result: %d\n", result_size);
+			gettimeofday(&write_start, NULL);
 			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
 				int l = join_result[i].lkey;
 				int r = join_result[i].rkey;
@@ -442,301 +443,9 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 					}
 				}
 
-                if (m_aggExec != NULL) {
-                    if (m_aggExec->p_execute_tuple(join_tuple)) {
-                    	// Get enough rows for LIMIT
-                        earlyReturned = true;
-                        break;
-                    }
-                } else {
-                    m_tmpOutputTable->insertTempTuple(join_tuple);
-                    pmp.countdownProgress();
-                }
-
-				if (earlyReturned) {
-					break;
-				}
-			}
-		}
-	}
-
-	printf("Elapsed time for joining: %ld\n", (join_end.tv_sec - join_start.tv_sec) * 1000000 + (join_end.tv_usec - join_start.tv_usec));
-    /******************* End of adding GPU join ********************/
-
-
-//    VOLT_TRACE("<num_of_outer_cols>: %d\n", num_of_outer_cols);
-//    while ((limit == -1 || tuple_ctr < limit) && outer_iterator.next(outer_tuple)) {
-//        VOLT_TRACE("outer_tuple:%s",
-//                   outer_tuple.debug(outer_table->name()).c_str());
-//        pmp.countdownProgress();
-//        // Set the outer tuple columns. Must be outside the inner loop
-//        // in case of the empty inner table
-//        join_tuple.setNValues(0, outer_tuple, 0, num_of_outer_cols);
-//
-//        // did this loop body find at least one match for this tuple?
-//        bool match = false;
-//        // For outer joins if outer tuple fails pre-join predicate
-//        // (join expression based on the outer table only)
-//        // it can't match any of inner tuples
-//        if (prejoin_expression == NULL || prejoin_expression->eval(&outer_tuple, NULL).isTrue()) {
-//            int activeNumOfSearchKeys = num_of_searchkeys;
-//            VOLT_TRACE ("<Nested Loop Index exec, WHILE-LOOP...> Number of searchKeys: %d \n", num_of_searchkeys);
-//            IndexLookupType localLookupType = m_lookupType;
-//            SortDirectionType localSortDirection = m_sortDirection;
-//            VOLT_TRACE("Lookup type: %d\n", m_lookupType);
-//            VOLT_TRACE("SortDirectionType: %d\n", m_sortDirection);
-//
-//            // did setting the search key fail (usually due to overflow)
-//            bool keyException = false;
-//            //
-//            // Now use the outer table tuple to construct the search key
-//            // against the inner table
-//            //
-//            const TableTuple& index_values = m_indexValues.tuple();
-//            index_values.setAllNulls();
-//            for (int ctr = 0; ctr < activeNumOfSearchKeys; ctr++) {
-//                // in a normal index scan, params would be substituted here,
-//                // but this scan fills in params outside the loop
-//            	//std::cout << "Find candidate value for search index" << std::endl;
-//                NValue candidateValue = m_indexNode->getSearchKeyExpressions()[ctr]->eval(&outer_tuple, NULL);
-//                //std::cout << "End of finding candidate value for search index"  << std::endl;
-//                try {
-//                    index_values.setNValue(ctr, candidateValue);
-//                }
-//                catch (const SQLException &e) {
-//                    // This next bit of logic handles underflow and overflow while
-//                    // setting up the search keys.
-//                    // e.g. TINYINT > 200 or INT <= 6000000000
-//
-//                    // re-throw if not an overflow or underflow
-//                    // currently, it's expected to always be an overflow or underflow
-//                    if ((e.getInternalFlags() & (SQLException::TYPE_OVERFLOW | SQLException::TYPE_UNDERFLOW)) == 0) {
-//                        throw e;
-//                    }
-//
-//                    // handle the case where this is a comparison, rather than equality match
-//                    // comparison is the only place where the executor might return matching tuples
-//                    // e.g. TINYINT < 1000 should return all values
-//                    if ((localLookupType != INDEX_LOOKUP_TYPE_EQ) &&
-//                        (ctr == (activeNumOfSearchKeys - 1))) {
-//
-//                        if (e.getInternalFlags() & SQLException::TYPE_OVERFLOW) {
-//                            if ((localLookupType == INDEX_LOOKUP_TYPE_GT) ||
-//                                (localLookupType == INDEX_LOOKUP_TYPE_GTE)) {
-//
-//                                // gt or gte when key overflows breaks out
-//                                // and only returns for left-outer
-//                                keyException = true;
-//                                break; // the outer while loop
-//                            }
-//                            else {
-//                                // overflow of LT or LTE should be treated as LTE
-//                                // to issue an "initial" forward scan
-//                                localLookupType = INDEX_LOOKUP_TYPE_LTE;
-//                            }
-//                        }
-//                        if (e.getInternalFlags() & SQLException::TYPE_UNDERFLOW) {
-//                            if ((localLookupType == INDEX_LOOKUP_TYPE_LT) ||
-//                                (localLookupType == INDEX_LOOKUP_TYPE_LTE)) {
-//                                // overflow of LT or LTE should be treated as LTE
-//                                // to issue an "initial" forward scans
-//                                localLookupType = INDEX_LOOKUP_TYPE_LTE;
-//                            }
-//                            else {
-//                                // don't allow GTE because it breaks null handling
-//                                localLookupType = INDEX_LOOKUP_TYPE_GT;
-//                            }
-//                        }
-//
-//                        // if here, means all tuples with the previous searchkey
-//                        // columns need to be scaned.
-//                        activeNumOfSearchKeys--;
-//                        if (localSortDirection == SORT_DIRECTION_TYPE_INVALID) {
-//                            localSortDirection = SORT_DIRECTION_TYPE_ASC;
-//                        }
-//                    }
-//                    // if a EQ comparison is out of range, then the tuple from
-//                    // the outer loop returns no matches (except left-outer)
-//                    else {
-//                        keyException = true;
-//                    }
-//                    break;
-//                } // End catch block for under- or overflow when setting index key
-//            } // End for each active search key
-//            VOLT_TRACE("Searching %s", index_values.debug("").c_str());
-//            //std::cout << "Index values = " << index_values.debug("").c_str() << std::endl;
-//
-//            //std::cout << "End of generating search keys" << std::endl;
-//            // if a search value didn't fit into the targeted index key, skip this key
-//            if (!keyException) {
-//                //
-//                // Our index scan on the inner table is going to have three parts:
-//                //  (1) Lookup tuples using the search key
-//                //
-//                //  (2) For each tuple that comes back, check whether the
-//                //      end_expression is false.  If it is, then we stop
-//                //      scanning. Otherwise...
-//                //
-//                //  (3) Check whether the tuple satisfies the post expression.
-//                //      If it does, then add it to the output table
-//                //
-//                // Use our search key to prime the index iterator
-//                // The loop through each tuple given to us by the iterator
-//                //
-//                // Essentially cut and pasted this if ladder from
-//                // index scan executor
-//                if (num_of_searchkeys > 0)
-//                {
-//                    if (localLookupType == INDEX_LOOKUP_TYPE_EQ) {
-//                    	//cout << "Move to Key" << endl;
-//                        index->moveToKey(&index_values, indexCursor);
-//                    }
-//                    else if (localLookupType == INDEX_LOOKUP_TYPE_GT) {
-//                    	//cout << "Move to Greater than key" << endl;
-//                        index->moveToGreaterThanKey(&index_values, indexCursor);
-//                    }
-//                    else if (localLookupType == INDEX_LOOKUP_TYPE_GTE) {
-//                    	//cout << "Move to Key or Greater" << endl;
-//                        index->moveToKeyOrGreater(&index_values, indexCursor);
-//                    }
-//                    else if (localLookupType == INDEX_LOOKUP_TYPE_LT) {
-//                    	//cout << "Move to Less than Key" << endl;
-//                        index->moveToLessThanKey(&index_values, indexCursor);
-//                    } else if (localLookupType == INDEX_LOOKUP_TYPE_LTE) {
-//                    	//cout << "move to Greater Than Key" << endl;
-//                        // find the entry whose key is greater than search key,
-//                        // do a forward scan using initialExpr to find the correct
-//                        // start point to do reverse scan
-//                        bool isEnd = index->moveToGreaterThanKey(&index_values, indexCursor);
-//                        if (isEnd) {
-//                            index->moveToEnd(false, indexCursor);
-//                        } else {
-//                            while (!(inner_tuple = index->nextValue(indexCursor)).isNullTuple()) {
-//                                pmp.countdownProgress();
-//                                if (initial_expression != NULL && !initial_expression->eval(&outer_tuple, &inner_tuple).isTrue()) {
-//                                    // just passed the first failed entry, so move 2 backward
-//                                    index->moveToBeforePriorEntry(indexCursor);
-//                                    break;
-//                                }
-//                            }
-//                            if (inner_tuple.isNullTuple()) {
-//                                index->moveToEnd(false, indexCursor);
-//                            }
-//                        }
-//                    }
-//                    else {
-//                        return false;
-//                    }
-//                } else {
-//                    bool toStartActually = (localSortDirection != SORT_DIRECTION_TYPE_DESC);
-//                    index->moveToEnd(toStartActually, indexCursor);
-//                }
-//
-//                AbstractExpression* skipNullExprIteration = skipNullExpr;
-//
-//                while ((limit == -1 || tuple_ctr < limit) &&
-//                       ((localLookupType == INDEX_LOOKUP_TYPE_EQ &&
-//                        !(inner_tuple = index->nextValueAtKey(indexCursor)).isNullTuple()) ||
-//                       ((localLookupType != INDEX_LOOKUP_TYPE_EQ || num_of_searchkeys == 0) &&
-//                        !(inner_tuple = index->nextValue(indexCursor)).isNullTuple())))
-//                {
-//                    VOLT_TRACE("inner_tuple:%s",
-//                               inner_tuple.debug(inner_table->name()).c_str());
-//                    pmp.countdownProgress();
-//
-//                    //
-//                    // First check to eliminate the null index rows for UNDERFLOW case only
-//                    //
-//                    if (skipNullExprIteration != NULL) {
-//                        if (skipNullExprIteration->eval(&outer_tuple, &inner_tuple).isTrue()) {
-//                            VOLT_DEBUG("Index scan: find out null rows or columns.");
-//                            continue;
-//                        } else {
-//                            skipNullExprIteration = NULL;
-//                        }
-//                    }
-//
-//                    //
-//                    // First check whether the end_expression is now false
-//                    //
-//                    if (end_expression != NULL &&
-//                        !end_expression->eval(&outer_tuple, &inner_tuple).isTrue())
-//                    {
-//                        VOLT_TRACE("End Expression evaluated to false, stopping scan\n");
-//                        break;
-//                    }
-//                    //
-//                    // Then apply our post-predicate to do further filtering
-//                    //
-//                    if (post_expression == NULL ||
-//                        post_expression->eval(&outer_tuple, &inner_tuple).isTrue())
-//                    {
-//                        match = true;
-//                        // Still need to pass where filtering
-//                        if (where_expression == NULL || where_expression->eval(&outer_tuple, &inner_tuple).isTrue()) {
-//                            // Check if we have to skip this tuple because of offset
-//                            if (tuple_skipped < offset) {
-//                                tuple_skipped++;
-//                                continue;
-//                            }
-//                            ++tuple_ctr;
-//                            //
-//                            // Try to put the tuple into our output table
-//                            // Append the inner values to the end of our join tuple
-//                            //
-//                            for (int col_ctr = num_of_outer_cols;
-//                                 col_ctr < join_tuple.sizeInValues();
-//                                 ++col_ctr)
-//                            {
-//                                // For the sake of consistency, we don't try to do
-//                                // output expressions here with columns from both tables.
-//                                join_tuple.setNValue(col_ctr,
-//                                          m_outputExpressions[col_ctr]->eval(&outer_tuple, &inner_tuple));
-//                            }
-//                            VOLT_TRACE("join_tuple tuple: %s",
-//                                       join_tuple.debug(m_tmpOutputTable->name()).c_str());
-//                            VOLT_TRACE("MATCH: %s",
-//                                   join_tuple.debug(m_tmpOutputTable->name()).c_str());
-//
-//                            if (m_aggExec != NULL) {
-//                                if (m_aggExec->p_execute_tuple(join_tuple)) {
-//                                    // Get enough rows for LIMIT
-//                                    earlyReturned = true;
-//                                    break;
-//                                }
-//                            } else {
-//                                m_tmpOutputTable->insertTempTuple(join_tuple);
-//                                pmp.countdownProgress();
-//                            }
-//
-//                        }
-//                    }
-//                } // END INNER WHILE LOOP
-//
-//                if (earlyReturned) {
-//                    break;
-//                }
-//            } // END IF INDEX KEY EXCEPTION CONDITION
-//        } // END IF PRE JOIN CONDITION
-//
-//        //
-//        // Left Outer Join
-//        //
-//        if (m_joinType == JOIN_TYPE_LEFT && !match
-//                && (limit == -1 || tuple_ctr < limit) )
-//        {
-//            if (where_expression == NULL || where_expression->eval(&outer_tuple, &null_tuple).isTrue()) {
-//                // Check if we have to skip this tuple because of offset
-//                if (tuple_skipped < offset) {
-//                    tuple_skipped++;
-//                    continue;
-//                }
-//                ++tuple_ctr;
-//                join_tuple.setNValues(num_of_outer_cols, m_null_tuple.tuple(), 0, num_of_inner_cols);
-//
 //                if (m_aggExec != NULL) {
 //                    if (m_aggExec->p_execute_tuple(join_tuple)) {
-//                        // Get enough rows for LIMIT
+//                    	// Get enough rows for LIMIT
 //                        earlyReturned = true;
 //                        break;
 //                    }
@@ -744,9 +453,19 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 //                    m_tmpOutputTable->insertTempTuple(join_tuple);
 //                    pmp.countdownProgress();
 //                }
-//            }
-//        }
-//    } // END OUTER WHILE LOOP
+
+				if (earlyReturned) {
+					break;
+				}
+			}
+			gettimeofday(&write_end, NULL);
+		}
+	}
+
+	printf("Elapsed time for joining: %ld\n", (join_end.tv_sec - join_start.tv_sec) * 1000000 + (join_end.tv_usec - join_start.tv_usec));
+	printf("Elapsed time for writing result: %ld\n", (write_end.tv_sec - write_start.tv_sec) * 1000000 + (write_end.tv_usec - write_start.tv_usec));
+
+    /******************* End of adding GPU join ********************/
 
     if (m_aggExec != NULL) {
         m_aggExec->p_execute_finish();

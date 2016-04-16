@@ -32,7 +32,7 @@ public:
 	void debug(void) {
 		int tree_size = (int)(tree_.size());
 
-		if (tree_size <= 1) {
+		if (tree_size < 1) {
 			std::cout << "Empty expression" << std::endl;
 		}
 
