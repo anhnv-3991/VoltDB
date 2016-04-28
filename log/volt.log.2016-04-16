@@ -1,0 +1,308 @@
+2016-04-16 10:16:53,963   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2016-04-16 10:16:54,123   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2016-04-16 10:16:54,128   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2016-04-16 10:16:54,129   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2016-04-16 10:16:54,144   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2016-04-16 10:16:54,144   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2016-04-16 10:16:54,148   INFO  [main] NETWORK: Default network thread count: 2
+2016-04-16 10:16:54,161   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2016-04-16 10:16:54,162   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2016-04-16 10:16:54,164   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2016-04-16 10:16:54,192   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2016-04-16 10:16:54,198   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2016-04-16 10:16:54,231   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2016-04-16 10:16:54,235   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2016-04-16 10:16:54,237   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2016-04-16 10:16:54,237   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:60065
+2016-04-16 10:16:54,238   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:60065
+2016-04-16 10:16:54,247   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1e75f67d6f000000 with negotiated timeout 6000 for client /127.0.0.1:60065
+2016-04-16 10:16:54,247   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1e75f67d6f000000, negotiated timeout = 6000
+2016-04-16 10:16:54,304   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2016-04-16 10:16:54,328   INFO  [main] HOST: Host id of this node is: 0
+2016-04-16 10:16:54,328   INFO  [main] CONSOLE: Host id of this node is: 0
+2016-04-16 10:16:54,370   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2016-04-16 10:16:54,385   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2016-04-16 10:16:54,393   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2016-04-16 10:16:54,393   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2016-04-16 10:16:54,393   INFO  [main] HOST: Max temptable size set to 100 mb
+2016-04-16 10:16:54,393   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2016-04-16 10:16:54,546   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2016-04-16 10:16:54,570   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2016-04-16 10:16:55,198   INFO  [main] EXPORT: System is not using any export functionality.
+2016-04-16 10:16:55,204   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2016-04-16 10:16:55,230   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2016-04-16 10:16:55,235   INFO  [Iv2ExecutionSite: 0:0] HOST: Successfully loaded native VoltDB library voltdb-5.1.
+2016-04-16 10:16:55,236   WARN  [Iv2ExecutionSite: 0:0] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 10:16:55,487   INFO  [main] TM: Setting maximum size of MPI read pool to: 20
+2016-04-16 10:16:55,553   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:0 as leader for partition 0
+2016-04-16 10:16:55,565   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:1 as leader for partition 1
+2016-04-16 10:16:55,567   INFO  [LeaderCache] TM: SP 0:0 for partition 0 found (including self) 1 surviving replicas to repair.  Survivors: 0:0
+2016-04-16 10:16:55,580   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:2 as leader for partition 2
+2016-04-16 10:16:55,580   INFO  [LeaderCache] TM: SP 0:1 for partition 1 found (including self) 1 surviving replicas to repair.  Survivors: 0:1
+2016-04-16 10:16:55,592   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:3 as leader for partition 3
+2016-04-16 10:16:55,592   INFO  [LeaderCache] TM: SP 0:2 for partition 2 found (including self) 1 surviving replicas to repair.  Survivors: 0:2
+2016-04-16 10:16:55,593   INFO  [LeaderCache] TM: SP 0:0 for partition 0 finished leader promotion. Took 32 ms.
+2016-04-16 10:16:55,603   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 0
+2016-04-16 10:16:55,610   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:4 as leader for partition 4
+2016-04-16 10:16:55,612   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:55,613   INFO  [LeaderCache] TM: SP 0:3 for partition 3 found (including self) 1 surviving replicas to repair.  Survivors: 0:3
+2016-04-16 10:16:55,619   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:5 as leader for partition 5
+2016-04-16 10:16:55,619   INFO  [LeaderCache] TM: SP 0:4 for partition 4 found (including self) 1 surviving replicas to repair.  Survivors: 0:4
+2016-04-16 10:16:55,631   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:6 as leader for partition 6
+2016-04-16 10:16:55,634   INFO  [LeaderCache] TM: SP 0:5 for partition 5 found (including self) 1 surviving replicas to repair.  Survivors: 0:5
+2016-04-16 10:16:55,637   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:7 as leader for partition 7
+2016-04-16 10:16:55,637   INFO  [LeaderCache] TM: SP 0:6 for partition 6 found (including self) 1 surviving replicas to repair.  Survivors: 0:6
+2016-04-16 10:16:55,643   INFO  [LeaderCache] TM: SP 0:1 for partition 1 finished leader promotion. Took 65 ms.
+2016-04-16 10:16:55,650   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 1
+2016-04-16 10:16:55,662   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:55,665   INFO  [LeaderCache] TM: SP 0:7 for partition 7 found (including self) 1 surviving replicas to repair.  Survivors: 0:7
+2016-04-16 10:16:55,888   INFO  [LeaderCache] TM: SP 0:2 for partition 2 finished leader promotion. Took 297 ms.
+2016-04-16 10:16:55,894   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 2
+2016-04-16 10:16:55,902   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:55,919   INFO  [LeaderCache] TM: SP 0:3 for partition 3 finished leader promotion. Took 309 ms.
+2016-04-16 10:16:55,925   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 3
+2016-04-16 10:16:55,932   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:55,999   INFO  [LeaderCache] TM: SP 0:4 for partition 4 finished leader promotion. Took 381 ms.
+2016-04-16 10:16:56,000   INFO  [LeaderCache] TM: SP 0:5 for partition 5 finished leader promotion. Took 369 ms.
+2016-04-16 10:16:56,000   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 4
+2016-04-16 10:16:56,001   INFO  [LeaderCache] TM: SP 0:7 for partition 7 finished leader promotion. Took 342 ms.
+2016-04-16 10:16:56,001   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 5
+2016-04-16 10:16:56,002   INFO  [LeaderCache] TM: SP 0:6 for partition 6 finished leader promotion. Took 365 ms.
+2016-04-16 10:16:56,004   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 7
+2016-04-16 10:16:56,005   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 6
+2016-04-16 10:16:56,008   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:56,008   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:56,018   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:56,018   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:56,025   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 found 8 surviving leaders to repair.  Survivors: 0:0, 0:1, 0:2, 0:3, 0:4, 0:5, 0:6, 0:7
+2016-04-16 10:16:56,026   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 finished leader promotion. Took 5 ms.
+2016-04-16 10:16:56,033   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:16:56,055   INFO  [main] HOST: Database start action is Create.
+2016-04-16 10:16:56,076   INFO  [main] HOST: PID of this Volt process is 30893
+2016-04-16 10:16:56,076   INFO  [main] HOST: Listening for native wire protocol clients on port 21212.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Listening for admin wire protocol clients on port 21211.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Local machine HTTP monitoring is listening on port 8080.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Json API over HTTP enabled at path /api/1.0/, listening on port 8080.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Maximum usable Java heap set to 1981 mb.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Minimum required Java heap for catalog and server config is 384 MB.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Cluster has 1 hosts with leader hostname: "localhost:3021". 8 sites per host. K = 0.
+2016-04-16 10:16:56,076   INFO  [main] HOST: The entire cluster has 1 copy of each of the 8 logical partitions.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Detection of network partitions in the cluster is enabled.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Client authentication is not enabled. Anonymous clients accepted.
+2016-04-16 10:16:56,076   INFO  [main] HOST: No schedule set for automated snapshots.
+2016-04-16 10:16:56,076   INFO  [main] HOST: Using "voltdbroot" for voltdbroot directory.
+2016-04-16 10:16:56,077   INFO  [main] HOST: CPU INFO:         4 Cores, 1 Sockets, 8 Hardware Threads
+2016-04-16 10:16:56,077   INFO  [main] HOST: CPU DESC:         Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz 8192 KB cache
+2016-04-16 10:16:56,077   INFO  [main] HOST: HOST MEMORY (MB): 32117
+2016-04-16 10:16:56,077   INFO  [main] HOST: OS PROFILE:       Linux 3.13.0-74-generic amd64 en_US
+2016-04-16 10:16:56,077   INFO  [main] HOST: JAVA VERSION:     1.7.0_91
+2016-04-16 10:16:56,077   INFO  [main] HOST: JAVA RUNTIME:     OpenJDK Runtime Environment (1.7.0_91-b02)
+2016-04-16 10:16:56,077   INFO  [main] HOST: JAVA VM:          OpenJDK 64-Bit Server VM (24.91-b01, mixed mode)
+2016-04-16 10:16:56,077   INFO  [main] HOST: About to list cluster interfaces for all nodes with format [ip1 ip2 ... ipN] client-port:admin-port:http-port
+2016-04-16 10:16:56,077   INFO  [main] HOST:   Host id: 0 with interfaces: 172.24.15.60 21212,21211,8080 [SELF]
+2016-04-16 10:16:56,077   WARN  [main] CONSOLE: This is not a highly available cluster. K-Safety is set to 0.
+2016-04-16 10:16:56,077   WARN  [main] CONSOLE: Durability is turned off. Command logging is off.
+2016-04-16 10:16:56,096   INFO  [SnapshotDaemon] LOGGING: This node was selected as the leader for snapshot truncation
+2016-04-16 10:16:56,097   INFO  [Thread-15] HOST: Logging config info
+2016-04-16 10:16:56,097   INFO  [SnapshotDaemon] LOGGING: Checking for existence of snapshot truncation request
+2016-04-16 10:16:56,136   INFO  [Thread-16] CONSOLE: Server completed initialization.
+2016-04-16 10:16:56,620   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 10:16:57,585   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-04-16 10:16:57,585   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num BIGINT NOT NULL,
+   county VARCHAR(64),
+   county_num BIGINT NOT NULL,
+   elevation INTEGER
+)
+2016-04-16 10:16:57,721   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 57C46ACEC6, FB9F6B8DA6).
+2016-04-16 10:16:57,787   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-04-16 10:16:57,787   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num BIGINT NOT NULL,
+   county_num BIGINT NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-04-16 10:16:57,920   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes DD29FBEEC8, FB9F6B8DA6).
+2016-04-16 10:16:57,979   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-04-16 10:16:57,979   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-04-16 10:16:58,086   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 65DAC4EB3A, FB9F6B8DA6).
+2016-04-16 19:17:02,881   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 19:17:04,640   INFO  [main] CSVLOADER: Read 32768 rows from file and successfully inserted 32768 rows (final)
+2016-04-16 19:17:04,640   INFO  [main] CSVLOADER: Elapsed time: 1.87 seconds
+2016-04-16 19:17:04,640   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-04-16 19:17:04,640   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-04-16 19:17:04,640   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-04-16 19:17:08,904   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 19:17:10,409   INFO  [main] CSVLOADER: Read 32768 rows from file and successfully inserted 32768 rows (final)
+2016-04-16 19:17:10,409   INFO  [main] CSVLOADER: Elapsed time: 1.617 seconds
+2016-04-16 19:17:10,409   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-04-16 19:17:10,409   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-04-16 19:17:10,409   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-04-16 10:17:21,309   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 10:17:51,761   WARN  [Thread-0] CONSOLE: The VoltDB server will shut down due to a control-C or other JVM exit.
+2016-04-16 10:19:53,805   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2016-04-16 10:19:53,981   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2016-04-16 10:19:53,986   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2016-04-16 10:19:53,986   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2016-04-16 10:19:53,987   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2016-04-16 10:19:53,987   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2016-04-16 10:19:53,992   INFO  [main] NETWORK: Default network thread count: 2
+2016-04-16 10:19:54,007   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2016-04-16 10:19:54,007   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2016-04-16 10:19:54,010   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2016-04-16 10:19:54,039   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2016-04-16 10:19:54,046   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2016-04-16 10:19:54,083   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2016-04-16 10:19:54,087   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2016-04-16 10:19:54,089   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2016-04-16 10:19:54,089   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:60206
+2016-04-16 10:19:54,091   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:60206
+2016-04-16 10:19:54,101   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1e75f7dcb6000000 with negotiated timeout 6000 for client /127.0.0.1:60206
+2016-04-16 10:19:54,101   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1e75f7dcb6000000, negotiated timeout = 6000
+2016-04-16 10:19:54,147   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2016-04-16 10:19:54,167   INFO  [main] HOST: Host id of this node is: 0
+2016-04-16 10:19:54,167   INFO  [main] CONSOLE: Host id of this node is: 0
+2016-04-16 10:19:54,212   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2016-04-16 10:19:54,224   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2016-04-16 10:19:54,234   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2016-04-16 10:19:54,234   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2016-04-16 10:19:54,234   INFO  [main] HOST: Max temptable size set to 100 mb
+2016-04-16 10:19:54,234   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2016-04-16 10:19:54,409   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2016-04-16 10:19:54,431   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2016-04-16 10:19:55,110   INFO  [main] EXPORT: System is not using any export functionality.
+2016-04-16 10:19:55,117   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2016-04-16 10:19:55,146   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2016-04-16 10:19:55,151   INFO  [Iv2ExecutionSite: 0:0] HOST: Successfully loaded native VoltDB library voltdb-5.1.
+2016-04-16 10:19:55,152   WARN  [Iv2ExecutionSite: 0:0] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 10:19:55,402   INFO  [main] TM: Setting maximum size of MPI read pool to: 20
+2016-04-16 10:19:55,461   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:0 as leader for partition 0
+2016-04-16 10:19:55,473   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:1 as leader for partition 1
+2016-04-16 10:19:55,481   INFO  [LeaderCache] TM: SP 0:0 for partition 0 found (including self) 1 surviving replicas to repair.  Survivors: 0:0
+2016-04-16 10:19:55,486   INFO  [LeaderCache] TM: SP 0:1 for partition 1 found (including self) 1 surviving replicas to repair.  Survivors: 0:1
+2016-04-16 10:19:55,486   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:2 as leader for partition 2
+2016-04-16 10:19:55,506   INFO  [LeaderCache] TM: SP 0:0 for partition 0 finished leader promotion. Took 33 ms.
+2016-04-16 10:19:55,509   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 0
+2016-04-16 10:19:55,523   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:3 as leader for partition 3
+2016-04-16 10:19:55,524   INFO  [LeaderCache] TM: SP 0:2 for partition 2 found (including self) 1 surviving replicas to repair.  Survivors: 0:2
+2016-04-16 10:19:55,525   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:55,533   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:4 as leader for partition 4
+2016-04-16 10:19:55,535   INFO  [LeaderCache] TM: SP 0:3 for partition 3 found (including self) 1 surviving replicas to repair.  Survivors: 0:3
+2016-04-16 10:19:55,545   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:5 as leader for partition 5
+2016-04-16 10:19:55,549   INFO  [LeaderCache] TM: SP 0:4 for partition 4 found (including self) 1 surviving replicas to repair.  Survivors: 0:4
+2016-04-16 10:19:55,558   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:6 as leader for partition 6
+2016-04-16 10:19:55,561   INFO  [LeaderCache] TM: SP 0:5 for partition 5 found (including self) 1 surviving replicas to repair.  Survivors: 0:5
+2016-04-16 10:19:55,567   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:7 as leader for partition 7
+2016-04-16 10:19:55,569   INFO  [LeaderCache] TM: SP 0:6 for partition 6 found (including self) 1 surviving replicas to repair.  Survivors: 0:6
+2016-04-16 10:19:55,572   INFO  [LeaderCache] TM: SP 0:7 for partition 7 found (including self) 1 surviving replicas to repair.  Survivors: 0:7
+2016-04-16 10:19:55,669   INFO  [LeaderCache] TM: SP 0:1 for partition 1 finished leader promotion. Took 185 ms.
+2016-04-16 10:19:55,680   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 1
+2016-04-16 10:19:55,687   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:55,895   INFO  [LeaderCache] TM: SP 0:2 for partition 2 finished leader promotion. Took 376 ms.
+2016-04-16 10:19:55,902   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 2
+2016-04-16 10:19:55,910   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:55,936   INFO  [LeaderCache] TM: SP 0:3 for partition 3 finished leader promotion. Took 401 ms.
+2016-04-16 10:19:55,942   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 3
+2016-04-16 10:19:55,946   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:55,995   INFO  [LeaderCache] TM: SP 0:4 for partition 4 finished leader promotion. Took 451 ms.
+2016-04-16 10:19:56,001   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 4
+2016-04-16 10:19:56,007   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:56,014   INFO  [LeaderCache] TM: SP 0:6 for partition 6 finished leader promotion. Took 447 ms.
+2016-04-16 10:19:56,015   INFO  [LeaderCache] TM: SP 0:5 for partition 5 finished leader promotion. Took 457 ms.
+2016-04-16 10:19:56,016   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 6
+2016-04-16 10:19:56,016   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 5
+2016-04-16 10:19:56,017   INFO  [LeaderCache] TM: SP 0:7 for partition 7 finished leader promotion. Took 446 ms.
+2016-04-16 10:19:56,020   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:56,020   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:56,023   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 7
+2016-04-16 10:19:56,032   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:56,038   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 found 8 surviving leaders to repair.  Survivors: 0:0, 0:1, 0:2, 0:3, 0:4, 0:5, 0:6, 0:7
+2016-04-16 10:19:56,039   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 finished leader promotion. Took 9 ms.
+2016-04-16 10:19:56,051   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-04-16 10:19:56,081   INFO  [main] HOST: Database start action is Create.
+2016-04-16 10:19:56,108   INFO  [main] HOST: PID of this Volt process is 784
+2016-04-16 10:19:56,109   INFO  [main] HOST: Listening for native wire protocol clients on port 21212.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Listening for admin wire protocol clients on port 21211.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Local machine HTTP monitoring is listening on port 8080.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Json API over HTTP enabled at path /api/1.0/, listening on port 8080.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Maximum usable Java heap set to 1981 mb.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Minimum required Java heap for catalog and server config is 384 MB.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Cluster has 1 hosts with leader hostname: "localhost:3021". 8 sites per host. K = 0.
+2016-04-16 10:19:56,109   INFO  [main] HOST: The entire cluster has 1 copy of each of the 8 logical partitions.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Detection of network partitions in the cluster is enabled.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Client authentication is not enabled. Anonymous clients accepted.
+2016-04-16 10:19:56,109   INFO  [main] HOST: No schedule set for automated snapshots.
+2016-04-16 10:19:56,109   INFO  [main] HOST: Using "voltdbroot" for voltdbroot directory.
+2016-04-16 10:19:56,109   INFO  [main] HOST: CPU INFO:         4 Cores, 1 Sockets, 8 Hardware Threads
+2016-04-16 10:19:56,109   INFO  [main] HOST: CPU DESC:         Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz 8192 KB cache
+2016-04-16 10:19:56,109   INFO  [main] HOST: HOST MEMORY (MB): 32117
+2016-04-16 10:19:56,109   INFO  [main] HOST: OS PROFILE:       Linux 3.13.0-74-generic amd64 en_US
+2016-04-16 10:19:56,109   INFO  [main] HOST: JAVA VERSION:     1.7.0_91
+2016-04-16 10:19:56,109   INFO  [main] HOST: JAVA RUNTIME:     OpenJDK Runtime Environment (1.7.0_91-b02)
+2016-04-16 10:19:56,109   INFO  [main] HOST: JAVA VM:          OpenJDK 64-Bit Server VM (24.91-b01, mixed mode)
+2016-04-16 10:19:56,109   INFO  [main] HOST: About to list cluster interfaces for all nodes with format [ip1 ip2 ... ipN] client-port:admin-port:http-port
+2016-04-16 10:19:56,110   INFO  [main] HOST:   Host id: 0 with interfaces: 172.24.15.60 21212,21211,8080 [SELF]
+2016-04-16 10:19:56,110   WARN  [main] CONSOLE: This is not a highly available cluster. K-Safety is set to 0.
+2016-04-16 10:19:56,110   WARN  [main] CONSOLE: Durability is turned off. Command logging is off.
+2016-04-16 10:19:56,129   INFO  [SnapshotDaemon] LOGGING: This node was selected as the leader for snapshot truncation
+2016-04-16 10:19:56,130   INFO  [Thread-15] HOST: Logging config info
+2016-04-16 10:19:56,132   INFO  [SnapshotDaemon] LOGGING: Checking for existence of snapshot truncation request
+2016-04-16 10:19:56,167   INFO  [Thread-16] CONSOLE: Server completed initialization.
+2016-04-16 10:19:56,893   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 10:19:57,930   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-04-16 10:19:57,930   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num BIGINT NOT NULL,
+   county VARCHAR(64),
+   county_num BIGINT NOT NULL,
+   elevation INTEGER
+)
+2016-04-16 10:19:58,084   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 6400CA659A, FB9F6B8DA6).
+2016-04-16 10:19:58,154   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-04-16 10:19:58,154   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num BIGINT NOT NULL,
+   county_num BIGINT NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-04-16 10:19:58,304   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 5A1359C58E, FB9F6B8DA6).
+2016-04-16 10:19:58,372   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-04-16 10:19:58,372   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-04-16 10:19:58,489   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes AEE4A59ED2, FB9F6B8DA6).
+2016-04-16 19:20:00,297   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 19:20:02,296   INFO  [main] CSVLOADER: Read 32768 rows from file and successfully inserted 32768 rows (final)
+2016-04-16 19:20:02,296   INFO  [main] CSVLOADER: Elapsed time: 2.127 seconds
+2016-04-16 19:20:02,296   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-04-16 19:20:02,296   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-04-16 19:20:02,296   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-04-16 19:20:04,012   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 19:20:05,583   INFO  [main] CSVLOADER: Read 32768 rows from file and successfully inserted 32768 rows (final)
+2016-04-16 19:20:05,583   INFO  [main] CSVLOADER: Elapsed time: 1.701 seconds
+2016-04-16 19:20:05,583   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-04-16 19:20:05,583   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-04-16 19:20:05,583   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-04-16 10:20:07,316   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-04-16 10:20:15,866   WARN  [Thread-0] CONSOLE: The VoltDB server will shut down due to a control-C or other JVM exit.

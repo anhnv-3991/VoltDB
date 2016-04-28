@@ -12,94 +12,65 @@ GPUで動かすため配列のほうが向いていると思ったので
 #include <cuda.h>
 #include "GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
+#include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 
 using namespace voltdb;
 
 class GPUNIJ{
-
 public:
+	GPUNIJ();
 
-    GPUNIJ();
+	GPUNIJ(GNValue *outer_table,
+			GNValue *inner_table,
+			int outer_rows,
+			int outer_cols,
+			int inner_rows,
+			int inner_cols,
+			TreeExpression preJoinPredicate,
+			TreeExpression joinPredicate,
+			TreeExpression wherePredicate);
 
-    bool initGPU();
-    void finish();
-    bool join();
+	~GPUNIJ();
 
+	bool join();
 
-/**
-   outer tuple = left
-   inner tuple = right
- */
+	void getResult(RESULT *output) const;
 
-    bool setTableData(COLUMNDATA *oCD,
-                      COLUMNDATA *iCD,
-                      int outerSize,
-                      int innerSize,
-                      GComparisonExpression *GC){
-        
-        assert(outerSize >= 0 && innerSize >= 0);
-        assert(oCD != NULL && iCD != NULL);
+	int getResultSize() const;
 
-        left_CD = oCD;
-        right_CD = iCD;
-        left = outerSize;
-        right = innerSize;
-        
-        expression = GC;
-
-        PART = 256 * 1024;
-        
-        uint biggerTupleSize = left;
-        if(left < right) biggerTupleSize = right;
-
-        for(int i=32768 ; i<=256 * 1024 ; i = i*2){
-            if(biggerTupleSize<=i){
-                PART = i;
-                break;
-            }
-        }
-        printf("PART : %d\n",PART);
-
-        //NIJ is always true. SHJ may become false.
-        return true;
-
-    }
-
-    RESULT *getResult(){
-        return jt;
-    }
-
-    int getResultSize(){
-        return total;
-    }
-
+	void debug();
 
 private:
+	GNValue *outer_table_, *inner_table_;
+	int outer_rows_, inner_rows_, outer_cols_, inner_cols_, outer_size_, inner_size_;
+	RESULT *join_result_;
+	int result_size_;
+	int preJoin_size_, join_size_, where_size_;
 
-//for partition execution
-   
-    RESULT *jt;
-    int total;
+	GTreeNode *preJoinPredicate_;
+	GTreeNode *joinPredicate_;
+	GTreeNode *wherePredicate_;
 
-    uint left,right;
-    COLUMNDATA *left_CD;
-    COLUMNDATA *right_CD;
+	uint getPartitionSize() const;
+	uint divUtility(uint divident, uint divisor) const;
+	bool getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression);
+	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
+	template <typename T> void freeArrays(T *expression);
+	void setNValue(NValue *nvalue, GNValue &gnvalue);
+	void debugGTrees(const GTreeNode *expression, int size);
 
-    GComparisonExpression *expression;
+	void GNValueDebug(GNValue &column_data)	{
+		NValue value;
+		long double gtmp = column_data.getMdata();
+		char tmp[16];
+		memcpy(tmp, &gtmp, sizeof(long double));
+		value.setMdataFromGPU(tmp);
+		value.setSourceInlinedFromGPU(column_data.getSourceInlined());
+		value.setValueTypeFromGPU(column_data.getValueType());
 
-    int PART;
-
-    CUresult res;
-    CUdevice dev;
-    CUcontext ctx;
-    CUfunction function,c_function;
-    CUmodule module,c_module;
-    
-    void printDiff(struct timeval begin, struct timeval end);
-
-    uint iDivUp(uint dividend, uint divisor);
-
+		std::cout << value.debug();
+	}
 
 };
 

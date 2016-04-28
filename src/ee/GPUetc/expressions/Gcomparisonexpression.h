@@ -82,24 +82,39 @@ public:
     CUDAH bool eval(GNValue NV1, GNValue NV2){
 
         if(NV1.isNull() || NV2.isNull()) return false;
+        GNValue res;
         
         switch(et){
-        case (EXPRESSION_TYPE_COMPARE_EQUAL):
-            return NV1.op_equals_withoutNull(&NV2);
-        case (EXPRESSION_TYPE_COMPARE_NOTEQUAL):
-            return NV1.op_notEquals_withoutNull(&NV2);
-        case (EXPRESSION_TYPE_COMPARE_LESSTHAN):
-            return NV1.op_lessThan_withoutNull(&NV2);
-        case (EXPRESSION_TYPE_COMPARE_GREATERTHAN):
-            return NV1.op_greaterThan_withoutNull(&NV2);
-        case (EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO):
-            return NV1.op_lessThanOrEqual_withoutNull(&NV2);
-        case (EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO):
-            return NV1.op_greaterThanOrEqual_withoutNull(&NV2);
-        case (EXPRESSION_TYPE_INVALID):
+        case EXPRESSION_TYPE_COMPARE_EQUAL: {
+            res = NV1.op_equal(NV2);
+        	return res.isTrue();
+        }
+        case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
+        	res = NV1.op_notEqual(NV2);
+        	return res.isTrue();
+        }
+        case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
+        	res = NV1.op_lessThan(NV2);
+        	return res.isTrue();
+        }
+        case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+        	res = NV1.op_greaterThan(NV2);
+        	return res.isTrue();
+        }
+        case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
+        	res = NV1.op_lessThan(NV2);
+        	return res.isTrue();
+        }
+        case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
+        	res = NV1.op_greaterThan(NV2);
+        	return res.isTrue();
+        }
+        case EXPRESSION_TYPE_INVALID: {
             return true;
-        default:
+        }
+        default: {
             return false;
+        }
         }
     }
     

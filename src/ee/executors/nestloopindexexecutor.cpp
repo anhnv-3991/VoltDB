@@ -163,7 +163,7 @@ bool NestLoopIndexExecutor::p_init(AbstractPlanNode* abstractNode,
 
 void setGNValue(GNValue *column_data, NValue &value)
 {
-	column_data->setMdata(value.getMdataForGPU());
+	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
 	column_data->setSourceInlined(value.getSourceInlinedForGPU());
 	column_data->setValueType(value.getValueTypeForGPU());
 }
@@ -172,7 +172,10 @@ void setGNValue(GNValue *column_data, NValue &value)
 void GNValueDebug(GNValue &column_data)
 {
 	NValue value;
-	value.setMdataFromGPU(column_data.getMdata());
+	long double gtmp = column_data.getMdata();
+	char tmp[16];
+	memcpy(tmp, &gtmp, sizeof(long double));
+	value.setMdataFromGPU(tmp);
 	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 	value.setValueTypeFromGPU(column_data.getValueType());
 
@@ -339,9 +342,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	/********** Get column data for end_expression (search keys) & post_expression from outer table ***************/
 	TableIterator search_it_out = outer_table->iterator(), search_it_in = inner_table->iterator();
-	//IndexData *index_data_out = (IndexData *)malloc(sizeof(IndexData) * outer_size);
 	GNValue *index_data_out = (GNValue *)malloc(sizeof(GNValue) * outer_size * outer_tuple.sizeInValues());
-	//IndexData *index_data_in = (IndexData *)malloc(sizeof(IndexData) * inner_size);
 	GNValue *index_data_in = (GNValue *)malloc(sizeof(GNValue) * inner_size * inner_tuple.sizeInValues());
 	TableTuple *tmp_outer_tuple = (TableTuple *)malloc(sizeof(TableTuple) * outer_size);
 	TableTuple *tmp_inner_tuple = (TableTuple *)malloc(sizeof(TableTuple) * inner_size);
@@ -391,12 +392,10 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
 
-			//std::cout << tmp_value.debug() << ":::::";
 			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
 			if (index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_INVALID || index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_NULL)
 				printf("PROBLEM!\n");
 		}
-		//cout << std::endl;
 		idx++;
 	}
 
@@ -404,8 +403,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	RESULT *join_result = NULL;
 	int result_size = 0;
     /* Copy data to GPU memory */
-
-	//int last_r;
 
 	if (outer_size != 0 && inner_size != 0) {
 
@@ -438,8 +435,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
-						join_tuple.setNValue(col_ctr,
-								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+						//join_tuple.setNValue(col_ctr,
+						//		  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
 					}
 				}
 

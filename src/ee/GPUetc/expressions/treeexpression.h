@@ -148,14 +148,17 @@ private:
 
 	void setGNValue(GNValue *gnvalue, NValue &nvalue)
 	{
-		gnvalue->setMdata(nvalue.getMdataForGPU());
+		gnvalue->setMdata(nvalue.getValueTypeForGPU(), nvalue.getMdataForGPU());
 		gnvalue->setSourceInlined(nvalue.getSourceInlinedForGPU());
 		gnvalue->setValueType(nvalue.getValueTypeForGPU());
 	}
 
 	void setNValue(NValue *nvalue, GNValue &gnvalue)
 	{
-		nvalue->setMdataFromGPU(gnvalue.getMdata());
+		long double gtmp = gnvalue.getMdata();
+		char tmp[16];
+		memcpy(tmp, &gtmp, sizeof(long double));
+		nvalue->setMdataFromGPU(tmp);
 		nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
 		nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 	}
@@ -163,7 +166,10 @@ private:
 	void GNValueDebug(GNValue column_data)
 	{
 		NValue value;
-		value.setMdataFromGPU(column_data.getMdata());
+		long double gtmp = column_data.getMdata();
+		char tmp[16];
+		memcpy(tmp, &gtmp, sizeof(long double));
+		value.setMdataFromGPU(tmp);
 		value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 		value.setValueTypeFromGPU(column_data.getValueType());
 
@@ -221,6 +227,7 @@ private:
 			case EXPRESSION_TYPE_OPERATOR_PLUS:
 			case EXPRESSION_TYPE_OPERATOR_MINUS:
 			case EXPRESSION_TYPE_OPERATOR_MULTIPLY:
+			case EXPRESSION_TYPE_OPERATOR_DIVIDE:
 			case EXPRESSION_TYPE_OPERATOR_CONCAT:
 			case EXPRESSION_TYPE_OPERATOR_MOD:
 			case EXPRESSION_TYPE_OPERATOR_CAST: {

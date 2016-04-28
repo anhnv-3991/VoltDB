@@ -141,13 +141,6 @@ GPUIJ::~GPUIJ()
 	freeArrays<GTreeNode>(where_expression_);
 }
 
-int compareTime(const void *a, const void *b)
-{
-	long int x = *((long int*)a);
-	long int y = *((long int*)b);
-
-	return (x > y) ? 1 : ((x < y) ? -1 : 0);
-}
 
 bool GPUIJ::join(){
 	int loop_count = 0, loop_count2 = 0;
@@ -155,7 +148,7 @@ bool GPUIJ::join(){
 	CUdevice dev;
 	CUcontext ctx;
 	CUfunction index_filter, expression_filter, write_out;
-	CUmodule module, c_module;
+	CUmodule module;
 	char fname[256];
 	char *vd;
 	char path[256];
@@ -542,6 +535,7 @@ bool GPUIJ::join(){
 
 			result_size_ += jr_size2;
 			jr_size = 0;
+			jr_size2 = 0;
 			gettimeofday(&wend, NULL);
 			wtime.push_back((wend.tv_sec - wstart.tv_sec) * 1000000 + (wend.tv_usec - wstart.tv_usec));
 
@@ -814,7 +808,10 @@ void GPUIJ::debug(void)
 
 void GPUIJ::setNValue(NValue *nvalue, GNValue &gnvalue)
 {
-	nvalue->setMdataFromGPU(gnvalue.getMdata());
+	double tmp = gnvalue.getMdata();
+	char gtmp[16];
+	memcpy(gtmp, &tmp, sizeof(double));
+	nvalue->setMdataFromGPU(gtmp);
 	nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
 	nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 }
