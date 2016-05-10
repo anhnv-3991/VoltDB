@@ -80,14 +80,6 @@ GPUNIJ::~GPUNIJ()
 	freeArrays<GTreeNode>(wherePredicate_);
 }
 
-int compareTime(const void *a, const void *b)
-{
-	long int x = *((long int*)a);
-	long int y = *((long int*)b);
-
-	return (x > y) ? 1 : ((x < y) ? -1 : 0);
-}
-
 bool GPUNIJ::join(){
 	CUresult res;
 	CUdevice dev;

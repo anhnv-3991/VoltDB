@@ -141,6 +141,13 @@ GPUIJ::~GPUIJ()
 	freeArrays<GTreeNode>(where_expression_);
 }
 
+int compareTime(const void *a, const void *b)
+{
+	long int x = *((long int*)a);
+	long int y = *((long int*)b);
+
+	return (x > y) ? 1 : ((x < y) ? -1 : 0);
+}
 
 bool GPUIJ::join(){
 	int loop_count = 0, loop_count2 = 0;
@@ -535,7 +542,6 @@ bool GPUIJ::join(){
 
 			result_size_ += jr_size2;
 			jr_size = 0;
-			jr_size2 = 0;
 			gettimeofday(&wend, NULL);
 			wtime.push_back((wend.tv_sec - wstart.tv_sec) * 1000000 + (wend.tv_usec - wstart.tv_usec));
 

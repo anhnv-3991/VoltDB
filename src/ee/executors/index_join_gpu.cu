@@ -6,6 +6,7 @@
 #include "GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "common/types.h"
+#include "GPUetc/common/GNValue.h"
 #include "GPUetc/cudaheader.h"
 #include "GPUetc/expressions/nodedata.h"
 
@@ -19,7 +20,6 @@ finally join() store match tuple to result array .
 */
 
 extern "C" {
-
 CUDAH bool evaluate2(GTreeNode *tree_expression,
 							int tree_size,
 							GNValue *outer_tuple,

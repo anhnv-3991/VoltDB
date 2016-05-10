@@ -286,7 +286,6 @@ __global__ void join(GNValue *outer_table,
 	if (x < outer_part_size) {
 		int64_t stack[8];
 		ValueType gtype[8];
-		int matched_sum = 0;
 		int write_location = count_psum[x + k];
 
 		outer_index = x * outer_cols;

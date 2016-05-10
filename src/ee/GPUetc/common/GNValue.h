@@ -310,11 +310,6 @@ class GNValue {
     	return m_data;
     }
   private:
-
-    
-    /**
-     * 8 bytes of storage for GNValue data.
-     */
     int64_t m_data;
     ValueType m_valueType;
     bool m_sourceInlined;

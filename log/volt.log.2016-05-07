@@ -1,0 +1,1445 @@
+2016-05-07 01:22:18,196   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2016-05-07 01:22:18,436   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2016-05-07 01:22:18,442   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2016-05-07 01:22:18,443   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2016-05-07 01:22:18,445   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2016-05-07 01:22:18,445   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2016-05-07 01:22:18,451   INFO  [main] NETWORK: Default network thread count: 2
+2016-05-07 01:22:18,494   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2016-05-07 01:22:18,494   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2016-05-07 01:22:18,497   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2016-05-07 01:22:18,531   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2016-05-07 01:22:18,545   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2016-05-07 01:22:18,601   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2016-05-07 01:22:18,606   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2016-05-07 01:22:18,608   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2016-05-07 01:22:18,608   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:40826
+2016-05-07 01:22:18,609   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:40826
+2016-05-07 01:22:18,624   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1eab148bb8800000 with negotiated timeout 6000 for client /127.0.0.1:40826
+2016-05-07 01:22:18,624   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1eab148bb8800000, negotiated timeout = 6000
+2016-05-07 01:22:18,684   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2016-05-07 01:22:18,707   INFO  [main] HOST: Host id of this node is: 0
+2016-05-07 01:22:18,707   INFO  [main] CONSOLE: Host id of this node is: 0
+2016-05-07 01:22:18,758   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2016-05-07 01:22:18,769   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2016-05-07 01:22:18,780   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2016-05-07 01:22:18,780   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2016-05-07 01:22:18,780   INFO  [main] HOST: Max temptable size set to 100 mb
+2016-05-07 01:22:18,780   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2016-05-07 01:22:18,957   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2016-05-07 01:22:18,985   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2016-05-07 01:22:19,845   INFO  [main] EXPORT: System is not using any export functionality.
+2016-05-07 01:22:19,855   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2016-05-07 01:22:19,885   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2016-05-07 01:22:19,977   INFO  [Iv2ExecutionSite: 0:0] HOST: Successfully loaded native VoltDB library voltdb-5.1.
+2016-05-07 01:22:19,978   WARN  [Iv2ExecutionSite: 0:0] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 01:22:20,108   INFO  [main] TM: Setting maximum size of MPI read pool to: 20
+2016-05-07 01:22:20,180   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:0 as leader for partition 0
+2016-05-07 01:22:20,192   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:1 as leader for partition 1
+2016-05-07 01:22:20,196   INFO  [LeaderCache] TM: SP 0:0 for partition 0 found (including self) 1 surviving replicas to repair.  Survivors: 0:0
+2016-05-07 01:22:20,219   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:2 as leader for partition 2
+2016-05-07 01:22:20,223   INFO  [LeaderCache] TM: SP 0:1 for partition 1 found (including self) 1 surviving replicas to repair.  Survivors: 0:1
+2016-05-07 01:22:20,228   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:3 as leader for partition 3
+2016-05-07 01:22:20,228   INFO  [LeaderCache] TM: SP 0:2 for partition 2 found (including self) 1 surviving replicas to repair.  Survivors: 0:2
+2016-05-07 01:22:20,245   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:4 as leader for partition 4
+2016-05-07 01:22:20,251   INFO  [LeaderCache] TM: SP 0:3 for partition 3 found (including self) 1 surviving replicas to repair.  Survivors: 0:3
+2016-05-07 01:22:20,260   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:5 as leader for partition 5
+2016-05-07 01:22:20,265   INFO  [LeaderCache] TM: SP 0:4 for partition 4 found (including self) 1 surviving replicas to repair.  Survivors: 0:4
+2016-05-07 01:22:20,290   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:6 as leader for partition 6
+2016-05-07 01:22:20,291   INFO  [LeaderCache] TM: SP 0:5 for partition 5 found (including self) 1 surviving replicas to repair.  Survivors: 0:5
+2016-05-07 01:22:20,303   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:7 as leader for partition 7
+2016-05-07 01:22:20,303   INFO  [LeaderCache] TM: SP 0:6 for partition 6 found (including self) 1 surviving replicas to repair.  Survivors: 0:6
+2016-05-07 01:22:20,321   INFO  [LeaderCache] TM: SP 0:7 for partition 7 found (including self) 1 surviving replicas to repair.  Survivors: 0:7
+2016-05-07 01:22:21,370   INFO  [LeaderCache] TM: SP 0:5 for partition 5 finished leader promotion. Took 1087 ms.
+2016-05-07 01:22:21,370   INFO  [LeaderCache] TM: SP 0:1 for partition 1 finished leader promotion. Took 1162 ms.
+2016-05-07 01:22:21,370   INFO  [LeaderCache] TM: SP 0:2 for partition 2 finished leader promotion. Took 1144 ms.
+2016-05-07 01:22:21,370   INFO  [LeaderCache] TM: SP 0:3 for partition 3 finished leader promotion. Took 1125 ms.
+2016-05-07 01:22:21,370   INFO  [LeaderCache] TM: SP 0:0 for partition 0 finished leader promotion. Took 1178 ms.
+2016-05-07 01:22:21,370   INFO  [LeaderCache] TM: SP 0:6 for partition 6 finished leader promotion. Took 1068 ms.
+2016-05-07 01:22:21,370   INFO  [LeaderCache] TM: SP 0:4 for partition 4 finished leader promotion. Took 1109 ms.
+2016-05-07 01:22:21,371   INFO  [LeaderCache] TM: SP 0:7 for partition 7 finished leader promotion. Took 1050 ms.
+2016-05-07 01:22:21,371   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 2
+2016-05-07 01:22:21,372   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 5
+2016-05-07 01:22:21,372   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 1
+2016-05-07 01:22:21,372   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 6
+2016-05-07 01:22:21,372   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 4
+2016-05-07 01:22:21,372   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 3
+2016-05-07 01:22:21,373   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 0
+2016-05-07 01:22:21,373   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 7
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,378   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,392   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 found 8 surviving leaders to repair.  Survivors: 0:0, 0:1, 0:2, 0:3, 0:4, 0:5, 0:6, 0:7
+2016-05-07 01:22:21,396   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 finished leader promotion. Took 15 ms.
+2016-05-07 01:22:21,403   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 01:22:21,429   INFO  [main] HOST: Database start action is Create.
+2016-05-07 01:22:21,473   INFO  [main] HOST: PID of this Volt process is 3806
+2016-05-07 01:22:21,473   INFO  [main] HOST: Listening for native wire protocol clients on port 21212.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Listening for admin wire protocol clients on port 21211.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Local machine HTTP monitoring is listening on port 8080.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Json API over HTTP enabled at path /api/1.0/, listening on port 8080.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Maximum usable Java heap set to 1981 mb.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Minimum required Java heap for catalog and server config is 384 MB.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Cluster has 1 hosts with leader hostname: "localhost:3021". 8 sites per host. K = 0.
+2016-05-07 01:22:21,473   INFO  [main] HOST: The entire cluster has 1 copy of each of the 8 logical partitions.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Detection of network partitions in the cluster is enabled.
+2016-05-07 01:22:21,473   INFO  [main] HOST: Client authentication is not enabled. Anonymous clients accepted.
+2016-05-07 01:22:21,474   INFO  [main] HOST: No schedule set for automated snapshots.
+2016-05-07 01:22:21,474   INFO  [main] HOST: Using "voltdbroot" for voltdbroot directory.
+2016-05-07 01:22:21,474   INFO  [main] HOST: CPU INFO:         4 Cores, 1 Sockets, 8 Hardware Threads
+2016-05-07 01:22:21,474   INFO  [main] HOST: CPU DESC:         Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz 8192 KB cache
+2016-05-07 01:22:21,474   INFO  [main] HOST: HOST MEMORY (MB): 32117
+2016-05-07 01:22:21,474   INFO  [main] HOST: OS PROFILE:       Linux 3.13.0-74-generic amd64 en_US
+2016-05-07 01:22:21,474   INFO  [main] HOST: JAVA VERSION:     1.7.0_91
+2016-05-07 01:22:21,474   INFO  [main] HOST: JAVA RUNTIME:     OpenJDK Runtime Environment (1.7.0_91-b02)
+2016-05-07 01:22:21,474   INFO  [main] HOST: JAVA VM:          OpenJDK 64-Bit Server VM (24.91-b01, mixed mode)
+2016-05-07 01:22:21,474   INFO  [main] HOST: About to list cluster interfaces for all nodes with format [ip1 ip2 ... ipN] client-port:admin-port:http-port
+2016-05-07 01:22:21,474   INFO  [main] HOST:   Host id: 0 with interfaces: 172.24.15.60 21212,21211,8080 [SELF]
+2016-05-07 01:22:21,474   WARN  [main] CONSOLE: This is not a highly available cluster. K-Safety is set to 0.
+2016-05-07 01:22:21,474   WARN  [main] CONSOLE: Durability is turned off. Command logging is off.
+2016-05-07 01:22:21,496   INFO  [SnapshotDaemon] LOGGING: This node was selected as the leader for snapshot truncation
+2016-05-07 01:22:21,497   INFO  [Thread-15] HOST: Logging config info
+2016-05-07 01:22:21,499   INFO  [SnapshotDaemon] LOGGING: Checking for existence of snapshot truncation request
+2016-05-07 01:22:21,592   INFO  [Thread-16] CONSOLE: Server completed initialization.
+2016-05-07 01:23:34,421   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 01:23:36,888   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:23:36,888   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 01:23:37,095   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes B42B8C0F2B, FB9F6B8DA6).
+2016-05-07 01:23:37,191   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:23:37,191   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 01:23:37,327   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 8D9F41E1B3, FB9F6B8DA6).
+2016-05-07 01:23:37,387   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:23:37,387   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 01:23:37,523   INFO  [Iv2ExecutionSite: 0:7] HOST: Globally updating the current application catalog and deployment (new hashes D4532565C6, FB9F6B8DA6).
+2016-05-07 10:23:43,826   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 10:24:12,878   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:24:12,878   INFO  [main] CSVLOADER: Elapsed time: 29.195 seconds
+2016-05-07 10:24:12,878   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 10:24:12,878   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 10:24:12,878   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 10:25:42,800   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 10:26:14,390   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:26:14,390   INFO  [main] CSVLOADER: Elapsed time: 31.711 seconds
+2016-05-07 10:26:14,390   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 10:26:14,390   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 10:26:14,390   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 01:26:38,180   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 01:38:17,991   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:38:17,991   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 01:38:18,101   INFO  [Iv2ExecutionSite: 0:3] HOST: Globally updating the current application catalog and deployment (new hashes 5E302CC73D, FB9F6B8DA6).
+2016-05-07 01:38:20,918   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:38:20,918   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 01:38:21,021   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 5FFC8CCA12, FB9F6B8DA6).
+2016-05-07 01:38:34,424   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:38:34,424   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 01:38:34,515   INFO  [Iv2ExecutionSite: 0:6] HOST: Globally updating the current application catalog and deployment (new hashes 5FFAF2A17F, FB9F6B8DA6).
+2016-05-07 01:38:34,555   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:38:34,555   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 01:38:34,653   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 81D1033CA1, FB9F6B8DA6).
+2016-05-07 01:38:34,690   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:38:34,690   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 01:38:34,787   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes 9655B27E9D, FB9F6B8DA6).
+2016-05-07 10:38:39,976   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 10:39:08,302   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:39:08,302   INFO  [main] CSVLOADER: Elapsed time: 28.444 seconds
+2016-05-07 10:39:08,302   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 10:39:08,302   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 10:39:08,302   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 10:39:14,154   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 10:39:40,738   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:39:40,739   INFO  [main] CSVLOADER: Elapsed time: 26.696 seconds
+2016-05-07 10:39:40,739   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 10:39:40,739   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 10:39:40,739   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 01:39:46,058   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 01:46:01,767   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:46:01,767   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 01:46:01,881   INFO  [Iv2ExecutionSite: 0:7] HOST: Globally updating the current application catalog and deployment (new hashes DF7124CF27, FB9F6B8DA6).
+2016-05-07 01:46:05,824   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:46:05,824   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 01:46:05,911   INFO  [Iv2ExecutionSite: 0:3] HOST: Globally updating the current application catalog and deployment (new hashes BF1934CD80, FB9F6B8DA6).
+2016-05-07 01:46:08,692   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:46:08,692   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 01:46:08,786   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 1C142D88AD, FB9F6B8DA6).
+2016-05-07 01:46:08,824   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:46:08,824   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 01:46:08,922   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 80FEC9BD24, FB9F6B8DA6).
+2016-05-07 01:46:08,957   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:46:08,957   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 01:46:09,050   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 03E478C5F5, FB9F6B8DA6).
+2016-05-07 10:46:14,260   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 10:46:40,941   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:46:40,941   INFO  [main] CSVLOADER: Elapsed time: 26.796 seconds
+2016-05-07 10:46:40,941   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 10:46:40,941   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 10:46:40,941   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 10:46:49,567   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 10:47:17,460   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:47:17,460   INFO  [main] CSVLOADER: Elapsed time: 28.01 seconds
+2016-05-07 10:47:17,460   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 10:47:17,460   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 10:47:17,460   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 01:47:22,141   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 01:56:30,451   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:56:30,451   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 01:56:30,546   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes D050AED8B6, FB9F6B8DA6).
+2016-05-07 01:56:34,383   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:56:34,384   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 01:56:34,479   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes D5135660BF, FB9F6B8DA6).
+2016-05-07 01:56:38,321   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:56:38,321   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 01:56:38,417   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 8239EB6719, FB9F6B8DA6).
+2016-05-07 01:56:38,450   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:56:38,450   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 01:56:38,543   INFO  [Iv2ExecutionSite: 0:3] HOST: Globally updating the current application catalog and deployment (new hashes A7A8F49385, FB9F6B8DA6).
+2016-05-07 01:56:38,580   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 01:56:38,580   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 01:56:38,674   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 39AD0B572C, FB9F6B8DA6).
+2016-05-07 10:56:43,500   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 01:56:49,429   WARN  [Periodic Priority Work] GC: Heap is 0.5679022004259616 full out of 2077753344.
+2016-05-07 10:57:12,664   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:57:12,664   INFO  [main] CSVLOADER: Elapsed time: 29.282 seconds
+2016-05-07 10:57:12,664   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 10:57:12,664   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 10:57:12,664   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 10:57:17,561   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 10:57:43,714   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 10:57:43,714   INFO  [main] CSVLOADER: Elapsed time: 26.272 seconds
+2016-05-07 10:57:43,714   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 10:57:43,714   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 10:57:43,715   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 01:57:51,235   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:07:29,548   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:07:29,548   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 02:07:29,658   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes C12201E3F1, FB9F6B8DA6).
+2016-05-07 02:07:33,698   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:07:33,698   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 02:07:33,794   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes FB9C2A05A5, FB9F6B8DA6).
+2016-05-07 02:07:40,509   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:07:40,509   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 02:07:40,607   INFO  [Iv2ExecutionSite: 0:7] HOST: Globally updating the current application catalog and deployment (new hashes 029433E5D8, FB9F6B8DA6).
+2016-05-07 02:07:40,642   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:07:40,642   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 02:07:40,743   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 253177EB89, FB9F6B8DA6).
+2016-05-07 02:07:40,782   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:07:40,782   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 02:07:40,902   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes D890E4753E, FB9F6B8DA6).
+2016-05-07 11:07:45,382   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:08:12,462   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:08:12,462   INFO  [main] CSVLOADER: Elapsed time: 27.219 seconds
+2016-05-07 11:08:12,462   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 11:08:12,462   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 11:08:12,462   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 11:08:25,469   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:08:53,113   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:08:53,113   INFO  [main] CSVLOADER: Elapsed time: 27.755 seconds
+2016-05-07 11:08:53,113   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 11:08:53,113   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 11:08:53,113   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 02:08:58,551   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:20:46,666   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:20:46,667   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 02:20:46,764   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes 4B3B836CA9, FB9F6B8DA6).
+2016-05-07 02:20:50,518   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:20:50,518   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 02:20:50,608   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 3DF4DDE804, FB9F6B8DA6).
+2016-05-07 02:20:53,537   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:20:53,537   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 02:20:53,636   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes C96BA8AA7E, FB9F6B8DA6).
+2016-05-07 02:20:53,669   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:20:53,669   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 02:20:53,765   INFO  [Iv2ExecutionSite: 0:3] HOST: Globally updating the current application catalog and deployment (new hashes B546BCF992, FB9F6B8DA6).
+2016-05-07 02:20:53,799   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:20:53,799   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 02:20:53,893   INFO  [Iv2ExecutionSite: 0:6] HOST: Globally updating the current application catalog and deployment (new hashes A7E85BFCA5, FB9F6B8DA6).
+2016-05-07 11:20:57,571   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:21:25,914   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:21:25,914   INFO  [main] CSVLOADER: Elapsed time: 28.465 seconds
+2016-05-07 11:21:25,914   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 11:21:25,914   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 11:21:25,914   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 11:21:56,587   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:22:21,233   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:22:21,233   INFO  [main] CSVLOADER: Elapsed time: 24.764 seconds
+2016-05-07 11:22:21,233   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 11:22:21,233   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 11:22:21,234   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 02:22:25,647   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:30:26,868   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:30:26,868   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 02:30:26,962   INFO  [Iv2ExecutionSite: 0:7] HOST: Globally updating the current application catalog and deployment (new hashes BFA903C040, FB9F6B8DA6).
+2016-05-07 02:30:30,587   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:30:30,587   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 02:30:30,681   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 69AE070792, FB9F6B8DA6).
+2016-05-07 02:30:32,871   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:30:32,872   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 02:30:32,961   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes B49C3B51C5, FB9F6B8DA6).
+2016-05-07 02:30:32,997   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:30:32,997   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 02:30:33,088   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 373F9D1633, FB9F6B8DA6).
+2016-05-07 02:30:33,122   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:30:33,122   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 02:30:33,218   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 3B9DE6C044, FB9F6B8DA6).
+2016-05-07 11:30:37,265   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:31:03,231   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:31:03,231   INFO  [main] CSVLOADER: Elapsed time: 26.083 seconds
+2016-05-07 11:31:03,231   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 11:31:03,232   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 11:31:03,232   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 11:31:11,740   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:31:39,976   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:31:39,976   INFO  [main] CSVLOADER: Elapsed time: 28.351 seconds
+2016-05-07 11:31:39,976   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 11:31:39,976   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 11:31:39,976   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 02:31:51,514   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:42:59,157   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:42:59,157   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 02:42:59,258   INFO  [Iv2ExecutionSite: 0:7] HOST: Globally updating the current application catalog and deployment (new hashes C4EEBC4435, FB9F6B8DA6).
+2016-05-07 02:43:02,209   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:43:02,209   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 02:43:02,291   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes BAC23DFD04, FB9F6B8DA6).
+2016-05-07 02:43:05,124   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:43:05,125   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 02:43:05,219   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes F01C02D194, FB9F6B8DA6).
+2016-05-07 02:43:05,251   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:43:05,251   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 02:43:05,351   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 4CC0992726, FB9F6B8DA6).
+2016-05-07 02:43:05,387   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:43:05,387   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 02:43:05,483   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes D423D5C2D4, FB9F6B8DA6).
+2016-05-07 11:43:12,625   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:43:38,429   WARN  [Periodic Priority Work] GC: Heap is 0.6551043625705747 full out of 2077753344.
+2016-05-07 11:43:42,969   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:43:42,969   INFO  [main] CSVLOADER: Elapsed time: 30.464 seconds
+2016-05-07 11:43:42,970   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 11:43:42,970   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 11:43:42,970   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 11:44:19,020   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:44:46,533   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:44:46,533   INFO  [main] CSVLOADER: Elapsed time: 27.635 seconds
+2016-05-07 11:44:46,533   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 11:44:46,533   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 11:44:46,533   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 02:44:54,911   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:50:59,126   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:50:59,126   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 02:50:59,236   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes A1E634D507, FB9F6B8DA6).
+2016-05-07 02:51:01,986   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:51:01,986   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 02:51:02,089   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes EA95EB15A2, FB9F6B8DA6).
+2016-05-07 02:51:04,834   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:51:04,834   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 02:51:04,925   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 254FFDF73D, FB9F6B8DA6).
+2016-05-07 02:51:04,969   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:51:04,969   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 02:51:05,067   INFO  [Iv2ExecutionSite: 0:6] HOST: Globally updating the current application catalog and deployment (new hashes 9AD9F91CCC, FB9F6B8DA6).
+2016-05-07 02:51:05,107   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:51:05,107   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 02:51:05,204   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 7B7DD8D426, FB9F6B8DA6).
+2016-05-07 11:51:09,844   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:51:38,047   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:51:38,047   INFO  [main] CSVLOADER: Elapsed time: 28.324 seconds
+2016-05-07 11:51:38,047   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 11:51:38,047   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 11:51:38,047   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 11:51:43,561   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:52:13,610   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:52:13,611   INFO  [main] CSVLOADER: Elapsed time: 30.172 seconds
+2016-05-07 11:52:13,611   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 11:52:13,611   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 11:52:13,611   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 02:52:18,508   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:54:29,052   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:54:29,052   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 02:54:29,161   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes 8A04AE6D51, FB9F6B8DA6).
+2016-05-07 02:54:32,597   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 02:54:32,597   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 02:54:32,695   INFO  [Iv2ExecutionSite: 0:6] HOST: Globally updating the current application catalog and deployment (new hashes 16F3A15339, FB9F6B8DA6).
+2016-05-07 02:54:36,741   WARN  [Thread-0] CONSOLE: The VoltDB server will shut down due to a control-C or other JVM exit.
+2016-05-07 02:54:57,293   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 02:55:00,557   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:55:10,554   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:55:41,529   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:55:41,529   INFO  [main] CSVLOADER: Elapsed time: 31.098 seconds
+2016-05-07 11:55:41,529   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 11:55:41,530   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 11:55:41,530   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 11:55:51,200   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 11:56:19,026   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 11:56:19,026   INFO  [main] CSVLOADER: Elapsed time: 27.949 seconds
+2016-05-07 11:56:19,026   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 11:56:19,026   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 11:56:19,026   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 02:56:29,333   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 12:00:52,706   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 12:01:21,163   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 12:01:21,163   INFO  [main] CSVLOADER: Elapsed time: 28.582 seconds
+2016-05-07 12:01:21,163   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 12:01:21,164   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 12:01:21,164   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 12:01:41,580   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 12:02:10,400   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 12:02:10,400   INFO  [main] CSVLOADER: Elapsed time: 28.937 seconds
+2016-05-07 12:02:10,400   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 12:02:10,400   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 12:02:10,400   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 03:03:07,207   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:42:30,572   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:42:58,043   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:42:58,044   INFO  [main] CSVLOADER: Elapsed time: 27.585 seconds
+2016-05-07 13:42:58,044   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 13:42:58,044   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 13:42:58,044   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 13:43:15,310   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:43:42,023   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:43:42,023   INFO  [main] CSVLOADER: Elapsed time: 26.832 seconds
+2016-05-07 13:43:42,023   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 13:43:42,023   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 13:43:42,023   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 04:43:54,825   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:47:32,466   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:47:59,982   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:47:59,983   INFO  [main] CSVLOADER: Elapsed time: 27.639 seconds
+2016-05-07 13:47:59,983   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 13:47:59,983   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 13:47:59,983   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 13:48:05,548   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:48:36,581   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:48:36,581   INFO  [main] CSVLOADER: Elapsed time: 31.157 seconds
+2016-05-07 13:48:36,581   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 13:48:36,581   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 13:48:36,581   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 04:48:43,501   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:50:50,031   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:51:19,773   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:51:19,773   INFO  [main] CSVLOADER: Elapsed time: 29.873 seconds
+2016-05-07 13:51:19,774   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 13:51:19,774   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 13:51:19,774   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 13:51:26,351   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:51:53,249   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:51:53,249   INFO  [main] CSVLOADER: Elapsed time: 27.023 seconds
+2016-05-07 13:51:53,249   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 13:51:53,249   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 13:51:53,249   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 04:51:56,301   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:53:45,924   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:54:11,111   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:54:11,111   INFO  [main] CSVLOADER: Elapsed time: 25.3 seconds
+2016-05-07 13:54:11,111   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 13:54:11,111   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 13:54:11,111   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 13:54:25,338   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 13:54:53,160   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 13:54:53,160   INFO  [main] CSVLOADER: Elapsed time: 27.944 seconds
+2016-05-07 13:54:53,160   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 13:54:53,160   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 13:54:53,160   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 04:54:57,104   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:00:42,177   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:01:09,964   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:01:09,964   INFO  [main] CSVLOADER: Elapsed time: 27.901 seconds
+2016-05-07 14:01:09,964   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:01:09,964   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:01:09,964   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:01:18,423   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:01:44,252   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:01:44,253   INFO  [main] CSVLOADER: Elapsed time: 25.946 seconds
+2016-05-07 14:01:44,253   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:01:44,253   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:01:44,253   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:02:49,985   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:04:08,106   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:04:35,812   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:04:35,812   INFO  [main] CSVLOADER: Elapsed time: 27.83 seconds
+2016-05-07 14:04:35,812   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:04:35,812   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:04:35,812   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:04:42,726   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:05:13,253   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:05:13,253   INFO  [main] CSVLOADER: Elapsed time: 30.646 seconds
+2016-05-07 14:05:13,253   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:05:13,253   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:05:13,253   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:05:18,080   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:06:27,357   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:06:57,107   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:06:57,107   INFO  [main] CSVLOADER: Elapsed time: 29.873 seconds
+2016-05-07 14:06:57,107   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:06:57,107   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:06:57,107   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:07:04,213   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:07:32,021   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:07:32,021   INFO  [main] CSVLOADER: Elapsed time: 27.931 seconds
+2016-05-07 14:07:32,021   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:07:32,021   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:07:32,021   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:07:34,112   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:08:37,820   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:09:05,137   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:09:05,137   INFO  [main] CSVLOADER: Elapsed time: 27.441 seconds
+2016-05-07 14:09:05,137   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:09:05,137   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:09:05,137   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:09:23,465   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:09:52,048   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:09:52,048   INFO  [main] CSVLOADER: Elapsed time: 28.706 seconds
+2016-05-07 14:09:52,048   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:09:52,048   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:09:52,048   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:09:54,424   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:11:42,065   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:12:11,142   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:12:11,143   INFO  [main] CSVLOADER: Elapsed time: 29.197 seconds
+2016-05-07 14:12:11,143   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:12:11,143   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:12:11,143   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:12:17,366   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:12:43,520   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:12:43,520   INFO  [main] CSVLOADER: Elapsed time: 26.275 seconds
+2016-05-07 14:12:43,520   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:12:43,520   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:12:43,520   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:12:46,790   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:15:30,408   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:15:57,606   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:15:57,606   INFO  [main] CSVLOADER: Elapsed time: 27.316 seconds
+2016-05-07 14:15:57,606   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:15:57,606   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:15:57,606   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:16:06,340   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:16:08,839   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:16:08,839   INFO  [main] CSVLOADER: Elapsed time: 2.618 seconds
+2016-05-07 14:16:08,839   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:16:08,839   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:16:08,839   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:16:10,733   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:18:21,273   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:18:23,595   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:18:23,595   INFO  [main] CSVLOADER: Elapsed time: 2.44 seconds
+2016-05-07 14:18:23,595   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:18:23,595   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:18:23,596   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:18:33,491   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:19:00,751   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:19:00,751   INFO  [main] CSVLOADER: Elapsed time: 27.38 seconds
+2016-05-07 14:19:00,751   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:19:00,751   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:19:00,751   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:19:07,855   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:20:34,098   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:21:01,845   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:21:01,845   INFO  [main] CSVLOADER: Elapsed time: 27.865 seconds
+2016-05-07 14:21:01,845   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:21:01,845   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:21:01,845   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:21:11,788   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:21:13,552   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:21:13,553   INFO  [main] CSVLOADER: Elapsed time: 1.888 seconds
+2016-05-07 14:21:13,553   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:21:13,553   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:21:13,553   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:21:18,786   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:23:36,948   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:23:39,452   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:23:39,452   INFO  [main] CSVLOADER: Elapsed time: 2.628 seconds
+2016-05-07 14:23:39,452   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:23:39,452   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:23:39,452   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:24:26,645   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:24:55,451   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:24:55,451   INFO  [main] CSVLOADER: Elapsed time: 28.928 seconds
+2016-05-07 14:24:55,451   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:24:55,451   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:24:55,451   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:25:16,689   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:28:26,612   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:28:53,778   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:28:53,778   INFO  [main] CSVLOADER: Elapsed time: 27.28 seconds
+2016-05-07 14:28:53,778   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:28:53,778   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:28:53,778   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:29:00,187   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:29:01,984   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:29:01,984   INFO  [main] CSVLOADER: Elapsed time: 1.918 seconds
+2016-05-07 14:29:01,984   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:29:01,984   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:29:01,984   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:29:28,155   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:32:59,874   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:33:01,642   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:33:01,642   INFO  [main] CSVLOADER: Elapsed time: 1.888 seconds
+2016-05-07 14:33:01,642   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:33:01,643   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:33:01,643   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:33:14,063   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:33:42,033   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:33:42,033   INFO  [main] CSVLOADER: Elapsed time: 28.091 seconds
+2016-05-07 14:33:42,033   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:33:42,033   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:33:42,033   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:33:46,635   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:34:57,656   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:34:57,674   ERROR [main] CSVLOADER: Exception Happened while loading CSV data: java.lang.IllegalArgumentException: Table Name parameter does not match any known table.
+2016-05-07 05:35:05,990   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:35:11,920   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:35:39,884   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:35:39,884   INFO  [main] CSVLOADER: Elapsed time: 28.084 seconds
+2016-05-07 14:35:39,884   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:35:39,884   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:35:39,885   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:35:49,952   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:35:52,156   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:35:52,156   INFO  [main] CSVLOADER: Elapsed time: 2.323 seconds
+2016-05-07 14:35:52,156   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:35:52,156   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:35:52,156   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:36:01,719   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:38:11,132   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:38:13,396   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:38:13,396   INFO  [main] CSVLOADER: Elapsed time: 2.386 seconds
+2016-05-07 14:38:13,396   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:38:13,396   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:38:13,396   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:38:17,212   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:38:44,891   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:38:44,891   INFO  [main] CSVLOADER: Elapsed time: 27.803 seconds
+2016-05-07 14:38:44,891   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:38:44,891   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:38:44,891   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:38:47,063   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:44:42,607   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:45:11,602   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:45:11,602   INFO  [main] CSVLOADER: Elapsed time: 29.113 seconds
+2016-05-07 14:45:11,602   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:45:11,602   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:45:11,602   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:45:19,063   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:45:21,323   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:45:21,323   INFO  [main] CSVLOADER: Elapsed time: 2.383 seconds
+2016-05-07 14:45:21,323   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:45:21,323   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:45:21,323   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:45:25,515   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:46:42,344   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:46:43,988   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:46:43,988   INFO  [main] CSVLOADER: Elapsed time: 1.755 seconds
+2016-05-07 14:46:43,988   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:46:43,988   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:46:43,988   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 14:46:48,619   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:47:14,720   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:47:14,720   INFO  [main] CSVLOADER: Elapsed time: 26.213 seconds
+2016-05-07 14:47:14,720   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:47:14,721   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:47:14,721   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 05:47:21,670   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:49:38,278   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:50:05,883   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:50:05,883   INFO  [main] CSVLOADER: Elapsed time: 27.721 seconds
+2016-05-07 14:50:05,883   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 14:50:05,883   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 14:50:05,883   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 14:50:13,495   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 14:50:15,684   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 14:50:15,684   INFO  [main] CSVLOADER: Elapsed time: 2.307 seconds
+2016-05-07 14:50:15,684   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 14:50:15,684   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 14:50:15,684   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 05:50:41,025   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 07:59:59,687   INFO  [main] CONSOLE: Initializing VoltDB...
+
+ _    __      ____  ____  ____ 
+| |  / /___  / / /_/ __ \/ __ )
+| | / / __ \/ / __/ / / / __  |
+| |/ / /_/ / / /_/ /_/ / /_/ / 
+|___/\____/_/\__/_____/_____/
+
+--------------------------------
+
+2016-05-07 07:59:59,846   INFO  [main] HOST: Generating default deployment file "/home/anh/work/anh/VoltDB/voltdbroot/deployment.xml"
+2016-05-07 07:59:59,851   INFO  [main] CONSOLE: Build: 5.1 This is not from a known repository Community Edition
+2016-05-07 07:59:59,851   INFO  [main] HOST: Command line arguments: org.voltdb.VoltDB create host localhost:3021
+2016-05-07 07:59:59,852   INFO  [main] HOST: Command line JVM arguments: -Xmx2048m -Xms2048m -XX:+AlwaysPreTouch -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=300 -Dsun.net.inetaddr.negative.ttl=3600 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseTLAB -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCondCardMark -Dsun.rmi.dgc.server.gcInterval=9223372036854775807 -Dsun.rmi.dgc.client.gcInterval=9223372036854775807 -XX:CMSWaitDuration=120000 -XX:CMSMaxAbortablePrecleanTime=120000 -XX:+ExplicitGCInvokesConcurrent -XX:+CMSScavengeBeforeRemark -XX:+CMSClassUnloadingEnabled -XX:PermSize=64m -Dlog4j.configuration=file:///home/anh/work/anh/VoltDB/voltdb/log4j.xml -Djava.library.path=/home/anh/work/anh/VoltDB/voltdb
+2016-05-07 07:59:59,852   INFO  [main] HOST: Command line JVM classpath: /home/anh/work/anh/VoltDB/voltdb/voltdb-5.1.jar:/home/anh/work/anh/VoltDB/lib/httpcore-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/scala-library.jar:/home/anh/work/anh/VoltDB/lib/avro-1.7.7.jar:/home/anh/work/anh/VoltDB/lib/metrics-core-2.2.0.jar:/home/anh/work/anh/VoltDB/lib/commons-lang3-3.0.jar:/home/anh/work/anh/VoltDB/lib/jsch-0.1.51.jar:/home/anh/work/anh/VoltDB/lib/snappy-java-1.1.0.1.jar:/home/anh/work/anh/VoltDB/lib/httpclient-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-server-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/commons-cli-1.2.jar:/home/anh/work/anh/VoltDB/lib/slf4j-nop-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-http-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/tomcat-juli.jar:/home/anh/work/anh/VoltDB/lib/commons-codec-1.6.jar:/home/anh/work/anh/VoltDB/lib/jetty-io-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/zmq-2.1.11.jar:/home/anh/work/anh/VoltDB/lib/tomcat-jdbc.jar:/home/anh/work/anh/VoltDB/lib/protobuf-java-2.4.1.jar:/home/anh/work/anh/VoltDB/lib/jna.jar:/home/anh/work/anh/VoltDB/lib/httpcore-nio-4.3.2.jar:/home/anh/work/anh/VoltDB/lib/log4j-1.2.16.jar:/home/anh/work/anh/VoltDB/lib/servlet-api-2.5.jar:/home/anh/work/anh/VoltDB/lib/kafka_2.8.0-0.8.1.jar:/home/anh/work/anh/VoltDB/lib/httpasyncclient-4.0.1.jar:/home/anh/work/anh/VoltDB/lib/commons-logging-1.1.3.jar:/home/anh/work/anh/VoltDB/lib/super-csv-2.1.0.jar:/home/anh/work/anh/VoltDB/lib/jackson-mapper-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/groovy-all-2.1.7-indy.jar:/home/anh/work/anh/VoltDB/lib/jetty-continuation-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/slf4j-api-1.6.2.jar:/home/anh/work/anh/VoltDB/lib/jetty-util-7.6.1.v20120215.jar:/home/anh/work/anh/VoltDB/lib/jackson-core-asl-1.9.13.jar:/home/anh/work/anh/VoltDB/lib/jline-2.10.jar
+2016-05-07 07:59:59,857   INFO  [main] NETWORK: Default network thread count: 2
+2016-05-07 07:59:59,870   INFO  [main] HOST: Beginning inter-node communication on port 3021.
+2016-05-07 07:59:59,871   INFO  [main] HOST: Attempting to bind to leader ip localhost/127.0.0.1:3021
+2016-05-07 07:59:59,873   INFO  [main] CONSOLE: Connecting to VoltDB cluster as the leader...
+2016-05-07 07:59:59,900   INFO  [main] ZK-SERVER: binding to port /127.0.0.1:2181
+2016-05-07 07:59:59,906   INFO  [main] ZK-SERVER: Created server with tickTime 3000 minSessionTimeout 6000 maxSessionTimeout 60000
+2016-05-07 07:59:59,939   INFO  [main] ZK-SERVER: Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=2000 watcher=org.voltcore.zk.ZKUtil$1@90d1117
+2016-05-07 07:59:59,943   INFO  [main-SendThread()] ZK-CLIENT: Opening socket connection to server /127.0.0.1:2181
+2016-05-07 07:59:59,945   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Socket connection established to localhost/127.0.0.1:2181, initiating session
+2016-05-07 07:59:59,945   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Accepted socket connection from /127.0.0.1:46960
+2016-05-07 07:59:59,946   INFO  [NIOServerCxn.Factory:/127.0.0.1:2181] ZK-SERVER: Client attempting to establish new session at /127.0.0.1:46960
+2016-05-07 07:59:59,955   INFO  [ZooKeeperServer] ZK-SERVER: Established session 0x1eabca97e5000000 with negotiated timeout 6000 for client /127.0.0.1:46960
+2016-05-07 07:59:59,955   INFO  [main-SendThread(localhost:2181)] ZK-CLIENT: Session establishment complete on server localhost/127.0.0.1:2181, sessionid = 0x1eabca97e5000000, negotiated timeout = 6000
+2016-05-07 07:59:59,996   INFO  [Socket Joiner] HOST: Attempting to bind to internal ip 0.0.0.0/0.0.0.0:3021
+2016-05-07 08:00:00,014   INFO  [main] HOST: Host id of this node is: 0
+2016-05-07 08:00:00,014   INFO  [main] CONSOLE: Host id of this node is: 0
+2016-05-07 08:00:00,048   INFO  [main] HOST: URL of deployment: /home/anh/work/anh/VoltDB/voltdbroot/deployment.xml
+2016-05-07 08:00:00,056   INFO  [main] HOST: Dead host timeout set to 90000 milliseconds
+2016-05-07 08:00:00,065   INFO  [main] HOST: Elastic duration set to 50 milliseconds
+2016-05-07 08:00:00,065   INFO  [main] HOST: Elastic throughput set to 2 mb/s
+2016-05-07 08:00:00,065   INFO  [main] HOST: Max temptable size set to 100 mb
+2016-05-07 08:00:00,065   INFO  [main] HOST: Snapshot priority set to 6 [0 - 10]
+2016-05-07 08:00:00,214   INFO  [main] HOST: Searching for license file located /home/anh/work/anh/VoltDB/license.xml
+2016-05-07 08:00:00,235   INFO  [Leader elector-/db/leaders/globalservice] HOST: Host 0 promoted to be the global service provider
+2016-05-07 08:00:00,827   INFO  [main] EXPORT: System is not using any export functionality.
+2016-05-07 08:00:00,833   INFO  [main] CONSOLE: Initializing the database. This may take a moment...
+2016-05-07 08:00:00,860   INFO  [Iv2ExecutionSite: 0:0] HOST: Loading native VoltDB code (voltdb-5.1). A confirmation message will follow if the loading is successful.
+2016-05-07 08:00:00,866   INFO  [Iv2ExecutionSite: 0:0] HOST: Successfully loaded native VoltDB library voltdb-5.1.
+2016-05-07 08:00:00,868   WARN  [Iv2ExecutionSite: 0:0] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:00:01,102   INFO  [main] TM: Setting maximum size of MPI read pool to: 20
+2016-05-07 08:00:01,154   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:0 as leader for partition 0
+2016-05-07 08:00:01,169   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:1 as leader for partition 1
+2016-05-07 08:00:01,173   INFO  [LeaderCache] TM: SP 0:0 for partition 0 found (including self) 1 surviving replicas to repair.  Survivors: 0:0
+2016-05-07 08:00:01,178   INFO  [LeaderCache] TM: SP 0:1 for partition 1 found (including self) 1 surviving replicas to repair.  Survivors: 0:1
+2016-05-07 08:00:01,179   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:2 as leader for partition 2
+2016-05-07 08:00:01,201   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:3 as leader for partition 3
+2016-05-07 08:00:01,201   INFO  [LeaderCache] TM: SP 0:2 for partition 2 found (including self) 1 surviving replicas to repair.  Survivors: 0:2
+2016-05-07 08:00:01,204   INFO  [LeaderCache] TM: SP 0:0 for partition 0 finished leader promotion. Took 35 ms.
+2016-05-07 08:00:01,210   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 0
+2016-05-07 08:00:01,221   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:4 as leader for partition 4
+2016-05-07 08:00:01,222   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,231   INFO  [LeaderCache] TM: SP 0:3 for partition 3 found (including self) 1 surviving replicas to repair.  Survivors: 0:3
+2016-05-07 08:00:01,237   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:5 as leader for partition 5
+2016-05-07 08:00:01,237   INFO  [LeaderCache] TM: SP 0:4 for partition 4 found (including self) 1 surviving replicas to repair.  Survivors: 0:4
+2016-05-07 08:00:01,248   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:6 as leader for partition 6
+2016-05-07 08:00:01,251   INFO  [LeaderCache] TM: SP 0:5 for partition 5 found (including self) 1 surviving replicas to repair.  Survivors: 0:5
+2016-05-07 08:00:01,267   INFO  [LeaderAppointer-Babysitters] TM: Appointing HSId 0:7 as leader for partition 7
+2016-05-07 08:00:01,268   INFO  [LeaderCache] TM: SP 0:6 for partition 6 found (including self) 1 surviving replicas to repair.  Survivors: 0:6
+2016-05-07 08:00:01,283   INFO  [LeaderCache] TM: SP 0:7 for partition 7 found (including self) 1 surviving replicas to repair.  Survivors: 0:7
+2016-05-07 08:00:01,337   INFO  [LeaderCache] TM: SP 0:1 for partition 1 finished leader promotion. Took 160 ms.
+2016-05-07 08:00:01,343   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 1
+2016-05-07 08:00:01,347   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,620   INFO  [LeaderCache] TM: SP 0:2 for partition 2 finished leader promotion. Took 420 ms.
+2016-05-07 08:00:01,626   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 2
+2016-05-07 08:00:01,633   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,683   INFO  [LeaderCache] TM: SP 0:3 for partition 3 finished leader promotion. Took 453 ms.
+2016-05-07 08:00:01,691   INFO  [LeaderCache] TM: SP 0:4 for partition 4 finished leader promotion. Took 456 ms.
+2016-05-07 08:00:01,692   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 3
+2016-05-07 08:00:01,695   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 4
+2016-05-07 08:00:01,703   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,703   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,709   INFO  [LeaderCache] TM: SP 0:6 for partition 6 finished leader promotion. Took 441 ms.
+2016-05-07 08:00:01,709   INFO  [LeaderCache] TM: SP 0:7 for partition 7 finished leader promotion. Took 427 ms.
+2016-05-07 08:00:01,709   INFO  [LeaderCache] TM: SP 0:5 for partition 5 finished leader promotion. Took 461 ms.
+2016-05-07 08:00:01,709   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 6
+2016-05-07 08:00:01,710   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 7
+2016-05-07 08:00:01,710   INFO  [LeaderCache] EXPORT: ExportManager accepting mastership for partition 5
+2016-05-07 08:00:01,720   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,720   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,720   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,726   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 found 8 surviving leaders to repair.  Survivors: 0:0, 0:1, 0:2, 0:3, 0:4, 0:5, 0:6, 0:7
+2016-05-07 08:00:01,728   INFO  [LeaderCache] TM: MP 0:8 for partition 16383 finished leader promotion. Took 9 ms.
+2016-05-07 08:00:01,735   INFO  [LeaderCache] HOST: Mailbox is not registered for site id -4
+2016-05-07 08:00:01,757   INFO  [main] HOST: Database start action is Create.
+2016-05-07 08:00:01,777   INFO  [main] HOST: PID of this Volt process is 14465
+2016-05-07 08:00:01,777   INFO  [main] HOST: Listening for native wire protocol clients on port 21212.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Listening for admin wire protocol clients on port 21211.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Local machine HTTP monitoring is listening on port 8080.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Json API over HTTP enabled at path /api/1.0/, listening on port 8080.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Maximum usable Java heap set to 1981 mb.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Minimum required Java heap for catalog and server config is 384 MB.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Cluster has 1 hosts with leader hostname: "localhost:3021". 8 sites per host. K = 0.
+2016-05-07 08:00:01,778   INFO  [main] HOST: The entire cluster has 1 copy of each of the 8 logical partitions.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Detection of network partitions in the cluster is enabled.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Client authentication is not enabled. Anonymous clients accepted.
+2016-05-07 08:00:01,778   INFO  [main] HOST: No schedule set for automated snapshots.
+2016-05-07 08:00:01,778   INFO  [main] HOST: Using "voltdbroot" for voltdbroot directory.
+2016-05-07 08:00:01,778   INFO  [main] HOST: CPU INFO:         4 Cores, 1 Sockets, 8 Hardware Threads
+2016-05-07 08:00:01,778   INFO  [main] HOST: CPU DESC:         Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz 8192 KB cache
+2016-05-07 08:00:01,778   INFO  [main] HOST: HOST MEMORY (MB): 32117
+2016-05-07 08:00:01,778   INFO  [main] HOST: OS PROFILE:       Linux 3.13.0-74-generic amd64 en_US
+2016-05-07 08:00:01,778   INFO  [main] HOST: JAVA VERSION:     1.7.0_91
+2016-05-07 08:00:01,779   INFO  [main] HOST: JAVA RUNTIME:     OpenJDK Runtime Environment (1.7.0_91-b02)
+2016-05-07 08:00:01,779   INFO  [main] HOST: JAVA VM:          OpenJDK 64-Bit Server VM (24.91-b01, mixed mode)
+2016-05-07 08:00:01,779   INFO  [main] HOST: About to list cluster interfaces for all nodes with format [ip1 ip2 ... ipN] client-port:admin-port:http-port
+2016-05-07 08:00:01,779   INFO  [main] HOST:   Host id: 0 with interfaces: 172.24.15.60 21212,21211,8080 [SELF]
+2016-05-07 08:00:01,779   WARN  [main] CONSOLE: This is not a highly available cluster. K-Safety is set to 0.
+2016-05-07 08:00:01,779   WARN  [main] CONSOLE: Durability is turned off. Command logging is off.
+2016-05-07 08:00:01,803   INFO  [SnapshotDaemon] LOGGING: This node was selected as the leader for snapshot truncation
+2016-05-07 08:00:01,803   INFO  [Thread-15] HOST: Logging config info
+2016-05-07 08:00:01,804   INFO  [SnapshotDaemon] LOGGING: Checking for existence of snapshot truncation request
+2016-05-07 08:00:01,840   INFO  [Thread-16] CONSOLE: Server completed initialization.
+2016-05-07 08:00:04,265   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:00:14,748   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:00:14,748   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:00:14,894   INFO  [Iv2ExecutionSite: 0:6] HOST: Globally updating the current application catalog and deployment (new hashes A6C6269C7F, FB9F6B8DA6).
+2016-05-07 08:00:14,955   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:00:14,955   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:00:15,073   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 0D3B6D50BA, FB9F6B8DA6).
+2016-05-07 08:00:15,132   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:00:15,132   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:00:15,239   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 6A108EF822, FB9F6B8DA6).
+2016-05-07 17:00:26,520   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:00:29,234   INFO  [main] CSVLOADER: Read 65536 rows from file and successfully inserted 65536 rows (final)
+2016-05-07 17:00:29,234   INFO  [main] CSVLOADER: Elapsed time: 2.825 seconds
+2016-05-07 17:00:29,234   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:00:29,234   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:00:29,234   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:00:41,648   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:00:48,922   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:00:48,922   INFO  [main] CSVLOADER: Elapsed time: 7.387 seconds
+2016-05-07 17:00:48,922   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:00:48,922   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:00:48,922   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:00:55,968   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:03:36,998   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:03:36,998   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:03:37,562   INFO  [Iv2ExecutionSite: 0:3] HOST: Globally updating the current application catalog and deployment (new hashes 0B602FBE23, FB9F6B8DA6).
+2016-05-07 08:03:40,288   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:03:40,288   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:03:40,382   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes 13A94F4D8D, FB9F6B8DA6).
+2016-05-07 08:03:42,505   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:03:42,505   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:03:42,607   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 7C38179208, FB9F6B8DA6).
+2016-05-07 08:03:42,642   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:03:42,642   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:03:42,741   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 451494D26F, FB9F6B8DA6).
+2016-05-07 08:03:42,779   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:03:42,779   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:03:42,879   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 1661C9DE6E, FB9F6B8DA6).
+2016-05-07 17:03:47,718   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:03:54,826   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:03:54,827   INFO  [main] CSVLOADER: Elapsed time: 7.221 seconds
+2016-05-07 17:03:54,827   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:03:54,827   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:03:54,827   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:04:00,639   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:04:04,512   INFO  [main] CSVLOADER: Read 131072 rows from file and successfully inserted 131072 rows (final)
+2016-05-07 17:04:04,512   INFO  [main] CSVLOADER: Elapsed time: 3.984 seconds
+2016-05-07 17:04:04,512   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:04:04,513   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:04:04,513   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:04:11,201   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:05:13,517   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:05:13,517   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:05:13,614   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 5A6CFEDBE5, FB9F6B8DA6).
+2016-05-07 08:05:16,619   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:05:16,619   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:05:16,711   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes 0DFD0C8F89, FB9F6B8DA6).
+2016-05-07 08:05:18,631   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:05:18,631   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:05:18,738   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 94DE87B073, FB9F6B8DA6).
+2016-05-07 08:05:18,777   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:05:18,777   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:05:18,861   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes C76D6CB322, FB9F6B8DA6).
+2016-05-07 08:05:18,901   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:05:18,901   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:05:18,992   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes 11B699599C, FB9F6B8DA6).
+2016-05-07 17:05:24,548   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:05:31,484   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:05:31,484   INFO  [main] CSVLOADER: Elapsed time: 7.049 seconds
+2016-05-07 17:05:31,485   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:05:31,485   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:05:31,485   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:05:33,859   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:05:40,579   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:05:40,580   INFO  [main] CSVLOADER: Elapsed time: 6.83 seconds
+2016-05-07 17:05:40,580   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:05:40,580   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:05:40,580   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:06:15,837   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:06:57,785   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:07:02,970   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:07:02,970   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:07:03,060   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes EDEDF23B61, FB9F6B8DA6).
+2016-05-07 08:07:05,867   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:07:05,867   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:07:05,955   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes A0E55C62F5, FB9F6B8DA6).
+2016-05-07 08:07:29,682   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:07:29,682   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:07:29,779   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes AFC8496F2D, FB9F6B8DA6).
+2016-05-07 08:07:29,815   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:07:29,815   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:07:29,903   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes BA3508834E, FB9F6B8DA6).
+2016-05-07 08:07:29,943   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:07:29,943   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:07:30,037   INFO  [Iv2ExecutionSite: 0:3] HOST: Globally updating the current application catalog and deployment (new hashes 748411827F, FB9F6B8DA6).
+2016-05-07 17:07:35,238   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:07:42,280   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:07:42,280   INFO  [main] CSVLOADER: Elapsed time: 7.152 seconds
+2016-05-07 17:07:42,280   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:07:42,280   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:07:42,280   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:07:52,178   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:08:06,378   INFO  [main] CSVLOADER: Read 524288 rows from file and successfully inserted 524288 rows (final)
+2016-05-07 17:08:06,378   INFO  [main] CSVLOADER: Elapsed time: 14.313 seconds
+2016-05-07 17:08:06,378   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:08:06,378   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:08:06,378   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:08:10,211   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:08:49,287   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:08:49,287   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:08:49,386   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 10CA799172, FB9F6B8DA6).
+2016-05-07 08:08:52,215   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:08:52,215   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:08:52,305   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 4A3E57436D, FB9F6B8DA6).
+2016-05-07 08:08:54,625   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:08:54,625   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:08:54,713   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 636BEADFD3, FB9F6B8DA6).
+2016-05-07 08:08:54,753   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:08:54,753   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:08:54,847   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes 48791A5552, FB9F6B8DA6).
+2016-05-07 08:08:54,883   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:08:54,883   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:08:54,971   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes 73C89B2E11, FB9F6B8DA6).
+2016-05-07 17:09:01,694   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:09:30,064   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 17:09:30,064   INFO  [main] CSVLOADER: Elapsed time: 28.484 seconds
+2016-05-07 17:09:30,064   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:09:30,064   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:09:30,064   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:09:35,852   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:09:42,351   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:09:42,351   INFO  [main] CSVLOADER: Elapsed time: 6.611 seconds
+2016-05-07 17:09:42,351   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:09:42,351   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:09:42,351   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:09:45,435   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:10:41,857   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:10:41,857   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:10:41,949   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 58ECD2CE91, FB9F6B8DA6).
+2016-05-07 08:10:44,702   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:10:44,702   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:10:44,791   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes FA837EF4D0, FB9F6B8DA6).
+2016-05-07 08:10:47,188   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:10:47,188   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:10:47,274   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 5A4FA509DA, FB9F6B8DA6).
+2016-05-07 08:10:47,313   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:10:47,313   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:10:47,406   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes 1EDED9AD7F, FB9F6B8DA6).
+2016-05-07 08:10:47,440   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:10:47,440   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:10:47,540   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes B0B22396C7, FB9F6B8DA6).
+2016-05-07 17:10:50,730   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:10:57,097   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:10:57,097   INFO  [main] CSVLOADER: Elapsed time: 6.479 seconds
+2016-05-07 17:10:57,097   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:10:57,097   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:10:57,097   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:11:00,965   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:11:55,227   INFO  [main] CSVLOADER: Read 2097152 rows from file and successfully inserted 2097152 rows (final)
+2016-05-07 17:11:55,227   INFO  [main] CSVLOADER: Elapsed time: 54.374 seconds
+2016-05-07 17:11:55,228   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:11:55,228   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:11:55,228   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:12:23,937   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:13:08,843   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:13:08,843   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:13:08,928   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 75559264DE, FB9F6B8DA6).
+2016-05-07 08:13:12,120   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:13:12,120   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:13:12,209   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes 80828E40CA, FB9F6B8DA6).
+2016-05-07 08:13:15,199   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:13:15,199   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:13:15,291   INFO  [Iv2ExecutionSite: 0:3] HOST: Globally updating the current application catalog and deployment (new hashes 979FA0AF0B, FB9F6B8DA6).
+2016-05-07 08:13:15,323   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:13:15,323   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:13:15,404   INFO  [Iv2ExecutionSite: 0:0] HOST: Globally updating the current application catalog and deployment (new hashes 482D0177BF, FB9F6B8DA6).
+2016-05-07 08:13:15,442   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:13:15,442   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:13:15,532   INFO  [Iv2ExecutionSite: 0:7] HOST: Globally updating the current application catalog and deployment (new hashes C6E294D6BB, FB9F6B8DA6).
+2016-05-07 17:13:19,673   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:15:08,900   INFO  [main] CSVLOADER: Read 4194304 rows from file and successfully inserted 4194304 rows (final)
+2016-05-07 17:15:08,900   INFO  [main] CSVLOADER: Elapsed time: 109.338 seconds
+2016-05-07 17:15:08,901   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:15:08,901   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:15:08,901   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:15:12,922   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:15:19,666   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:15:19,667   INFO  [main] CSVLOADER: Elapsed time: 6.862 seconds
+2016-05-07 17:15:19,667   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:15:19,667   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:15:19,667   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:15:38,224   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:16:46,800   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:16:46,800   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:16:46,893   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes CC590221CF, FB9F6B8DA6).
+2016-05-07 08:16:50,328   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:16:50,328   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:16:50,423   INFO  [Iv2ExecutionSite: 0:4] HOST: Globally updating the current application catalog and deployment (new hashes 497E524F6C, FB9F6B8DA6).
+2016-05-07 08:16:55,488   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:16:55,489   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE towns (
+   town VARCHAR(64),
+   state VARCHAR(2),
+   state_num INTEGER NOT NULL,
+   county VARCHAR(64),
+   county_num INTEGER NOT NULL,
+   elevation INTEGER
+)
+2016-05-07 08:16:55,579   INFO  [Iv2ExecutionSite: 0:1] HOST: Globally updating the current application catalog and deployment (new hashes BC119C00CF, FB9F6B8DA6).
+2016-05-07 08:16:55,615   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:16:55,615   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE TABLE people (
+   state_num INTEGER NOT NULL,
+   county_num INTEGER NOT NULL,
+   state VARCHAR(20),
+   county VARCHAR(64),
+   population INTEGER
+)
+2016-05-07 08:16:55,706   INFO  [Iv2ExecutionSite: 0:2] HOST: Globally updating the current application catalog and deployment (new hashes E723BE5420, FB9F6B8DA6).
+2016-05-07 08:16:55,740   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:16:55,740   INFO  [Ad Hoc Planner - 0] COMPILER: 	CREATE INDEX people_idx ON people (state_num, county_num)
+2016-05-07 08:16:55,840   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 8141EAA1C3, FB9F6B8DA6).
+2016-05-07 17:16:59,580   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:17:06,414   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:17:06,414   INFO  [main] CSVLOADER: Elapsed time: 6.951 seconds
+2016-05-07 17:17:06,415   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:17:06,415   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:17:06,415   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:17:12,825   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:20:58,129   INFO  [main] CSVLOADER: Read 8388608 rows from file and successfully inserted 8388608 rows (final)
+2016-05-07 17:20:58,129   INFO  [main] CSVLOADER: Elapsed time: 225.42 seconds
+2016-05-07 17:20:58,130   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:20:58,130   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:20:58,130   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:21:39,969   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 08:23:35,719   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:23:35,719   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table towns
+2016-05-07 08:23:35,808   INFO  [Iv2ExecutionSite: 0:5] HOST: Globally updating the current application catalog and deployment (new hashes 514B18A164, FB9F6B8DA6).
+2016-05-07 08:23:53,694   INFO  [Ad Hoc Planner - 0] COMPILER: Applying the following DDL to cluster:
+2016-05-07 08:23:53,694   INFO  [Ad Hoc Planner - 0] COMPILER: 	drop table people
+2016-05-07 08:23:53,793   INFO  [Iv2ExecutionSite: 0:6] HOST: Globally updating the current application catalog and deployment (new hashes EAFAE9ED1D, FB9F6B8DA6).
+2016-05-07 08:24:00,406   WARN  [Thread-0] CONSOLE: The VoltDB server will shut down due to a control-C or other JVM exit.
+2016-05-07 08:24:13,284   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:24:28,599   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:24:31,475   INFO  [main] CSVLOADER: Read 65536 rows from file and successfully inserted 65536 rows (final)
+2016-05-07 17:24:31,476   INFO  [main] CSVLOADER: Elapsed time: 2.999 seconds
+2016-05-07 17:24:31,476   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:24:31,476   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:24:31,476   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:24:35,830   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:24:43,676   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:24:43,676   INFO  [main] CSVLOADER: Elapsed time: 7.965 seconds
+2016-05-07 17:24:43,676   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:24:43,676   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:24:43,676   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:24:45,894   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:25:32,044   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:25:39,786   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:25:39,786   INFO  [main] CSVLOADER: Elapsed time: 7.864 seconds
+2016-05-07 17:25:39,787   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:25:39,787   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:25:39,787   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:25:46,369   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:25:50,681   INFO  [main] CSVLOADER: Read 131072 rows from file and successfully inserted 131072 rows (final)
+2016-05-07 17:25:50,681   INFO  [main] CSVLOADER: Elapsed time: 4.433 seconds
+2016-05-07 17:25:50,681   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:25:50,681   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:25:50,681   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:25:52,471   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:26:48,076   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:26:56,036   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:26:56,036   INFO  [main] CSVLOADER: Elapsed time: 8.081 seconds
+2016-05-07 17:26:56,036   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:26:56,036   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:26:56,036   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:27:06,587   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:27:14,224   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:27:14,224   INFO  [main] CSVLOADER: Elapsed time: 7.762 seconds
+2016-05-07 17:27:14,224   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:27:14,224   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:27:14,224   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:27:16,008   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:28:25,443   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:28:32,714   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:28:32,715   INFO  [main] CSVLOADER: Elapsed time: 7.392 seconds
+2016-05-07 17:28:32,715   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:28:32,715   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:28:32,715   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:28:37,349   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:28:52,337   INFO  [main] CSVLOADER: Read 524288 rows from file and successfully inserted 524288 rows (final)
+2016-05-07 17:28:52,337   INFO  [main] CSVLOADER: Elapsed time: 15.111 seconds
+2016-05-07 17:28:52,337   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:28:52,337   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:28:52,337   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:29:25,556   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:30:21,177   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:30:50,428   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 17:30:50,428   INFO  [main] CSVLOADER: Elapsed time: 29.374 seconds
+2016-05-07 17:30:50,428   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:30:50,428   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:30:50,428   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:30:55,722   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:31:02,953   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:31:02,953   INFO  [main] CSVLOADER: Elapsed time: 7.349 seconds
+2016-05-07 17:31:02,953   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:31:02,953   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:31:02,953   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:31:08,543   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:32:23,301   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:32:29,938   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:32:29,938   INFO  [main] CSVLOADER: Elapsed time: 6.755 seconds
+2016-05-07 17:32:29,938   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:32:29,938   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:32:29,938   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:32:39,306   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:33:36,384   INFO  [main] CSVLOADER: Read 2097152 rows from file and successfully inserted 2097152 rows (final)
+2016-05-07 17:33:36,384   INFO  [main] CSVLOADER: Elapsed time: 57.196 seconds
+2016-05-07 17:33:36,384   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:33:36,384   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:33:36,384   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:33:41,117   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:34:36,452   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:36:30,261   INFO  [main] CSVLOADER: Read 4194304 rows from file and successfully inserted 4194304 rows (final)
+2016-05-07 17:36:30,261   INFO  [main] CSVLOADER: Elapsed time: 113.939 seconds
+2016-05-07 17:36:30,261   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:36:30,261   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:36:30,261   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:36:33,747   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:36:40,360   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:36:40,360   INFO  [main] CSVLOADER: Elapsed time: 6.733 seconds
+2016-05-07 17:36:40,360   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:36:40,360   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:36:40,360   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:36:42,233   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:37:57,738   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:38:04,737   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:38:04,737   INFO  [main] CSVLOADER: Elapsed time: 7.117 seconds
+2016-05-07 17:38:04,738   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:38:04,738   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:38:04,738   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:38:17,671   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:42:06,132   INFO  [main] CSVLOADER: Read 8388608 rows from file and successfully inserted 8388608 rows (final)
+2016-05-07 17:42:06,132   INFO  [main] CSVLOADER: Elapsed time: 228.583 seconds
+2016-05-07 17:42:06,132   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:42:06,132   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:42:06,132   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:42:18,026   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:47:26,687   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:47:27,702   INFO  [main] CSVLOADER: Read 65536 rows from file and successfully inserted 65536 rows (final)
+2016-05-07 17:47:27,703   INFO  [main] CSVLOADER: Elapsed time: 1.133 seconds
+2016-05-07 17:47:27,703   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:47:27,703   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:47:27,703   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:47:41,756   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:47:48,458   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:47:48,458   INFO  [main] CSVLOADER: Elapsed time: 6.82 seconds
+2016-05-07 17:47:48,458   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:47:48,458   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:47:48,458   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:47:50,306   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:48:38,002   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:48:45,255   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:48:45,255   INFO  [main] CSVLOADER: Elapsed time: 7.372 seconds
+2016-05-07 17:48:45,255   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:48:45,255   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:48:45,255   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:48:50,207   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:48:51,293   INFO  [main] CSVLOADER: Read 131072 rows from file and successfully inserted 131072 rows (final)
+2016-05-07 17:48:51,293   INFO  [main] CSVLOADER: Elapsed time: 1.206 seconds
+2016-05-07 17:48:51,293   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:48:51,293   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:48:51,293   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:48:58,664   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:49:47,358   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:49:48,697   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:49:48,697   INFO  [main] CSVLOADER: Elapsed time: 1.455 seconds
+2016-05-07 17:49:48,697   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:49:48,697   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:49:48,697   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:49:53,357   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:50:00,732   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:50:00,732   INFO  [main] CSVLOADER: Elapsed time: 7.493 seconds
+2016-05-07 17:50:00,732   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:50:00,732   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:50:00,732   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:50:02,910   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:50:42,379   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:50:56,443   INFO  [main] CSVLOADER: Read 524288 rows from file and successfully inserted 524288 rows (final)
+2016-05-07 17:50:56,443   INFO  [main] CSVLOADER: Elapsed time: 14.186 seconds
+2016-05-07 17:50:56,443   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:50:56,443   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:50:56,443   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:50:59,868   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:51:17,315   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:51:24,599   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:51:24,599   INFO  [main] CSVLOADER: Elapsed time: 7.403 seconds
+2016-05-07 17:51:24,599   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:51:24,600   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:51:24,600   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:51:35,724   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:51:36,912   INFO  [main] CSVLOADER: Read 524288 rows from file and successfully inserted 524288 rows (final)
+2016-05-07 17:51:36,912   INFO  [main] CSVLOADER: Elapsed time: 1.305 seconds
+2016-05-07 17:51:36,912   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:51:36,913   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:51:36,913   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:51:38,646   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:52:31,581   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:52:33,700   INFO  [main] CSVLOADER: Read 1048576 rows from file and successfully inserted 1048576 rows (final)
+2016-05-07 17:52:33,700   INFO  [main] CSVLOADER: Elapsed time: 2.237 seconds
+2016-05-07 17:52:33,700   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:52:33,700   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:52:33,700   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:52:45,730   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:52:52,580   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:52:52,580   INFO  [main] CSVLOADER: Elapsed time: 6.97 seconds
+2016-05-07 17:52:52,580   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:52:52,580   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:52:52,580   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:53:07,024   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:54:08,281   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:54:15,126   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:54:15,126   INFO  [main] CSVLOADER: Elapsed time: 6.961 seconds
+2016-05-07 17:54:15,126   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:54:15,126   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:54:15,126   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:54:24,007   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:54:27,694   INFO  [main] CSVLOADER: Read 2097152 rows from file and successfully inserted 2097152 rows (final)
+2016-05-07 17:54:27,694   INFO  [main] CSVLOADER: Elapsed time: 3.812 seconds
+2016-05-07 17:54:27,694   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:54:27,695   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:54:27,695   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:54:36,187   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:55:17,848   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:55:24,068   INFO  [main] CSVLOADER: Read 4194304 rows from file and successfully inserted 4194304 rows (final)
+2016-05-07 17:55:24,068   INFO  [main] CSVLOADER: Elapsed time: 6.338 seconds
+2016-05-07 17:55:24,068   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:55:24,068   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:55:24,068   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 17:55:33,573   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:55:40,924   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:55:40,924   INFO  [main] CSVLOADER: Elapsed time: 7.469 seconds
+2016-05-07 17:55:40,924   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:55:40,924   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:55:40,924   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 08:55:46,667   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:56:38,483   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:56:45,284   INFO  [main] CSVLOADER: Read 262144 rows from file and successfully inserted 262144 rows (final)
+2016-05-07 17:56:45,284   INFO  [main] CSVLOADER: Elapsed time: 6.918 seconds
+2016-05-07 17:56:45,285   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_invalidrows.csv
+2016-05-07 17:56:45,285   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_log.log
+2016-05-07 17:56:45,285   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_TOWNS_insert_report.log
+2016-05-07 17:56:53,152   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
+2016-05-07 17:57:04,109   INFO  [main] CSVLOADER: Read 8388608 rows from file and successfully inserted 8388608 rows (final)
+2016-05-07 17:57:04,109   INFO  [main] CSVLOADER: Elapsed time: 11.083 seconds
+2016-05-07 17:57:04,109   INFO  [main] CSVLOADER: Invalid row file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_invalidrows.csv
+2016-05-07 17:57:04,109   INFO  [main] CSVLOADER: Log file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_log.log
+2016-05-07 17:57:04,109   INFO  [main] CSVLOADER: Report file: /home/anh/work/anh/VoltDB/csvloader_PEOPLE_insert_report.log
+2016-05-07 08:57:14,260   WARN  [Volt Client Network - 1] DBBPOOL: Strict java memory checking is enabled, don't do release builds or performance runs with this enabled. Invoke "ant clean" and "ant -Djmemcheck=NO_MEMCHECK" to disable.
