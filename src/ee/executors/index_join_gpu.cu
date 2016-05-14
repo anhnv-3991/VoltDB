@@ -121,8 +121,8 @@ CUDAH bool evaluate5(GTreeNode *tree_expression,
 							int64_t *stack,
 							ValueType *gtype)
 {
-	memset(stack, 0, 64);
-	memset(gtype, 0, 8);
+	memset(stack, 0, 8 * sizeof(int64_t));
+	memset(gtype, 0, 8 * sizeof(ValueType));
 	int top = 0;
 	double left_d, right_d, res_d;
 	int64_t left_i, right_i, res_i;
@@ -153,14 +153,14 @@ CUDAH bool evaluate5(GTreeNode *tree_expression,
 			}
 			case EXPRESSION_TYPE_CONJUNCTION_AND: {
 				assert(gtype[top - 2] == VALUE_TYPE_BOOLEAN && gtype[top - 1] == VALUE_TYPE_BOOLEAN);
-				stack[top - 2] = (int64_t)((bool)stack[top - 2] & (bool)stack[top - 1]);
+				stack[top - 2] = (int64_t)((bool)(stack[top - 2]) && (bool)(stack[top - 1]));
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_CONJUNCTION_OR: {
 				assert(gtype[top - 2] == VALUE_TYPE_BOOLEAN && gtype[top - 1] == VALUE_TYPE_BOOLEAN);
-				stack[top - 2] = (int64_t)((bool)stack[top - 2] | (bool)stack[top - 1]);
+				stack[top - 2] = (int64_t)((bool)(stack[top - 2]) || (bool)(stack[top - 1]));
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
@@ -405,6 +405,116 @@ CUDAH bool binarySearchIdx(GTreeNode * search_exp,
 	return (res_i == 0 && res_d == 0);
 }
 
+__global__ void prejoin_filter(GNValue *outer_dev,
+								uint outer_part_size,
+								uint outer_cols,
+								GTreeNode *prejoin_dev,
+								uint prejoin_size,
+								bool *result)
+{
+	int x = blockIdx.x * blockDim.x + threadIdx.x;
+	int64_t stack[MAX_STACK_SIZE];
+	ValueType gtype[MAX_STACK_SIZE];
+	bool res = true;
+
+	if (x < outer_part_size && prejoin_size > 0)
+		res = evaluate5(prejoin_dev, prejoin_size, outer_dev, NULL, x * outer_cols, 0, stack, gtype);
+
+	if (x < outer_part_size)
+		result[x] = res;
+}
+
+CUDAH int lowerBound(int search_exp_num,
+							int * key_indices,
+							int64_t *outer_tmp,
+							GNValue *inner_table,
+							int inner_cols,
+							int left,
+							int right,
+							ValueType *outer_gtype)
+{
+	int middle = -1, i;
+	int inner_idx;
+	int64_t inner_tmp;
+	ValueType inner_type;
+	int64_t outer_i, inner_i, res_i;
+	double outer_d, inner_d, res_d;
+	int result = -1;
+
+	while (left <= right) {
+		res_i = 0;
+		res_d = 0;
+		middle = (left + right) / 2;
+		inner_idx = middle * inner_cols;
+
+		for (i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
+			inner_tmp = inner_table[inner_idx + key_indices[i]].getValue();
+			inner_type = inner_table[inner_idx + key_indices[i]].getValueType();
+			assert(outer_gtype[i] != VALUE_TYPE_NULL && outer_gtype[i] != VALUE_TYPE_INVALID);
+
+			outer_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[i];
+			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
+			outer_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(outer_tmp + i) : static_cast<double>(outer_i);
+			inner_d = (inner_type == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&inner_tmp) : static_cast<double>(inner_i);
+
+			res_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
+			res_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
+		}
+
+		right = (res_i <= 0 && res_d <= 0) ? (middle - 1) : right;	//Move to left
+		left = (res_i > 0 || res_d > 0) ? (middle + 1) : left;		//Move to right
+		result = (res_i <= 0 && res_d <= 0) ? middle : result;
+	}
+
+	return result;
+}
+
+
+CUDAH int upperBound(int search_exp_num,
+							int * key_indices,
+							int64_t *outer_tmp,
+							GNValue *inner_table,
+							int inner_cols,
+							int left,
+							int right,
+							ValueType *outer_gtype)
+{
+	int middle = -1, i;
+	int inner_idx;
+	int64_t inner_tmp;
+	ValueType inner_type;
+	int64_t outer_i, inner_i, res_i;
+	double outer_d, inner_d, res_d;
+	int result = right + 1;
+
+	while (left <= right) {
+		res_i = 0;
+		res_d = 0;
+		middle = (left + right) / 2;
+		inner_idx = middle * inner_cols;
+
+		for (i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
+			inner_tmp = inner_table[inner_idx + key_indices[i]].getValue();
+			inner_type = inner_table[inner_idx + key_indices[i]].getValueType();
+
+			assert(inner_type != VALUE_TYPE_NULL && inner_type != VALUE_TYPE_INVALID);
+			outer_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[i];
+			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
+			outer_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(outer_tmp + i) : static_cast<double>(outer_i);
+			inner_d = (inner_type == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&inner_tmp) : static_cast<double>(inner_i);
+
+			res_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
+			res_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
+		}
+
+		right = (res_i < 0 || res_d < 0) ? (middle - 1) : right;	//Move to left
+		left = (res_i >= 0 && res_d >= 0) ? (middle + 1) : left;	//Move to right
+		result = (res_i < 0 || res_d < 0) ? middle : result;
+	}
+
+	return result - 1;
+}
+
 __global__ void index_filter(GNValue *outer_dev,
 							  GNValue *inner_dev,
 							  ulong *index_psum,
@@ -417,37 +527,85 @@ __global__ void index_filter(GNValue *outer_dev,
 							  int *search_exp_size,
 							  int search_exp_num,
 							  int *key_indices,
-							  int key_index_size)
+							  int key_index_size,
+							  IndexLookupType lookup_type,
+							  bool *prejoin_res_dev)
 
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
 	int left_bound = BLOCK_SIZE_Y * blockIdx.y;
 	int right_bound = (left_bound + BLOCK_SIZE_Y <= inner_part_size) ? (left_bound + BLOCK_SIZE_Y - 1) : (inner_part_size - 1);
-	bool res = false;
 
 
 	index_psum[x + k] = 0;
 	res_bound[x + k].left = -1;
 	res_bound[x + k].right = -1;
 
-	if (x < outer_part_size) {
-		res = binarySearchIdx(search_exp_dev,
-								search_exp_size,
-								search_exp_num,
-								key_indices,
-								key_index_size,
-								outer_dev,
-								inner_dev,
-								x,
-								outer_cols,
-								inner_cols,
-								left_bound,
-								right_bound,
-								&res_bound[x + k].left,
-								&res_bound[x + k].right);
+	if (x < outer_part_size && prejoin_res_dev[x]) {
+		int64_t outer_tmp[8], stack[8];
+		int search_ptr, i;
+		ValueType gtype[8], outer_gtype[8];
+		int res_left, res_right;
 
-		index_psum[x + k] = (res && res_bound[x + k].right >= 0 && res_bound[x + k].left >= 0) ? (res_bound[x + k].right - res_bound[x + k].left + 1) : 0;
+//		for (i = 0, search_ptr = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
+//			evaluate5(search_exp_dev + search_ptr, search_exp_size[i], outer_dev, NULL, x * outer_cols, 0, stack, gtype);
+//			outer_tmp[i] = stack[0];
+//			outer_gtype[i] = gtype[0];
+//			//assert(outer_gtype[i] != VALUE_TYPE_NULL && outer_gtype[i] != VALUE_TYPE_INVALID);
+//		}
+
+		binarySearchIdx(search_exp_dev,
+						search_exp_size,
+						search_exp_num,
+						key_indices,
+						key_index_size,
+						outer_dev,
+						inner_dev,
+						x,
+						outer_cols,
+						inner_cols,
+						left_bound,
+						right_bound,
+						&res_left,
+						&res_right);
+		switch (lookup_type) {
+		case INDEX_LOOKUP_TYPE_EQ: {
+//			res_bound[x + k].left = lowerBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
+//			res_bound[x + k].right = upperBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
+			res_bound[x + k].left = res_left;
+			res_bound[x + k].right = res_right;
+			break;
+		}
+		case INDEX_LOOKUP_TYPE_GT: {
+//			res_bound[x + k].left = upperBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
+			res_bound[x + k].left = res_right + 1;
+			res_bound[x + k].right = right_bound;
+			break;
+		}
+		case INDEX_LOOKUP_TYPE_GTE: {
+//			res_bound[x + k].left = lowerBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
+			res_bound[x + k].left = res_left;
+			res_bound[x + k].right = right_bound;
+			break;
+		}
+		case INDEX_LOOKUP_TYPE_LT: {
+			res_bound[x + k].left = left_bound;
+			res_bound[x + k].right = res_left - 1;
+//			res_bound[x + k].right = lowerBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype) - 1;
+			break;
+		}
+		case INDEX_LOOKUP_TYPE_LTE: {
+			res_bound[x + k].left = left_bound;
+			res_bound[x + k].right = res_right;
+//			res_bound[x + k].right = upperBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype) - 1;
+			break;
+		}
+		default:
+			break;
+		}
+
+		index_psum[x + k] = (res_bound[x + k].right >= 0 && res_bound[x + k].left >= 0) ? (res_bound[x + k].right - res_bound[x + k].left + 1) : 0;
 	}
 
 	if (x + k == (blockDim.x * gridDim.x * gridDim.y - 1)) {
@@ -456,20 +614,25 @@ __global__ void index_filter(GNValue *outer_dev,
 }
 
 
-__global__ void expression_filter(GNValue *outer_dev,
-									GNValue *inner_dev,
-									RESULT *result_dev,
-									ulong *index_psum,
-									ulong *exp_psum,
-									uint outer_part_size,
-									uint outer_cols,
-									uint inner_cols,
-									uint jr_size,
-									GTreeNode *post_ex_dev,
-									int post_size,
-									ResBound *res_bound,
-									int outer_base_idx,
-									int inner_base_idx)
+__global__ void exp_filter(GNValue *outer_dev,
+							GNValue *inner_dev,
+							RESULT *result_dev,
+							ulong *index_psum,
+							ulong *exp_psum,
+							uint outer_part_size,
+							uint outer_cols,
+							uint inner_cols,
+							uint jr_size,
+							GTreeNode *end_dev,
+							int end_size,
+							GTreeNode *post_dev,
+							int post_size,
+							GTreeNode *where_dev,
+							int where_size,
+							ResBound *res_bound,
+							int outer_base_idx,
+							int inner_base_idx,
+							bool *prejoin_res_dev)
 {
 
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -480,20 +643,44 @@ __global__ void expression_filter(GNValue *outer_dev,
 	if (x < outer_part_size) {
 		ulong writeloc = index_psum[x + k];
 		int count = 0;
-		bool res = true;
+		bool res = true, eval_res = true;
 		int res_left = -1, res_right = -1;
 		int64_t stack[8];
-		ValueType gtype[4];
+		ValueType gtype[8];
 
 		res_left = res_bound[x + k].left;
 		res_right = res_bound[x + k].right;
 
+		//printf("x = %d. Left = %d. right = %d, val1 = %d, val2 = %d\n", x, res_left, res_right, (int)(outer_dev[x * outer_cols + 1].GNValue::getValue()), (int)(outer_dev[x * outer_cols + 3].GNValue::getValue()));
+
+
 		while (res_left >= 0 && res_left <= res_right && writeloc < jr_size) {
-			res = (post_size >= 1) ? evaluate5(post_ex_dev, post_size, outer_dev, inner_dev, x * outer_cols, res_left * inner_cols, stack, gtype) : res;
-			res = (bool)stack[0];
+			res = true;
+			eval_res = (end_size > 0) ? evaluate5(end_dev, end_size, outer_dev, inner_dev, x * outer_cols, res_left * inner_cols, stack, gtype) : eval_res;
+			res &= (end_size > 0) ? (bool)stack[0] : res;
+			eval_res = (post_size > 0 && res) ? evaluate5(post_dev, post_size, outer_dev, inner_dev, x * outer_cols, res_left * inner_cols, stack, gtype) : eval_res;
+			res &= (post_size > 0) ? (bool)stack[0] : res;
+			eval_res = (where_size > 0 && res) ? evaluate5(where_dev, where_size, outer_dev, inner_dev, x * outer_cols, res_left * inner_cols, stack, gtype) : eval_res;
+			res &= (where_size > 0) ? (bool)stack[0] : res;
+
+//			if (end_size > 0) {
+//				evaluate5(end_dev, end_size, outer_dev, inner_dev, x * outer_cols, res_left * inner_cols, stack, gtype);
+//				res = (bool)stack[0];
+//			}
+//
+//			if (res && post_size > 0) {
+//				evaluate5(post_dev, post_size, outer_dev, inner_dev, x * outer_cols, res_left * inner_cols, stack, gtype);
+//				res = (bool)stack[0];
+//			}
+//
+//			if (res && where_size > 0) {
+//				evaluate5(where_dev, where_size, outer_dev, inner_dev, x * outer_cols, res_left * inner_cols, stack, gtype);
+//				res = (bool)stack[0];
+//			}
 
 			result_dev[writeloc].lkey = (res) ? (x + outer_base_idx) : (-1);
 			result_dev[writeloc].rkey = (res) ? (res_left + inner_base_idx) : (-1);
+
 			count += (res) ? 1 : 0;
 			writeloc++;
 			res_left++;
@@ -520,16 +707,18 @@ __global__ void write_out(RESULT *out,
 	ulong readloc_in = count_dev[x + k];
 	ulong num = count_dev[x + k + 1] - count_dev[x + k];
 	int lkey, rkey;
-	int i = 0;
+	ulong i = 0;
 
 	if (x < outer_part_size) {
 		while (i < num) {
-			lkey = (readloc_in + i < in_size) ? in[readloc_in + i].lkey : (-1);
-			rkey = (readloc_in + i < in_size) ? in[readloc_in + i].rkey : (-1);
-			out[writeloc_out].lkey = (lkey != -1) ? lkey : (-1);
-			out[writeloc_out].rkey = (rkey != -1) ? rkey : (-1);
+			lkey = (readloc_in + i < (ulong)in_size) ? in[readloc_in + i].lkey : (-1);
+			rkey = (readloc_in + i < (ulong)in_size) ? in[readloc_in + i].rkey : (-1);
+			if (lkey != -1 && rkey != -1) {
+				out[writeloc_out].lkey = lkey;
+				out[writeloc_out].rkey = rkey;
+				writeloc_out++;
+			}
 			i++;
-			writeloc_out += (lkey != -1 && rkey != -1) ? 1 : 0;
 		}
 	}
 }

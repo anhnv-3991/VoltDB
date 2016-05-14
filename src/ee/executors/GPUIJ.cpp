@@ -63,7 +63,8 @@ GPUIJ::GPUIJ(GNValue *outer_table,
 				TreeExpression initial_expression,
 				TreeExpression skipNullExpr,
 				TreeExpression prejoin_expression,
-				TreeExpression where_expression)
+				TreeExpression where_expression,
+				IndexLookupType lookup_type)
 {
 	/**** Table data *********/
 	outer_table_ = outer_table;
@@ -82,6 +83,7 @@ GPUIJ::GPUIJ(GNValue *outer_table,
 	where_size_ = where_expression.getSize();
 	search_exp_num_ = search_exp.size();
 	indices_size_ = indices.size();
+	lookup_type_ = lookup_type;
 
 
 	bool ret = true;
@@ -154,7 +156,7 @@ bool GPUIJ::join(){
 	CUresult res;
 	CUdevice dev;
 	CUcontext ctx;
-	CUfunction index_filter, expression_filter, write_out;
+	CUfunction prejoin_filter, index_filter, exp_filter, initial_filter, write_out;
 	CUmodule module;
 	char fname[256];
 	char *vd;
@@ -200,15 +202,21 @@ bool GPUIJ::join(){
 		return false;
 	}
 
+	res = cuModuleGetFunction(&prejoin_filter, module, "prejoin_filter");
+	if (res != CUDA_SUCCESS) {
+		printf("cuModuleGetFunction(prejoin_filter) failed: res = %lu\n", (unsigned long)res);
+		return false;
+	}
+
 	res = cuModuleGetFunction(&index_filter, module, "index_filter");
 	if (res != CUDA_SUCCESS) {
 		printf("cuModuleGetFunction(index_filter) failed: res = %lu\n", (unsigned long)res);
 		return false;
 	}
 
-	res = cuModuleGetFunction(&expression_filter, module, "expression_filter");
+	res = cuModuleGetFunction(&exp_filter, module, "exp_filter");
 	if (res != CUDA_SUCCESS) {
-		printf("cuModuleGetFunction(expression_filter) failed: res = %lu\n", (unsigned long)res);
+		printf("cuModuleGetFunction(exp_filter) failed: res = %lu\n", (unsigned long)res);
 		return false;
 	}
 
@@ -221,9 +229,10 @@ bool GPUIJ::join(){
 	/******** Calculate size of blocks, grids, and GPU buffers *********/
 	uint gpu_size = 0, part_size = 0;
 	ulong jr_size = 0, jr_size2 = 0;
-	CUdeviceptr outer_dev, inner_dev, jresult_dev, write_dev, index_psum, exp_psum, presum_dev, end_ex_dev, post_ex_dev, search_exp_dev, indices_dev, res_bound, search_exp_size;
+	CUdeviceptr outer_dev, inner_dev, jresult_dev, write_dev, index_psum, exp_psum, search_exp_dev, indices_dev, res_bound, search_exp_size, prejoin_res_dev;
+	CUdeviceptr initial_dev, skipNull_dev, prejoin_dev, where_dev, end_dev, post_dev;
 	uint block_x = 0, block_y = 0, grid_x = 0, grid_y = 0;
-	std::vector<unsigned long> allocation, index, expression, ipsum, epsum, wtime, joins_only;
+	std::vector<unsigned long> allocation, prejoin, index, expression, ipsum, epsum, wtime, joins_only;
 
 	part_size = getPartitionSize();
 	block_x = BLOCK_SIZE_X;
@@ -255,7 +264,13 @@ bool GPUIJ::join(){
 		return false;
 	}
 
-	printf("Original GPU SIZE = %d\n", gpu_size);
+	res = cuMemAlloc(&prejoin_res_dev, part_size * sizeof(bool));
+	if (res != CUDA_SUCCESS) {
+		printf("cuMemAlloc(prejoin_res_dev) failed: res = %lu\n", (unsigned long)res);
+		return false;
+	}
+
+
 
 	res = cuMemAlloc(&index_psum, gpu_size * sizeof(ulong));
 	if (res != CUDA_SUCCESS) {
@@ -278,33 +293,91 @@ bool GPUIJ::join(){
 	//cudaMemset(&count_dev, 0, gpu_size * sizeof(ulong));
 
 	/******* Allocate GPU buffer for join condition *********/
-	if (end_size_ >= 1) {
-		res = cuMemAlloc(&end_ex_dev, end_size_ * sizeof(GTreeNode));
+
+	if (prejoin_size_ > 0) {
+		res = cuMemAlloc(&prejoin_dev, prejoin_size_ * sizeof(GTreeNode));
 		if (res != CUDA_SUCCESS) {
-			printf("cuMemAlloc(end_ex_dev) failed: res = %lu\n", (unsigned long)res);
+			printf("cuMemAlloc(prejoin_dev) failed: res = %lu\n", (unsigned long)res);
 			return false;
 		}
 
-		res = cuMemcpyHtoD(end_ex_dev, end_expression_, end_size_ * sizeof(GTreeNode));
+		res = cuMemcpyHtoD(prejoin_dev, prejoin_expression_, prejoin_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemcpyHtoD(prejoin_dev, prejoin_expression) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (initial_size_ > 0) {
+		res = cuMemAlloc(&initial_dev, initial_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemAlloc(initial_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+
+		res = cuMemcpyHtoD(initial_dev, initial_expression_, initial_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemcpyHtoD(initial_dev, initial_expression) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (skipNull_size_ > 0) {
+		res = cuMemAlloc(&skipNull_dev, skipNull_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemAlloc(skipNull_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+
+		res = cuMemcpyHtoD(skipNull_dev, skipNullExpr_, skipNull_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemcpyHtoD(skipNull_dev, skipNull_expression) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (end_size_ > 0) {
+		res = cuMemAlloc(&end_dev, end_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemAlloc(end_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+
+		res = cuMemcpyHtoD(end_dev, end_expression_, end_size_ * sizeof(GTreeNode));
 		if (res != CUDA_SUCCESS) {
 			printf("cuMemcpyHtoD(end_ex_dev, end_expression) failed: res = %lu\n", (unsigned long)res);
 			return false;
 		}
 	}
 
-	if (post_size_ >= 1) {
-		res = cuMemAlloc(&post_ex_dev, post_size_ * sizeof(GTreeNode));
+	if (post_size_ > 0) {
+		res = cuMemAlloc(&post_dev, post_size_ * sizeof(GTreeNode));
 		if (res != CUDA_SUCCESS) {
-			printf("cuMemAlloc(post_ex_dev) failed: res = %lu\n", (unsigned long)res);
+			printf("cuMemAlloc(post_dev) failed: res = %lu\n", (unsigned long)res);
 			return false;
 		}
 
-		res = cuMemcpyHtoD(post_ex_dev, post_expression_, post_size_ * sizeof(GTreeNode));
+		res = cuMemcpyHtoD(post_dev, post_expression_, post_size_ * sizeof(GTreeNode));
 		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(post_ex_dev, post_expression) failed: res = %lu\n", (unsigned long)res);
+			printf("cuMemcpyHtoD(post_dev, post_expression) failed: res = %lu\n", (unsigned long)res);
 			return false;
 		}
 	}
+
+	if (where_size_ > 0) {
+		res = cuMemAlloc(&where_dev, where_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemAlloc(where_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+
+		res = cuMemcpyHtoD(where_dev, where_expression_, where_size_ * sizeof(GTreeNode));
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemcpyHtoD(where_dev, where_expression) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
 
 	/******* Allocate GPU buffer for search keys and index keys *****/
 	int tmp_size = 0;
@@ -347,7 +420,9 @@ bool GPUIJ::join(){
 		return false;
 	}
 
-	struct timeval istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
+	printf("Original GPU SIZE = %d\n", gpu_size);
+
+	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
 	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
 		//Size of outer small table
@@ -379,24 +454,51 @@ bool GPUIJ::join(){
 				return false;
 			}
 
-			void *index_filter_arg[] = {
-										(void *)&outer_dev,
-										(void *)&inner_dev,
-										(void *)&index_psum,
-										(void *)&res_bound,
-										(void *)&outer_part_size,
-										(void *)&outer_cols_,
-										(void *)&inner_part_size,
-										(void *)&inner_cols_,
-										(void *)&search_exp_dev,
-										(void *)&search_exp_size,
-										(void *)&search_exp_num_,
-										(void *)&indices_dev,
-										(void *)&indices_size_
-										};
+			void *prejoin_arg[] = {
+									(void *)&outer_dev,
+									(void *)&outer_part_size,
+									(void *)&outer_cols_,
+									(void *)&prejoin_dev,
+									(void *)&prejoin_size_,
+									(void *)&prejoin_res_dev,
+									};
+
+			gettimeofday(&pre_start, NULL);
+			res = cuLaunchKernel(prejoin_filter, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, prejoin_arg, NULL);
+			if (res != CUDA_SUCCESS) {
+				printf("cuLaunchKernel(prejoin_filter) failed: res = %lu\n", (unsigned long)res);
+				return false;
+			}
+
+			res = cuCtxSynchronize();
+			if (res != CUDA_SUCCESS) {
+				printf("cuCtxSynchronize(prejoin_filter) failed: res = %lu\n", (unsigned long)res);
+				return false;
+			}
+			gettimeofday(&pre_end, NULL);
+
+			prejoin.push_back((pre_end.tv_sec - pre_start.tv_sec) * 1000000 + (pre_end.tv_usec - pre_start.tv_usec));
+
+			void *index_arg[] = {
+									(void *)&outer_dev,
+									(void *)&inner_dev,
+									(void *)&index_psum,
+									(void *)&res_bound,
+									(void *)&outer_part_size,
+									(void *)&outer_cols_,
+									(void *)&inner_part_size,
+									(void *)&inner_cols_,
+									(void *)&search_exp_dev,
+									(void *)&search_exp_size,
+									(void *)&search_exp_num_,
+									(void *)&indices_dev,
+									(void *)&indices_size_,
+									(void *)&lookup_type_,
+									(void *)&prejoin_res_dev
+									};
 
 			gettimeofday(&istart, NULL);
-			res = cuLaunchKernel(index_filter, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, index_filter_arg, NULL);
+			res = cuLaunchKernel(index_filter, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, index_arg, NULL);
 			if (res != CUDA_SUCCESS) {
 				printf("cuLaunchKernel(index_filter) failed: res = %lu\n", (unsigned long)res);
 				return false;
@@ -443,7 +545,8 @@ bool GPUIJ::join(){
 				return false;
 			}
 
-			void *exp_filter_arg[] = {
+
+			void *exp_arg[] = {
 											(void *)&outer_dev,
 											(void *)&inner_dev,
 											(void *)&jresult_dev,
@@ -453,27 +556,33 @@ bool GPUIJ::join(){
 											(void *)&outer_cols_,
 											(void *)&inner_cols_,
 											(void *)&jr_size,
-											(void *)&post_ex_dev,
+											(void *)&end_dev,
+											(void *)&end_size_,
+											(void *)&post_dev,
 											(void *)&post_size_,
+											(void *)&where_dev,
+											(void *)&where_size_,
 											(void *)&res_bound,
 											(void *)&outer_idx,
-											(void *)&inner_idx
+											(void *)&inner_idx,
+											(void *)&prejoin_res_dev
 											};
 
 			gettimeofday(&estart, NULL);
 
-			res = cuLaunchKernel(expression_filter, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, exp_filter_arg, NULL);
+			res = cuLaunchKernel(exp_filter, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, exp_arg, NULL);
 			if (res != CUDA_SUCCESS) {
-				printf("cuLaunchKernel(expression_filter) failed: res = %lu\n", (unsigned long)res);
+				printf("cuLaunchKernel(exp_filter) failed: res = %lu\n", (unsigned long)res);
 				return false;
 			}
 
 			res = cuCtxSynchronize();
 			if (res != CUDA_SUCCESS) {
-				printf("cuCtxSynchronize(expression_filter) failed: res = %lu\n", (unsigned long)res);
+				printf("cuCtxSynchronize(exp_filter) failed: res = %lu\n", (unsigned long)res);
 				return false;
 			}
 			gettimeofday(&eend, NULL);
+
 
 			gettimeofday(&pestart, NULL);
 			if (!((new GPUSCAN<ulong, ulong4>)->presum(&exp_psum, gpu_size))) {
@@ -490,6 +599,16 @@ bool GPUIJ::join(){
 			expression.push_back((eend.tv_sec - estart.tv_sec) * 1000000 + (eend.tv_usec - estart.tv_usec));
 			epsum.push_back((peend.tv_sec - pestart.tv_sec) * 1000000 + (peend.tv_usec - pestart.tv_usec));
 			gettimeofday(&wstart, NULL);
+
+			if (jr_size2 == 0) {
+				printf("Empty2\n");
+				res = cuMemFree(jresult_dev);
+				if (res != CUDA_SUCCESS) {
+					printf("cuMemFree(jresult_dev) failed: res = %lu\n", (unsigned long)res);
+					return false;
+				}
+				continue;
+			}
 
 			res = cuMemAlloc(&write_dev, jr_size2 * sizeof(RESULT));
 			if (res != CUDA_SUCCESS) {
@@ -542,10 +661,11 @@ bool GPUIJ::join(){
 
 			result_size_ += jr_size2;
 			jr_size = 0;
+			jr_size2 = 0;
 			gettimeofday(&wend, NULL);
 			wtime.push_back((wend.tv_sec - wstart.tv_sec) * 1000000 + (wend.tv_usec - wstart.tv_usec));
 
-			joins_only.push_back((end_join.tv_sec - istart.tv_sec) * 1000000 + (end_join.tv_usec - istart.tv_usec));
+			joins_only.push_back((end_join.tv_sec - pre_start.tv_sec) * 1000000 + (end_join.tv_usec - pre_start.tv_usec));
 		}
 	}
 
@@ -575,6 +695,12 @@ bool GPUIJ::join(){
 		return false;
 	}
 
+	res = cuMemFree(indices_dev);
+	if (res != CUDA_SUCCESS) {
+		printf("cuMemFree(indices_dev) failed: res = %lu\n", (unsigned long)res);
+		return false;
+	}
+
 	res = cuMemFree(index_psum);
 	if (res != CUDA_SUCCESS) {
 		printf("cuMemFree(count_dev) failed: res = %lu\n", (unsigned long)res);
@@ -593,6 +719,60 @@ bool GPUIJ::join(){
 		return false;
 	}
 
+	res = cuMemFree(prejoin_res_dev);
+	if (res != CUDA_SUCCESS) {
+		printf("cuMemFree(prejoin_res_dev) failed: res = %lu\n", (unsigned long)res);
+		return false;
+	}
+
+	if (initial_size_ > 0) {
+		res = cuMemFree(initial_dev);
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemFree(initial_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (skipNull_size_ > 0) {
+		res = cuMemFree(skipNull_dev);
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemFree(skipNull_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (prejoin_size_ > 0) {
+		res = cuMemFree(prejoin_dev);
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemFree(prejoin_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (where_size_ > 0) {
+		res = cuMemFree(where_dev);
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemFree(where_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (end_size_ > 0) {
+		res = cuMemFree(end_dev);
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemFree(end_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
+	if (post_size_ > 0) {
+		res = cuMemFree(post_dev);
+		if (res != CUDA_SUCCESS) {
+			printf("cuMemFree(post_dev) failed: res = %lu\n", (unsigned long)res);
+			return false;
+		}
+	}
+
 	res = cuModuleUnload(module);
 	if (res != CUDA_SUCCESS) {
 		printf("cuModuleUnload(module) failed: res = %lu\n", (unsigned long)res);
@@ -604,9 +784,14 @@ bool GPUIJ::join(){
 		printf("cuCtxDestroy(ctx) failed: res = %lu\n", (unsigned long)res);
 		return false;
 	}
+
 	gettimeofday(&all_end, NULL);
 
-	unsigned long allocation_time = 0, index_time = 0, expression_time = 0, ipsum_time = 0, epsum_time = 0, wtime_time = 0, joins_only_time = 0, all_time = 0;
+	unsigned long allocation_time = 0, prejoin_time = 0, index_time = 0, expression_time = 0, ipsum_time = 0, epsum_time = 0, wtime_time = 0, joins_only_time = 0, all_time = 0;
+	for (int i = 0; i < prejoin.size(); i++) {
+		prejoin_time += prejoin[i];
+	}
+
 	for (int i = 0; i < index.size(); i++) {
 		index_time += index[i];
 	}
@@ -636,6 +821,7 @@ bool GPUIJ::join(){
 	allocation_time = all_time - joins_only_time;
 	printf("**********************************\n"
 			"Allocation & data movement time: %lu\n"
+			"Prejoin filter Time: %lu\n"
 			"Index Search Time: %lu\n"
 			"Index Prefix Sum Time: %lu\n"
 			"Expression filter Time: %lu\n"
@@ -644,7 +830,7 @@ bool GPUIJ::join(){
 			"Joins Only Time: %lu\n"
 			"Total join time: %lu\n"
 			"*******************************\n",
-			allocation_time, index_time, ipsum_time, expression_time, epsum_time, wtime_time, joins_only_time, all_time);
+			allocation_time, prejoin_time, index_time, ipsum_time, expression_time, epsum_time, wtime_time, joins_only_time, all_time);
 	printf("End of join\n");
 	return true;
 }

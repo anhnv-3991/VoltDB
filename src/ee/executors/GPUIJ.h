@@ -26,7 +26,8 @@ public:
 			TreeExpression initial_expression,
 			TreeExpression skipNullExpr,
 			TreeExpression prejoin_expression,
-			TreeExpression where_expression);
+			TreeExpression where_expression,
+			IndexLookupType lookup_type);
 
 	~GPUIJ();
 
@@ -45,6 +46,7 @@ private:
 	int *indices_;
 	int result_size_;
 	int end_size_, post_size_, initial_size_, skipNull_size_, prejoin_size_, where_size_, indices_size_, *search_exp_size_, search_exp_num_;
+	IndexLookupType lookup_type_;
 
 	GTreeNode *search_exp_;
 	GTreeNode *end_expression_;

@@ -402,13 +402,14 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	bool ret = true;
 	RESULT *join_result = NULL;
 	int result_size = 0;
+	IndexLookupType lookup_type = m_lookupType;
     /* Copy data to GPU memory */
 
 	if (outer_size != 0 && inner_size != 0) {
 
 		gettimeofday(&join_start, NULL);
 		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
-					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree);
+					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
 
 
 		ret = gn.join();
@@ -423,7 +424,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
 			gn.getResult(join_result);
 
-
 			printf("Size of result: %d\n", result_size);
 			gettimeofday(&write_start, NULL);
 			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
@@ -431,18 +431,19 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 				int r = join_result[i].rkey;
 
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
-					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
+//					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
-						//join_tuple.setNValue(col_ctr,
-						//		  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+//						join_tuple.setNValue(col_ctr,
+//								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
 					}
 				}
 
 //                if (m_aggExec != NULL) {
 //                    if (m_aggExec->p_execute_tuple(join_tuple)) {
 //                    	// Get enough rows for LIMIT
+//
 //                        earlyReturned = true;
 //                        break;
 //                    }
