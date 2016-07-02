@@ -277,15 +277,15 @@ def buildMakefile(CTX):
     
 #scan.cu ,join_gpu.cu ,hjoin_gpu.cu ,partitioning.cu, index_join_gpu.cu
     makefile.write("objects/executors/scan.co:../../src/ee/executors/scan.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' -c -o objects/executors/scan.co %sscan.cu\n"%(GPUPATH))    
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' -c -G -o objects/executors/scan.co %sscan.cu\n"%(GPUPATH))    
     makefile.write("objects/executors/join_gpu.cubin:../../src/ee/executors/join_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v -cubin -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v -cubin -G -o objects/executors/join_gpu.cubin %sjoin_gpu.cu\n"%(GPUPATH))
     makefile.write("objects/executors/hjoin_gpu.cubin:../../src/ee/executors/hjoin_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -o objects/executors/hjoin_gpu.cubin %shjoin_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -G -o objects/executors/hjoin_gpu.cubin %shjoin_gpu.cu\n"%(GPUPATH))
     makefile.write("objects/executors/partitioning.cubin:../../src/ee/executors/partitioning.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -o objects/executors/partitioning.cubin %spartitioning.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -G -o objects/executors/partitioning.cubin %spartitioning.cu\n"%(GPUPATH))
     makefile.write("objects/executors/index_join_gpu.cubin:../../src/ee/executors/index_join_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -G -lineinfo --maxrregcount 32 -cubin -o objects/executors/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -G -g -lineinfo --maxrregcount 32 -cubin -o objects/executors/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
 
 #scan_main.cpp ,GPUNIJ.cpp ,GPUSHJ.cpp, GPUIJ.cpp
     #makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUINC)    

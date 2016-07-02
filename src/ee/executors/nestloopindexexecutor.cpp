@@ -364,12 +364,12 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	idx = 0;
 
 	int col_outer = outer_tuple.sizeInValues();
+	printf("Number of outer_columns: %d and %d\n", col_outer, num_of_outer_cols);
 
 	while (search_it_out.next(outer_tuple)) {
 		tmp_outer_tuple[idx] = outer_tuple;
 		for (int i = 0; i < col_outer; i++) {
 			NValue tmp_value = outer_tuple.getNValue(i);
-
 			setGNValue(&index_data_out[idx * col_outer + i], tmp_value);
 		}
 		idx++;
@@ -431,26 +431,26 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 				int r = join_result[i].rkey;
 
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
-//					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
+					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
-//						join_tuple.setNValue(col_ctr,
-//								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+						join_tuple.setNValue(col_ctr,
+								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
 					}
 				}
 
-//                if (m_aggExec != NULL) {
-//                    if (m_aggExec->p_execute_tuple(join_tuple)) {
-//                    	// Get enough rows for LIMIT
-//
-//                        earlyReturned = true;
-//                        break;
-//                    }
-//                } else {
-//                    m_tmpOutputTable->insertTempTuple(join_tuple);
-//                    pmp.countdownProgress();
-//                }
+                if (m_aggExec != NULL) {
+                    if (m_aggExec->p_execute_tuple(join_tuple)) {
+                    	// Get enough rows for LIMIT
+
+                        earlyReturned = true;
+                        break;
+                    }
+                } else {
+                    m_tmpOutputTable->insertTempTuple(join_tuple);
+                    pmp.countdownProgress();
+                }
 
 				if (earlyReturned) {
 					break;

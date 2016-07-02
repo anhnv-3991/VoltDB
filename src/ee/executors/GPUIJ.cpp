@@ -420,8 +420,6 @@ bool GPUIJ::join(){
 		return false;
 	}
 
-	printf("Original GPU SIZE = %d\n", gpu_size);
-
 	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
 	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
@@ -509,6 +507,7 @@ bool GPUIJ::join(){
 				printf("cuCtxSynchronize(index_filter) failed: res = %lu\n", (unsigned long)res);
 				return false;
 			}
+
 			gettimeofday(&iend, NULL);
 
 			gettimeofday(&pistart, NULL);

@@ -10,6 +10,7 @@
 #include "expressions/tuplevalueexpression.h"
 #include "GPUetc/expressions/nodedata.h"
 
+
 namespace voltdb {
 
 class TreeExpression {
@@ -19,6 +20,7 @@ public:
 	TreeExpression(const AbstractExpression *expression) {
 		int tree_size = 0;
 
+#ifndef TREE_EVAL_
 		tree_size =	getExpressionLength(expression);
 		//int tmp_size = 1;
 		//tree_size =	getTreeSize(expression, tmp_size) + 1;
@@ -27,6 +29,13 @@ public:
 
 		buildPostExpression(expression, &root);
 		//buildTreeExpression(expression, 1);
+#else
+		int tmp_size = 1;
+		tree_size = getTreeSize(expression, tmp_size) + 1;
+		printf("Tree size = %d\n", tree_size);
+		tree_ = std::vector<GTreeNode>(tree_size);
+		buildTreeExpression(expression, 1);
+#endif
 	}
 
 	void debug(void) {
@@ -98,6 +107,22 @@ public:
 
 					setNValue(&tmp, tmp_gnvalue);
 					std::cout << "[" << index << "] PARAMETER = " << tmp.debug().c_str()  << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_OPERATOR_PLUS: {
+					std::cout << "[" << index << "]" << "OPERATOR PLUS" << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_OPERATOR_MINUS: {
+					std::cout << "[" << index << "]" << "OPERATOR MINUS" << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
+					std::cout << "[" << index << "]" << "OPERATOR DIVIDE" << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
+					std::cout << "[" << index << "]" << "OPERATOR MULTIPLY" << std::endl;
 					break;
 				}
 				case EXPRESSION_TYPE_VALUE_NULL:

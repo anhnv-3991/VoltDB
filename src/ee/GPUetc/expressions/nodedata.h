@@ -20,6 +20,11 @@ typedef struct _TreeNode {
 	GNValue value;		// Value of const, = NULL if not const
 } GTreeNode;
 
+
+#define TREE_EVAL_ 1
+//#define POST_EXP_ 1
+//result#define FUNC_CALL_ 1
+
 }
 
 #endif

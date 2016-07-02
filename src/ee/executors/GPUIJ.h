@@ -75,6 +75,123 @@ private:
 
 		std::cout << value.debug();
 	}
+
+	GNValue evalTest(GTreeNode *tree_expression,
+							int root,
+							int tree_size,
+							GNValue *outer_tuple,
+							GNValue *inner_tuple)
+	{
+		printf("Tree_size = %d, root = %d\n", tree_size, root);
+		if (root >= tree_size) {
+
+			return GNValue::getNullValue();
+		}
+		GNValue left, right;
+		GTreeNode tmp_node = tree_expression[root];
+
+		switch (tmp_node.type) {
+		case EXPRESSION_TYPE_VALUE_TUPLE: {
+			if (tmp_node.tuple_idx == 0) {
+				printf("Left value = %d\n", (int)(outer_tuple[tmp_node.column_idx]).getValue());
+				return outer_tuple[tmp_node.column_idx];
+			}
+			else if (tmp_node.tuple_idx == 1) {
+				printf("Right value = %d\n", (int)(inner_tuple[tmp_node.column_idx]).getValue());
+				return inner_tuple[tmp_node.column_idx];
+			}
+			break;
+		}
+		case EXPRESSION_TYPE_VALUE_CONSTANT:
+		case EXPRESSION_TYPE_VALUE_PARAMETER: {
+			return tmp_node.value;
+		}
+		case EXPRESSION_TYPE_CONJUNCTION_AND: {
+			printf("Operator AND\n");
+			//left = GNValue::getTrue();
+			//right = GNValue::getTrue();
+			left = evalTest(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+			right = evalTest(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
+
+			return left.op_and(right);
+		}
+	//	case EXPRESSION_TYPE_CONJUNCTION_OR: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_or(right);
+	//	}
+		case EXPRESSION_TYPE_COMPARE_EQUAL: {
+			printf("Operator equal\n");
+			left = evalTest(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+			right = evalTest(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
+
+			return left.op_equal(right);
+		}
+	//	case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_notEqual(right);
+	//	}
+	//	case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_lessThan(right);
+	//	}
+	//	case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_lessThanOrEqual(right);
+	//	}
+	//	case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_greaterThan(right);
+	//	}
+	//	case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_greaterThanOrEqual(right);
+	//	}
+		case EXPRESSION_TYPE_OPERATOR_PLUS: {
+			printf("Operator plus\n");
+			right = evalTest(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
+			left = evalTest(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+
+			GNValue test = left.op_add(right);
+
+			printf("test = %d\n", (int)test.getValue());
+			return left.op_add(right);
+		}
+	//	case EXPRESSION_TYPE_OPERATOR_MINUS: {
+	//
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_subtract(right);
+	//	}
+	//	case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_multiply(right);
+	//	}
+	//	case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
+	//		left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//		right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, outer_idx, inner_idx);
+	//
+	//		return left.op_divide(right);
+	//	}
+		default: {
+			return GNValue::getNullValue();
+		}
+		}
+	}
 };
 
 #endif

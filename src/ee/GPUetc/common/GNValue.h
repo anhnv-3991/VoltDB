@@ -44,10 +44,7 @@
 #include "GPUetc/common/Gvalue_defs.h"
 #include "GPUetc/cudaheader.h"
 
-
-
 namespace voltdb {
-
 
 /*
  * Objects are length preceded with a short length value or a long length value
@@ -130,6 +127,7 @@ class GNValue {
     inline CUDAH GNValue op_multiply(const GNValue rhs) const;
     inline CUDAH GNValue op_subtract(const GNValue rhs) const;
     inline CUDAH GNValue op_divide(const GNValue rhs) const;
+
 
 /**
  * Retrieve a boolean NValue that is true
@@ -405,10 +403,17 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     assert(isNull() == false && rhs.isNull() == false);
 
     int64_t left = getValue(), right = rhs.getValue();
+    ValueType ltype = getValueType(), rtype = rhs.getValueType();
 
-    if (left > right)
+
+	int64_t left_i = (ltype == VALUE_TYPE_DOUBLE) ? 0 : getValue();
+	int64_t right_i = (rtype == VALUE_TYPE_DOUBLE) ? 0 : rhs.getValue();
+	double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left) : static_cast<double>(left_i);
+	double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right) : static_cast<double>(right_i);
+
+    if (left_d > right_d || left_i > right_i)
     	return VALUE_COMPARE_GREATERTHAN;
-    if (left < right)
+    if (left_d < right_d || left_i < right_i)
     	return VALUE_COMPARE_LESSTHAN;
     return VALUE_COMPARE_EQUAL;
 }
@@ -434,78 +439,154 @@ inline CUDAH GNValue GNValue::op_negate(void) const {
 }
 
 inline CUDAH GNValue GNValue::op_and(const GNValue rhs) const {
-	//bool left = (bool)((int64_t)(getValue())), right = (bool)((int64_t)(getValue()));
-	//return (left & right) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	bool left = (bool)((int64_t)(getValue())), right = (bool)((int64_t)(getValue()));
+	return (left & right) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_or(const GNValue rhs) const {
-	//bool left = (bool)((int64_t)(getValue())), right = (bool)((int64_t)(getValue()));
-	//return (left | right) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	bool left = (bool)((int64_t)(getValue())), right = (bool)((int64_t)(getValue()));
+	return (left | right) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_equal(const GNValue rhs) const {
-	//return (getValue() == rhs.getValue()) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_notEqual(const GNValue rhs) const {
-	//return (getValue() != rhs.getValue()) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	int res = compare_withoutNull(rhs);
+	return (res != VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_lessThan(const GNValue rhs) const{
-	//return (getValue() < rhs.getValue()) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_LESSTHAN) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_lessThanOrEqual(const GNValue rhs) const {
-	//return (getValue() <= rhs.getValue()) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_LESSTHAN || res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_greaterThan(const GNValue rhs) const {
-	//return (getValue() > rhs.getValue()) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_GREATERTHAN) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_greaterThanOrEqual(const GNValue rhs) const {
-	//return (getValue() >= rhs.getValue()) ? getTrue() : getFalse();
-	bool res = true;
-	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)res);
+	int res = compare_withoutNull(rhs);
+	return (res == VALUE_COMPARE_GREATERTHAN || res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
 inline CUDAH GNValue GNValue::op_add(const GNValue rhs) const {
-	int64_t tmp = getValue() + rhs.getValue();
-	GNValue res(getValueType(), tmp);
+    int64_t left = getValue(), right = rhs.getValue();
+    ValueType ltype = getValueType(), rtype = rhs.getValueType();
+
+
+	int64_t left_i = (ltype == VALUE_TYPE_DOUBLE) ? 0 : getValue();
+	int64_t right_i = (rtype == VALUE_TYPE_DOUBLE) ? 0 : rhs.getValue();
+	double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left) : static_cast<double>(left_i);
+	double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right) : static_cast<double>(right_i);
+	int64_t res_i;
+	double res_d;
+	ValueType res_type;
+
+	if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		res_d = left_d + right_d;
+		res_i = *reinterpret_cast<int64_t *>(&res_d);
+		res_type = VALUE_TYPE_DOUBLE;
+	} else {
+		res_i = left_i + right_i;
+		res_d = 0;
+		res_type = VALUE_TYPE_BIGINT;
+	}
+
+	GNValue res(res_type, res_i);
+
 	return res;
 }
 
 inline CUDAH GNValue GNValue::op_multiply(const GNValue rhs) const {
-	int64_t tmp = getValue() * rhs.getValue();
-	GNValue res(getValueType(), tmp);
+    int64_t left = getValue(), right = rhs.getValue();
+    ValueType ltype = getValueType(), rtype = rhs.getValueType();
+
+	int64_t left_i = (ltype == VALUE_TYPE_DOUBLE) ? 0 : getValue();
+	int64_t right_i = (rtype == VALUE_TYPE_DOUBLE) ? 0 : rhs.getValue();
+	double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left) : static_cast<double>(left_i);
+	double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right) : static_cast<double>(right_i);
+	int64_t res_i;
+	double res_d;
+	ValueType res_type;
+
+	if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		res_d = left_d * right_d;
+		res_i = *reinterpret_cast<int64_t *>(&res_d);
+		res_type = VALUE_TYPE_DOUBLE;
+	} else {
+		res_i = left_i * right_i;
+		res_d = 0;
+		res_type = VALUE_TYPE_BIGINT;
+	}
+
+	GNValue res(res_type, res_i);
+
 	return res;
 }
 
 inline CUDAH GNValue GNValue::op_divide(const GNValue rhs) const {
-	if (rhs.getValue() == 0)
-		return GNValue::getNullValue(getValueType());
-	int64_t tmp = getValue() / rhs.getValue();
-	GNValue res(getValueType(), tmp);
+    int64_t left = getValue(), right = rhs.getValue();
+    ValueType ltype = getValueType(), rtype = rhs.getValueType();
+
+	int64_t left_i = (ltype == VALUE_TYPE_DOUBLE) ? 0 : getValue();
+	int64_t right_i = (rtype == VALUE_TYPE_DOUBLE) ? 0 : rhs.getValue();
+	double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left) : static_cast<double>(left_i);
+	double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right) : static_cast<double>(right_i);
+	int64_t res_i;
+	double res_d;
+	ValueType res_type;
+	if (right_i == 0 && right_d == 0)
+		return GNValue::getNullValue();
+
+	if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		res_d = left_d * right_d;
+		res_i = *reinterpret_cast<int64_t *>(&res_d);
+		res_type = VALUE_TYPE_DOUBLE;
+	} else {
+		res_i = left_i * right_i;
+		res_d = 0;
+		res_type = VALUE_TYPE_BIGINT;
+	}
+
+	GNValue res(res_type, res_i);
+
 	return res;
 }
 
 inline CUDAH GNValue GNValue::op_subtract(const GNValue rhs) const {
-	int64_t tmp = getValue() - rhs.getValue();
-	GNValue res(getValueType(), tmp);
+    int64_t left = getValue(), right = rhs.getValue();
+    ValueType ltype = getValueType(), rtype = rhs.getValueType();
+
+
+	int64_t left_i = (ltype == VALUE_TYPE_DOUBLE) ? 0 : getValue();
+	int64_t right_i = (rtype == VALUE_TYPE_DOUBLE) ? 0 : rhs.getValue();
+	double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left) : static_cast<double>(left_i);
+	double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right) : static_cast<double>(right_i);
+	int64_t res_i;
+	double res_d;
+	ValueType res_type;
+
+	if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		res_d = left_d - right_d;
+		res_i = *reinterpret_cast<int64_t *>(&res_d);
+		res_type = VALUE_TYPE_DOUBLE;
+	} else {
+		res_i = left_i - right_i;
+		res_d = 0;
+		res_type = VALUE_TYPE_BIGINT;
+	}
+
+	GNValue res(res_type, res_i);
+
 	return res;
 }
 
