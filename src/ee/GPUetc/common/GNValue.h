@@ -164,26 +164,26 @@ class GNValue {
     }
 
 
-    CUDAH static void getNullValueByPointer(GNValue *retval,ValueType type) {
+    inline CUDAH static void getNullValueByPointer(GNValue *retval,ValueType type) {
         retval->setValueType(type);
         retval->setNull();
     }
 
-    CUDAH static GNValue getNullValue(){
+    inline CUDAH static GNValue getNullValue(){
         GNValue retval(VALUE_TYPE_NULL);
         //retval.tagAsNull();
         retval.setNull();
         return retval;
     }
 
-    CUDAH static GNValue getNullValue(ValueType type) {
+    inline CUDAH static GNValue getNullValue(ValueType type) {
         GNValue retval(type);
         retval.setNull();
         return retval;
     }
 
 
-    CUDAH void setMdata(ValueType type, const char *input){
+    inline CUDAH void setMdata(ValueType type, const char *input){
 
     	switch (type) {
     	case VALUE_TYPE_BOOLEAN:
@@ -211,7 +211,7 @@ class GNValue {
     	}
     }
 
-    CUDAH void setSourceInlined(bool sourceInlined)
+    inline CUDAH void setSourceInlined(bool sourceInlined)
     {
         m_sourceInlined = sourceInlined;
     }
@@ -221,7 +221,7 @@ class GNValue {
      * The last of the 16 bytes of storage allocated in an NValue
      * is used to store the type
      */
-    CUDAH void setValueType(ValueType type) {
+    inline CUDAH void setValueType(ValueType type) {
         m_valueType = type;
     }
 
@@ -229,12 +229,12 @@ class GNValue {
      * Get the type of the value. This information is private
      * to prevent code outside of NValue from branching based on the type of a value.
      */
-    CUDAH ValueType getValueType() const {
+    inline CUDAH ValueType getValueType() const {
         return m_valueType;
     }
 
 
-    CUDAH void debug() const {
+    inline CUDAH void debug() const {
     	switch (m_valueType) {
 			case VALUE_TYPE_INVALID: {
 				printf("VALUE TYPE INVALID");
@@ -592,4 +592,4 @@ inline CUDAH GNValue GNValue::op_subtract(const GNValue rhs) const {
 
 } // namespace voltdb
 
-#endif /* NVALUE_HPP_ */
+#endif /* GNVALUE_HPP_ */

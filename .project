@@ -24,4 +24,10 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<variableList>
+		<variable>
+			<name>CUDA</name>
+			<value>file:/home/anh/NVIDIA_CUDA-7.5_Samples/common/inc</value>
+		</variable>
+	</variableList>
 </projectDescription>

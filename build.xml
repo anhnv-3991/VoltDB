@@ -1213,7 +1213,7 @@ NATIVE EE STUFF
             <include name="partitioning.cubin"/>
         </fileset>
         <fileset dir="${build.dir}/objects/executors">
-            <include name="index_join_gpu.cubin"/>
+            <include name="index_join_gpu.o"/>
         </fileset>
     </copy>
 </target>
