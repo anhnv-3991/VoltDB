@@ -174,6 +174,7 @@ bool GPUIJ::join(){
 	std::vector<unsigned long> allocation, prejoin, index, expression, ipsum, epsum, wtime, joins_only;
 
 	part_size = getPartitionSize();
+	printf("Part size = %u\n", part_size);
 	block_x = BLOCK_SIZE_X;
 	block_y = BLOCK_SIZE_Y;
 	grid_x = divUtility(part_size, block_x);
@@ -315,7 +316,6 @@ bool GPUIJ::join(){
 		}
 	}
 
-
 	/******* Allocate GPU buffer for search keys and index keys *****/
 	int tmp_size = 0;
 	for (int i = 0; i < search_exp_num_; i++) {
@@ -357,6 +357,7 @@ bool GPUIJ::join(){
 		printf("Error: cudaMemcpy(indices_dev, indices_) failed. Error code %s\n", cudaGetErrorString(res));
 		return false;
 	}
+	printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
 
 	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
@@ -383,6 +384,7 @@ bool GPUIJ::join(){
 			block_y = 1;
 			gpu_size = block_x * block_y * grid_x * grid_y + 1;
 
+
 			loop_count2++;
 			/**** Copy IndexData to GPU memory ****/
 			res = cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice);
@@ -397,7 +399,6 @@ bool GPUIJ::join(){
 			gettimeofday(&pre_end, NULL);
 
 			prejoin.push_back((pre_end.tv_sec - pre_start.tv_sec) * 1000000 + (pre_end.tv_usec - pre_start.tv_usec));
-
 
 			/* Binary search for index */
 			gettimeofday(&istart, NULL);
@@ -467,7 +468,7 @@ bool GPUIJ::join(){
 
 			gettimeofday(&end_join, NULL);
 
-			res = cudaMemcpy(join_result_ + result_size_, write_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost);
+			res = cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost);
 			if (res != cudaSuccess) {
 				printf("Error: cudaMemcpy(join_result_[%u], jresult_dev) failed. Error code %s\n", result_size_, cudaGetErrorString(res));
 				return false;
@@ -644,6 +645,7 @@ bool GPUIJ::join(){
 			"*******************************\n",
 			allocation_time, prejoin_time, index_time, ipsum_time, expression_time, epsum_time, wtime_time, joins_only_time, all_time);
 	printf("End of join\n");
+	cudaDeviceReset();
 	return true;
 }
 

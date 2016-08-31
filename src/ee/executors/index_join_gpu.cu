@@ -12,10 +12,10 @@ finally join() store match tuple to result array .
 extern "C" {
 
 __device__ GNValue evaluate(GTreeNode *tree_expression,
-						int root,
-						int tree_size,
-						GNValue *outer_tuple,
-						GNValue *inner_tuple)
+							int root,
+							int tree_size,
+							GNValue *outer_tuple,
+							GNValue *inner_tuple)
 {
 	if (root == 0)
 		return GNValue::getTrue();
@@ -80,8 +80,6 @@ __device__ GNValue evaluate(GTreeNode *tree_expression,
 	default:
 		return GNValue::getNullValue();
 	}
-
-	return GNValue::getNullValue();
 }
 
 __device__ GNValue evaluate2(GTreeNode *tree_expression,
@@ -92,24 +90,21 @@ __device__ GNValue evaluate2(GTreeNode *tree_expression,
 	GNValue stack[MAX_STACK_SIZE];
 	GNValue *stack_ptr = stack;
 	GNValue left, right;
-	GTreeNode tmp_node;
 
 	for (int i = 0; i < tree_size; i++) {
 
-		tmp_node = tree_expression[i];
-		switch (tmp_node.type) {
+		switch (tree_expression[i].type) {
 			case EXPRESSION_TYPE_VALUE_TUPLE: {
-				//*stack_ptr++ = (tmp_node.tuple_idx == 0) ? outer_tuple[outer_idx + tmp_node.column_idx] : inner_tuple[inner_idx + tmp_node.column_idx];
-				if (tmp_node.tuple_idx == 0) {
-					*stack_ptr++ = outer_tuple[tmp_node.column_idx];
-				} else if (tmp_node.tuple_idx == 1) {
-					*stack_ptr++ = inner_tuple[tmp_node.column_idx];
+				if (tree_expression[i].tuple_idx == 0) {
+					*stack_ptr++ = outer_tuple[tree_expression[i].column_idx];
+				} else if (tree_expression[i].tuple_idx == 1) {
+					*stack_ptr++ = inner_tuple[tree_expression[i].column_idx];
 				}
 				break;
 			}
 			case EXPRESSION_TYPE_VALUE_CONSTANT:
 			case EXPRESSION_TYPE_VALUE_PARAMETER: {
-				*stack_ptr++ = tmp_node.value;
+				*stack_ptr++ = tree_expression[i].value;
 				break;
 			}
 			case EXPRESSION_TYPE_CONJUNCTION_AND: {
@@ -193,20 +188,204 @@ __device__ GNValue evaluate2(GTreeNode *tree_expression,
 	return *--stack_ptr;
 }
 
+__device__ GNValue evaluate3(GTreeNode *tree_expression,
+							int root,
+							int tree_size,
+							GNValue *outer_tuple,
+							GNValue *inner_tuple)
+{
+	if (root == 0)
+		return GNValue::getTrue();
+
+	if (root >= tree_size)
+		return GNValue::getNullValue();
+
+	GTreeNode tmp_node = tree_expression[root];
+
+	switch (tmp_node.type) {
+	case EXPRESSION_TYPE_VALUE_TUPLE: {
+		if (tmp_node.tuple_idx == 0) {
+			return outer_tuple[tmp_node.column_idx];
+		} else if (tmp_node.tuple_idx == 1) {
+			return inner_tuple[tmp_node.column_idx];
+		} else
+			return GNValue::getNullValue();
+
+	}
+	case EXPRESSION_TYPE_VALUE_CONSTANT:
+	case EXPRESSION_TYPE_VALUE_PARAMETER: {
+		return tmp_node.value;
+	}
+	}
+
+
+	GNValue left = evaluate3(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+	GNValue right = evaluate3(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
+	int64_t left_i = left.getValue(), right_i = right.getValue(), res_i;
+	ValueType left_t = left.getValueType(), right_t = right.getValueType(), res_t;
+
+
+	switch (tmp_node.type) {
+	case EXPRESSION_TYPE_CONJUNCTION_AND: {
+		assert(left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN);
+		res_i = (int64_t)((bool)left_t && (bool)right_t);
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_CONJUNCTION_OR: {
+		assert(left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN);
+		res_i = (int64_t)((bool)left_t || (bool)right_t);
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_COMPARE_EQUAL: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+		res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i));
+
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+		res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i));
+
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+		res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i));
+
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+		res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i));
+
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+		res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i));
+
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+		res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
+
+		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+	}
+	case EXPRESSION_TYPE_OPERATOR_PLUS: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d, res_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+
+		if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+			res_d = left_d + right_d;
+			res_i = *reinterpret_cast<int64_t *>(&res_d);
+			res_t = VALUE_TYPE_DOUBLE;
+		} else {
+			res_i = left_i + right_i;
+			res_t = (left_t > right_t) ? left_t : right_t;
+		}
+
+		return GNValue(res_t, res_i);
+	}
+	case EXPRESSION_TYPE_OPERATOR_MINUS: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d, res_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+
+		if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+			res_d = left_d - right_d;
+			res_i = *reinterpret_cast<int64_t *>(&res_d);
+			res_t = VALUE_TYPE_DOUBLE;
+		} else {
+			res_i = left_i - right_i;
+			res_t = (left_t > right_t) ? left_t : right_t;
+		}
+
+		return GNValue(res_t, res_i);
+	}
+	case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d, res_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+
+		if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+			res_d = left_d * right_d;
+			res_i = *reinterpret_cast<int64_t *>(&res_d);
+			res_t = VALUE_TYPE_DOUBLE;
+		} else {
+			res_i = left_i * right_i;
+			res_t = (left_t > right_t) ? left_t : right_t;
+		}
+
+		return GNValue(res_t, res_i);
+	}
+	case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
+		assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
+		double left_d, right_d, res_d;
+
+		left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+		right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+
+		if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+			res_d = (right_d != 0) ? left_d/right_d : 0;
+			res_i = *reinterpret_cast<int64_t *>(&res_d);
+			res_t = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
+		} else {
+			res_i = (right_i != 0) ? left_i/right_i : 0;
+			res_t = (right_d != 0) ? ((left_t > right_t) ? left_t : right_t) : VALUE_TYPE_INVALID;
+		}
+
+		return GNValue(res_t, res_i);
+	}
+	default:
+		return GNValue::getNullValue();
+	}
+}
+
 __device__ GNValue evaluate5(GTreeNode *tree_expression,
 							int tree_size,
 							GNValue *outer_tuple,
-							GNValue *inner_tuple)//,
-//							int64_t *stack,
-//							ValueType *gtype)
+							GNValue *inner_tuple)
 {
 	int64_t stack[MAX_STACK_SIZE];
-	ValueType gtype[MAX_STACK_SIZE];
-	memset(stack, 0, 8 * sizeof(int64_t));
-	memset(gtype, 0, 8 * sizeof(ValueType));
+	ValueType gtype[MAX_STACK_SIZE], ltype, rtype;
+
+	//memset(stack, 0, MAX_STACK_SIZE * sizeof(int64_t));
+	//memset(gtype, 0, MAX_STACK_SIZE * sizeof(ValueType));
 	int top = 0;
 	double left_d, right_d, res_d;
-	int64_t left_i, right_i, res_i;
+	int64_t left_i, right_i;
 
 	for (int i = 0; i < tree_size; i++) {
 		switch (tree_expression[i].type) {
@@ -216,7 +395,8 @@ __device__ GNValue evaluate5(GTreeNode *tree_expression,
 					gtype[top] = outer_tuple[tree_expression[i].column_idx].getValueType();
 				} else if (tree_expression[i].tuple_idx == 1) {
 					stack[top] = inner_tuple[tree_expression[i].column_idx].getValue();
-					gtype[top] = outer_tuple[tree_expression[i].column_idx].getValueType();
+					gtype[top] = inner_tuple[tree_expression[i].column_idx].getValueType();
+
 				}
 
 				top++;
@@ -244,123 +424,158 @@ __device__ GNValue evaluate5(GTreeNode *tree_expression,
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_EQUAL: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				stack[top - 2] =  (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				stack[top - 2] =  (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i);
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i);
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i);
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i);
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i);
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i);
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				stack[top - 2] = (int64_t)((gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				stack[top - 2] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
 				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
 				top--;
 				break;
 			}
 
 			case EXPRESSION_TYPE_OPERATOR_PLUS: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				res_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : (left_i + right_i);
-				res_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d + right_d) : 0;
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<int64_t *>(&res_d) : res_i;
-				gtype[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_BIGINT;
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = left_d + right_d;
+				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
+					gtype[top - 2] = VALUE_TYPE_DOUBLE;
+				} else {
+					stack[top - 2] = left_i + right_i;
+					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
+				}
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_OPERATOR_MINUS: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				res_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : (left_i - right_i);
-				res_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d - right_d) : 0;
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<int64_t *>(&res_d) : res_i;
-				gtype[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_BIGINT;
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = left_d - right_d;
+				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
+					gtype[top - 2] = VALUE_TYPE_DOUBLE;
+				} else {
+					stack[top - 2] = left_i - right_i;
+					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
+				}
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				res_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : (left_i * right_i);
-				res_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d * right_d) : 0;
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<int64_t*>(&res_d) : res_i;
-				gtype[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_BIGINT;
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = left_d * right_d;
+				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
+					gtype[top - 2] = VALUE_TYPE_DOUBLE;
+				} else {
+					stack[top - 2] = left_i * right_i;
+					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
+				}
 				top--;
 				break;
 			}
 			case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-				assert(gtype[top - 2] != VALUE_TYPE_NULL && gtype[top - 2] != VALUE_TYPE_INVALID && gtype[top - 1] != VALUE_TYPE_NULL && gtype[top - 1] != VALUE_TYPE_INVALID);
-				left_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 2];
-				right_i = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : stack[top - 1];
-				left_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 2) : static_cast<double>(left_i);
-				right_d = (gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(stack + top - 1) : static_cast<double>(right_i);
-				if (right_i == 0 && right_d == 0)
-					return GNValue::getFalse();
-				res_i = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? 0 : (left_i / right_i);
-				res_d = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? (left_d / right_d) : 0;
-				stack[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<int64_t*>(&res_d) : res_i;
-				gtype[top - 2] = (gtype[top - 2] == VALUE_TYPE_DOUBLE || gtype[top - 1] == VALUE_TYPE_DOUBLE) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_BIGINT;
+				ltype = gtype[top - 2];
+				rtype = gtype[top - 1];
+				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
+				left_i = stack[top - 2];
+				right_i = stack[top - 1];
+				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = (right_d != 0) ? left_d / right_d : 0;
+				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
+					gtype[top - 2] = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
+				} else {
+					stack[top - 2] = (right_i != 0) ? left_i / right_i : 0;
+					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
+					gtype[top - 2] = (right_i != 0) ? gtype[top - 2] : VALUE_TYPE_INVALID;
+				}
 				top--;
 				break;
 			}
@@ -407,7 +622,12 @@ __device__ bool binarySearchIdx(GTreeNode * search_exp,
 
 	for (i = 0, search_ptr = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
 		//evaluate5(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, stack, gtype);
+#ifndef TREE_EVAL_
 		tmp = evaluate5(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
+#else
+		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+#endif
+
 		//outer_tmp[i] = stack[0];
 		outer_tmp[i] = tmp.getValue();
 		//outer_gtype[i] = gtype[0];
@@ -516,6 +736,7 @@ __device__ bool binarySearchIdx2(GTreeNode *search_exp,
 
 	for (i = 0, search_ptr = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
 		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+
 	}
 
 	while (left <= right && (res != 0)) {
@@ -642,8 +863,13 @@ __global__ void prejoin_filter(GNValue *outer_dev,
 
 	if (x < outer_part_size) {
 		GNValue res = GNValue::getTrue();
+
 #ifdef 	TREE_EVAL_
+#ifdef FUNC_CALL_
 		res = (prejoin_size > 1) ? evaluate(prejoin_dev, 1, prejoin_size, outer_dev + x * outer_cols, NULL) : res;
+#else
+		res = (prejoin_size > 1) ? evaluate3(prejoin_dev, 1, prejoin_size, outer_dev + x * outer_cols, NULL) : res;
+#endif
 #elif	POST_EXP_
 #ifndef FUNC_CALL_
 		res = (prejoin_size > 1) ? evaluate5(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL) : res;
@@ -807,6 +1033,21 @@ __global__ void index_filter(GNValue *outer_dev,
 							&res_right);
 #endif
 #elif TREE_EVAL_
+#ifndef FUNC_CALL_
+		binarySearchIdx(search_exp_dev,
+							search_exp_size,
+							search_exp_num,
+							key_indices,
+							key_index_size,
+							outer_dev + x * outer_cols,
+							inner_dev,
+							outer_cols,
+							inner_cols,
+							left_bound,
+							right_bound,
+							&res_left,
+							&res_right);
+#else
 		binarySearchIdx2(search_exp_dev,
 							search_exp_size,
 							search_exp_num,
@@ -820,7 +1061,7 @@ __global__ void index_filter(GNValue *outer_dev,
 							right_bound,
 							&res_left,
 							&res_right);
-
+#endif
 
 #endif
 
@@ -830,6 +1071,7 @@ __global__ void index_filter(GNValue *outer_dev,
 //			res_bound[x + k].right = upperBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
 			res_bound[x + k].left = res_left;
 			res_bound[x + k].right = res_right;
+
 			break;
 		}
 		case INDEX_LOOKUP_TYPE_GT: {
@@ -862,6 +1104,7 @@ __global__ void index_filter(GNValue *outer_dev,
 
 		index_psum[x + k] = (res_bound[x + k].right >= 0 && res_bound[x + k].left >= 0) ? (res_bound[x + k].right - res_bound[x + k].left + 1) : 0;
 	}
+
 
 	if (x + k == (blockDim.x * gridDim.x * gridDim.y - 1)) {
 		index_psum[x + k + 1] = 0;
@@ -904,40 +1147,25 @@ __global__ void exp_filter(GNValue *outer_dev,
 		res_left = res_bound[x + k].left;
 		res_right = res_bound[x + k].right;
 
-		//printf("x = %d Left index %d & right index = %d", x, res_left, res_right);
-
 		while (res_left >= 0 && res_left <= res_right && writeloc < jr_size) {
 #ifdef	TREE_EVAL_
-
-
+#ifdef FUNC_CALL_
 			res = (end_size > 1) ? evaluate(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 			res = (post_size > 1 && res.isTrue()) ? evaluate(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+#else
+			res = (end_size > 1) ? evaluate3(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (post_size > 1 && res.isTrue()) ? evaluate3(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+#endif
 
 #elif	POST_EXP_
-#ifdef FUNC_CALL_
+#ifdef 	FUNC_CALL_
 
 			res = (end_size > 0) ? evaluate2(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 			res = (post_size > 0 && res.isTrue()) ? evaluate2(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 
 #else
-//			int64_t stack[8];
-//			ValueType gtype[8];
-//			bool res = true, eval_res = true;
-//			eval_res = (end_size > 0) ? evaluate5(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack, gtype) : eval_res;
-//			res &= (end_size > 0) ? (bool)stack[0] : res;
-//			eval_res = (post_size > 0 && res) ? evaluate5(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack, gtype) : eval_res;
-//			res &= (post_size > 0) ? (bool)stack[0] : res;
-//			eval_res = (where_size > 0 && res) ? evaluate5(where_dev, where_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack, gtype) : eval_res;
-//			res &= (where_size > 0) ? (bool)stack[0] : res;
-//
-//			result_dev[writeloc].lkey = (res) ? (x + outer_base_idx) : (-1);
-//			result_dev[writeloc].rkey = (res) ? (res_left + inner_base_idx) : (-1);
-//
-//			count += (res) ? 1 : 0;
-
 			res = (end_size > 0) ? evaluate5(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 			res = (post_size > 0 && res.isTrue()) ? evaluate5(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
-
 #endif
 #endif
 			result_dev[writeloc].lkey = (res.isTrue()) ? (x + outer_base_idx) : (-1);
@@ -995,7 +1223,13 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
+
 	prejoin_filter<<<grid_size, block_size>>>(outer_dev, outer_part_size, outer_cols, prejoin_dev, prejoin_size, result);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (prejoin_filter) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void index_filterWrapper(int grid_x, int grid_y,
@@ -1027,6 +1261,12 @@ void index_filterWrapper(int grid_x, int grid_y,
 											search_exp_num, key_indices,
 											key_index_size, lookup_type,
 											prejoin_res_dev);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (index_filter) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
+
 }
 
 void exp_filterWrapper(int grid_x, int grid_y,
@@ -1064,6 +1304,11 @@ void exp_filterWrapper(int grid_x, int grid_y,
 											where_size, res_bound,
 											outer_base_idx, inner_base_idx,
 											prejoin_res_dev);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (exp_filter) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void write_outWrapper(int grid_x, int grid_y,
@@ -1080,13 +1325,21 @@ void write_outWrapper(int grid_x, int grid_y,
 	dim3 block_size(block_x, block_y, 1);
 
 	write_out<<<grid_size, block_size>>>(out, in, count_dev, count_dev2, outer_part_size, out_size, in_size);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (write_out) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum)
 {
 	thrust::device_ptr<ulong> dev_ptr(input);
+
 	thrust::exclusive_scan(dev_ptr, dev_ptr + ele_num, dev_ptr);
-	thrust::copy(dev_ptr + ele_num, dev_ptr + ele_num, sum);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	*sum = *(dev_ptr + ele_num - 1);
 }
 
 }

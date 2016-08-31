@@ -1,9 +1,6 @@
 //#define SZ_PAGE 40960
 //#define NB_BUFR (SZ_PAGE * 2 / sizeof(TUPLE))
 //#define NB_BUFS (SZ_PAGE * 16 / sizeof(TUPLE))
-#define BLOCK_SIZE_X 1024
-
-
 /*
 1048576*1048576
 #define BLOCK_SIZE_X 1024

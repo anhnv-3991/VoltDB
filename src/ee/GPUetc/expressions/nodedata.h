@@ -21,9 +21,9 @@ typedef struct _TreeNode {
 } GTreeNode;
 
 
-#define TREE_EVAL_ 1
-//#define POST_EXP_ 1
-//result#define FUNC_CALL_ 1
+//#define TREE_EVAL_ 1
+#define POST_EXP_ 1
+#define FUNC_CALL_ 1
 
 }
 

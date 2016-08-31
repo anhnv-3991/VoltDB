@@ -185,6 +185,7 @@ void GNValueDebug(GNValue &column_data)
 
 bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 {
+	printf("Size of GTreeNode = %d, size of GNValue = %d\n", (int)sizeof(GTreeNode), (int)sizeof(GNValue));
 	struct timeval start, finish;
 
 	gettimeofday(&start, NULL);
@@ -435,22 +436,22 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
-						join_tuple.setNValue(col_ctr,
-								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+						//join_tuple.setNValue(col_ctr,
+						//		  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
 					}
 				}
 
-                if (m_aggExec != NULL) {
-                    if (m_aggExec->p_execute_tuple(join_tuple)) {
-                    	// Get enough rows for LIMIT
-
-                        earlyReturned = true;
-                        break;
-                    }
-                } else {
-                    m_tmpOutputTable->insertTempTuple(join_tuple);
-                    pmp.countdownProgress();
-                }
+//                if (m_aggExec != NULL) {
+//                    if (m_aggExec->p_execute_tuple(join_tuple)) {
+//                    	// Get enough rows for LIMIT
+//
+//                        earlyReturned = true;
+//                        break;
+//                    }
+//                } else {
+//                    m_tmpOutputTable->insertTempTuple(join_tuple);
+//                    pmp.countdownProgress();
+//                }
 
 				if (earlyReturned) {
 					break;
@@ -493,6 +494,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
     printf("Elapsed time: %lu microseconds\n", ((finish.tv_sec - start.tv_sec) * 1000000 + finish.tv_usec - start.tv_usec));
 
+    //exit(0); //2016.08.26 - Added to force quit for visual profiling
     return (true);
 }
 
