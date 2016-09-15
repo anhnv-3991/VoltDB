@@ -185,6 +185,7 @@ void GNValueDebug(GNValue &column_data)
 
 bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 {
+	std::cout << "NestLoopIndexExecutor execute" << std::endl;
 	printf("Size of GTreeNode = %d, size of GNValue = %d\n", (int)sizeof(GTreeNode), (int)sizeof(GNValue));
 	struct timeval start, finish;
 

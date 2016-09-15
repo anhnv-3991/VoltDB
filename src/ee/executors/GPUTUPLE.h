@@ -28,7 +28,8 @@ namespace voltdb{
 #define PART_STANDARD 1
 #define JOIN_SHARED 256
 #define MAX_GNVALUE 10
-#define MAX_STACK_SIZE 128
+#define MAX_STACK_SIZE 8
+#define MAX_BUFFER_SIZE (1024 * 1024)
 
 /*
 typedef struct _TUPLE {

@@ -84,7 +84,7 @@ class GNValue {
     /* Create a default NValue */
     inline CUDAH GNValue();
     inline CUDAH GNValue(const ValueType type) {
-		::memset(&m_data, 0, sizeof(int64_t));
+		m_data = 0;
 		m_valueType = type;
 		m_sourceInlined = false;
     }
@@ -404,16 +404,17 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
 
     int64_t left_i = getValue(), right_i = rhs.getValue();
     ValueType ltype = getValueType(), rtype = rhs.getValueType();
-    int res_i, res_d;
 
 	double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
 	double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
 
-	res_d = (left_d > right_d) ? VALUE_COMPARE_GREATERTHAN : ((left_d < right_d) ? VALUE_COMPARE_LESSTHAN : VALUE_COMPARE_EQUAL);
+	if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		return (left_d > right_d) ? VALUE_COMPARE_GREATERTHAN : ((left_d < right_d) ? VALUE_COMPARE_LESSTHAN : VALUE_COMPARE_EQUAL);
+	} else {
+		return (left_i > right_i) ? VALUE_COMPARE_GREATERTHAN : ((left_i < right_i) ? VALUE_COMPARE_LESSTHAN : VALUE_COMPARE_EQUAL);
+	}
 
-	res_i = (left_i > right_i) ? VALUE_COMPARE_GREATERTHAN : ((left_i < right_i) ? VALUE_COMPARE_LESSTHAN : VALUE_COMPARE_EQUAL);
-
-	return (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? res_d : res_i;
+	return VALUE_COMPARE_INVALID;
 }
 
 

@@ -228,12 +228,12 @@ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 	switch (tmp_node.type) {
 	case EXPRESSION_TYPE_CONJUNCTION_AND: {
 		assert(left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN);
-		res_i = (int64_t)((bool)left_t && (bool)right_t);
+		res_i = (int64_t)((bool)left_i && (bool)right_i);
 		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
 	}
 	case EXPRESSION_TYPE_CONJUNCTION_OR: {
 		assert(left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN);
-		res_i = (int64_t)((bool)left_t || (bool)right_t);
+		res_i = (int64_t)((bool)left_i || (bool)right_i);
 		return GNValue(VALUE_TYPE_BOOLEAN, res_i);
 	}
 	case EXPRESSION_TYPE_COMPARE_EQUAL: {
@@ -373,7 +373,7 @@ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 	}
 }
 
-__device__ GNValue evaluate5(GTreeNode *tree_expression,
+__device__ GNValue evaluate4(GTreeNode *tree_expression,
 							int tree_size,
 							GNValue *outer_tuple,
 							GNValue *inner_tuple)
@@ -381,8 +381,6 @@ __device__ GNValue evaluate5(GTreeNode *tree_expression,
 	int64_t stack[MAX_STACK_SIZE];
 	ValueType gtype[MAX_STACK_SIZE], ltype, rtype;
 
-	//memset(stack, 0, MAX_STACK_SIZE * sizeof(int64_t));
-	//memset(gtype, 0, MAX_STACK_SIZE * sizeof(ValueType));
 	int top = 0;
 	double left_d, right_d, res_d;
 	int64_t left_i, right_i;
@@ -590,57 +588,65 @@ __device__ GNValue evaluate5(GTreeNode *tree_expression,
 	return retval;
 }
 
-__device__ bool binarySearchIdx(GTreeNode * search_exp,
-									int *search_exp_size,
-									int search_exp_num,
-									int * key_indices,
-									int key_index_size,
-									GNValue *outer_table,
-									GNValue *inner_table,
-									int outer_cols,
-									int inner_cols,
-									int left_bound,
-									int right_bound,
-									int *res_left,
-									int *res_right)
+__device__ int lowerBound(GTreeNode * search_exp,
+							int *search_exp_size,
+							int search_exp_num,
+							int * key_indices,
+							int key_index_size,
+							GNValue *outer_table,
+							GNValue *inner_table,
+							int outer_cols,
+							int inner_cols,
+							int left,
+							int right)
 {
-	int left = left_bound, right = right_bound;
-	int middle = -1, i, j, key_idx;
-	int inner_idx;
-	//int64_t outer_tmp[8], stack[8], inner_tmp;
-	int64_t outer_tmp[8];
-	int64_t inner_tmp;
+	int middle = -1;
 	int search_ptr;
+	int inner_idx;
+	int result = -1;
+
+#ifndef FUNC_CALL_
+	int key_idx;
+	int64_t outer_tmp[8], inner_tmp;
 	ValueType outer_gtype[8], inner_type;
-	int64_t outer_i, inner_i, res_i, res_i2;
-	double outer_d, inner_d, res_d, res_d2;
+	int64_t outer_i, inner_i, res_i;
+	double outer_d, inner_d, res_d;
 	GNValue tmp;
 
-	*res_left = *res_right = -1;
 	res_i = -1;
 	res_d = -1;
-
-	for (i = 0, search_ptr = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
-		//evaluate5(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, stack, gtype);
-#ifndef TREE_EVAL_
-		tmp = evaluate5(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
 #else
-		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+	GNValue outer_tmp[8];
+	int res;
 #endif
 
-		//outer_tmp[i] = stack[0];
+	search_ptr = 0;
+	for (int i = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
+#ifndef FUNC_CALL_
+#ifdef POST_EXP_
+		tmp = evaluate4(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
+#else
+		outer_tmp[i] = evaluate3(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
+#endif
 		outer_tmp[i] = tmp.getValue();
-		//outer_gtype[i] = gtype[0];
 		outer_gtype[i] = tmp.getValueType();
+#else
+#ifdef POST_EXP_
+		outer_tmp[i] = evaluate2(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
+#else
+		outer_tmp[i] = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+#endif
+#endif
 	}
 
-	while (left <= right && (res_i != 0 || res_d != 0)) {
-		res_i = 0;
-		res_d = 0;
+	while (left <= right) {
 		middle = (left + right) >> 1;
 		inner_idx = middle * inner_cols;
 
-		for (i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
+#ifndef FUNC_CALL_
+		res_i = 0;
+		res_d = 0;
+		for (int i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
 			key_idx = key_indices[i];
 			inner_tmp = inner_table[inner_idx + key_idx].getValue();
 			inner_type = inner_table[inner_idx + key_idx].getValueType();
@@ -653,203 +659,120 @@ __device__ bool binarySearchIdx(GTreeNode * search_exp,
 			res_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
 			res_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
 		}
-
-		right = (res_i < 0 || res_d < 0) ? (middle - 1) : right;
-		left = (res_i > 0 || res_d > 0) ? (middle + 1) : left;
-	}
-
-	res_i2 = res_i;
-	res_d2 = res_d;
-	for (left = middle - 1; (res_i == 0) && (res_d == 0) && (left >= left_bound);) {
-		inner_idx = left * inner_cols;
-
-		for (j = 0; (res_i == 0) && (res_d == 0) && (j < search_exp_num); j++) {
-			key_idx = key_indices[j];
-			inner_tmp = inner_table[inner_idx + key_idx].getValue();
-			inner_type = inner_table[inner_idx + key_idx].getValueType();
-
-			outer_i = (outer_gtype[j] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[j];
-			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
-			outer_d = (outer_gtype[j] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(outer_tmp + j) : static_cast<double>(outer_i);
-			inner_d = (inner_type == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&inner_tmp) : static_cast<double>(inner_i);
-
-			res_i = (outer_gtype[j] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
-			res_d = (outer_gtype[j] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
-		}
-		left = (res_i == 0 && res_d == 0) ? (left - 1) : left;
-	}
-	left++;
-
-	res_i = res_i2;
-	res_d = res_d2;
-	for (right = middle + 1; (res_i == 0) && (res_d == 0) && (right <= right_bound);) {
-		inner_idx = right * inner_cols;
-
-		for (j = 0; (res_i == 0) && (res_d == 0) && (j < search_exp_num); j++) {
-			key_idx = key_indices[j];
-			inner_tmp = inner_table[inner_idx + key_idx].getValue();
-			inner_type = inner_table[inner_idx + key_idx].getValueType();
-
-			outer_i = (outer_gtype[j] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[j];
-			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
-			outer_d = (outer_gtype[j] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(outer_tmp + j) : static_cast<double>(outer_i);
-			inner_d = (inner_type == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&inner_tmp) : static_cast<double>(inner_i);
-
-			res_i = (outer_gtype[j] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
-			res_d = (outer_gtype[j] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
-		}
-		right = (res_i == 0 && res_d == 0) ? (right + 1) : right;
-	}
-	right--;
-	res_i = res_i2;
-	res_d = res_d2;
-
-	*res_left = (res_i == 0 && res_d == 0) ? left : (-1);
-	*res_right = (res_i == 0 && res_d == 0) ? right : (-1);
-
-	return (res_i == 0 && res_d == 0);
-}
-
-__device__ bool binarySearchIdx2(GTreeNode *search_exp,
-									int *search_exp_size,
-									int search_exp_num,
-									int *key_indices,
-									int key_index_size,
-									GNValue *outer_table,
-									GNValue *inner_table,
-									int outer_cols,
-									int inner_cols,
-									int left_bound,
-									int right_bound,
-									int *res_left,
-									int *res_right)
-{
-	int left = left_bound, right = right_bound;
-	int middle = -1, i, j;
-	int inner_idx;
-	GNValue outer_tmp[8];
-	int search_ptr;
-	int res, res2;
-
-	*res_left = *res_right = -1;
-	res = -1;
-
-	for (i = 0, search_ptr = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
-		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
-
-	}
-
-	while (left <= right && (res != 0)) {
+#else
 		res = 0;
-		middle = (left + right) >> 1;
-		inner_idx = middle * inner_cols;
-
-		for (i = 0; (res == VALUE_COMPARE_EQUAL) && (i < search_exp_num); i++)
+		for (int i = 0; (res == 0) && (i < search_exp_num); i++) {
 			res = outer_tmp[i].compare_withoutNull(inner_table[inner_idx + key_indices[i]]);
+		}
+#endif
 
-		right = (res == VALUE_COMPARE_LESSTHAN) ? (middle - 1) : right;
+
+#ifndef FUNC_CALL_
+		right = (res_i <= 0 && res_d <= 0) ? (middle - 1) : right;	//move to left
+		left = (res_i > 0 || res_d > 0) ? (middle + 1) : left;		//move to right
+		result = (res_i <= 0 && res_d <= 0) ? middle : result;
+#else
+		right = (res == VALUE_COMPARE_GREATERTHAN) ? right : (middle - 1);
 		left = (res == VALUE_COMPARE_GREATERTHAN) ? (middle + 1) : left;
+		result = (res == VALUE_COMPARE_GREATERTHAN) ? result : middle;
+#endif
 	}
-
-	res2 = res;
-
-	for (left = middle - 1; (res == 0) && (left >= left_bound);) {
-		inner_idx = left * inner_cols;
-
-		for (j = 0; (res == 0) && (j < search_exp_num); j++)
-			res = outer_tmp[j].compare_withoutNull(inner_table[inner_idx + key_indices[j]]);
-
-		left = (res == 0) ? (left - 1) : left;
-	}
-	left++;
-
-	res = res2;
-	for (right = middle + 1; (res == 0) && (right <= right_bound);) {
-		inner_idx = right * inner_cols;
-
-		for (j = 0; (res == 0) && (j < search_exp_num); j++)
-			res = outer_tmp[j].compare_withoutNull(inner_table[inner_idx + key_indices[j]]);
-
-		right = (res == 0) ? (right + 1) : right;
-	}
-	right--;
-	res = res2;
-
-	*res_left = (res == 0) ? left : (-1);
-	*res_right = (res == 0) ? right : (-1);
-
-	return (res == 0);
+	return result;
 }
 
-__device__ bool binarySearchIdx3(GTreeNode *search_exp,
-									int *search_exp_size,
-									int search_exp_num,
-									int *key_indices,
-									int key_index_size,
-									GNValue *outer_table,
-									GNValue *inner_table,
-									int outer_cols,
-									int inner_cols,
-									int left_bound,
-									int right_bound,
-									int *res_left,
-									int *res_right)
+__device__ int upperBound(GTreeNode * search_exp,
+							int *search_exp_size,
+							int search_exp_num,
+							int * key_indices,
+							int key_index_size,
+							GNValue *outer_table,
+							GNValue *inner_table,
+							int outer_cols,
+							int inner_cols,
+							int left,
+							int right)
 {
-	int left = left_bound, right = right_bound;
-	int middle = -1, i, j;
-	int inner_idx;
-	GNValue outer_tmp[8];
+	int middle = -1;
 	int search_ptr;
-	int res, res2;
+	int inner_idx;
+	int result = right;
 
-	*res_left = *res_right = -1;
-	res = -1;
+#ifndef FUNC_CALL_
+	int key_idx;
+	int64_t outer_tmp[8], inner_tmp;
+	ValueType outer_gtype[8], inner_type;
+	int64_t outer_i, inner_i, res_i;
+	double outer_d, inner_d, res_d;
+	GNValue tmp;
 
-	for (i = 0, search_ptr = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
+	res_i = -1;
+	res_d = -1;
+#else
+	GNValue outer_tmp[8];
+	int res;
+#endif
+	search_ptr = 0;
+	for (int i = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
+#ifndef FUNC_CALL_
+#ifdef POST_EXP_
+		tmp = evaluate4(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
+#else
+		outer_tmp[i] = evaluate3(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
+#endif
+		outer_tmp[i] = tmp.getValue();
+		outer_gtype[i] = tmp.getValueType();
+#else
+#ifdef POST_EXP_
 		outer_tmp[i] = evaluate2(search_exp + search_ptr, search_exp_size[i], outer_table, NULL);
+#else
+		outer_tmp[i] = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+#endif
+#endif
 	}
 
-	while (left <= right && (res != 0)) {
-		res = 0;
+	while (left <= right) {
 		middle = (left + right) >> 1;
 		inner_idx = middle * inner_cols;
 
-		for (i = 0; (res == VALUE_COMPARE_EQUAL) && (i < search_exp_num); i++)
+#ifndef FUNC_CALL_
+		res_i = 0;
+		res_d = 0;
+		for (int i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
+
+			key_idx = key_indices[i];
+			inner_tmp = inner_table[inner_idx + key_idx].getValue();
+			inner_type = inner_table[inner_idx + key_idx].getValueType();
+
+			outer_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[i];
+			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
+			outer_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(outer_tmp + i) : static_cast<double>(outer_i);
+			inner_d = (inner_type == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&inner_tmp) : static_cast<double>(inner_i);
+
+			res_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
+			res_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
+		}
+#else
+		res = 0;
+		for (int i = 0; res == 0 && i < search_exp_num; i++) {
 			res = outer_tmp[i].compare_withoutNull(inner_table[inner_idx + key_indices[i]]);
+		}
+#endif
 
+
+#ifndef FUNC_CALL_
+		right = (res_i < 0 || res_d < 0) ? (middle - 1) : right;	//move to left
+		left = (res_i >= 0 && res_d >= 0) ? (middle + 1) : left;		//move to right
+		result = (res_i < 0 || res_d < 0) ? middle : result;
+#else
 		right = (res == VALUE_COMPARE_LESSTHAN) ? (middle - 1) : right;
-		left = (res == VALUE_COMPARE_GREATERTHAN) ? (middle + 1) : left;
+		left = (res == VALUE_COMPARE_LESSTHAN) ? left : (middle + 1);
+		result = (res == VALUE_COMPARE_LESSTHAN) ? middle : result;
+#endif
 	}
 
-	res2 = res;
-
-	for (left = middle - 1; (res == 0) && (left >= left_bound);) {
-		inner_idx = left * inner_cols;
-
-		for (j = 0; (res == 0) && (j < search_exp_num); j++)
-			res = outer_tmp[j].compare_withoutNull(inner_table[inner_idx + key_indices[j]]);
-
-		left = (res == 0) ? (left - 1) : left;
-	}
-	left++;
-
-	res = res2;
-	for (right = middle + 1; (res == 0) && (right <= right_bound);) {
-		inner_idx = right * inner_cols;
-
-		for (j = 0; (res == 0) && (j < search_exp_num); j++)
-			res = outer_tmp[j].compare_withoutNull(inner_table[inner_idx + key_indices[j]]);
-
-		right = (res == 0) ? (right + 1) : right;
-	}
-	right--;
-	res = res2;
-
-	*res_left = (res == 0) ? left : (-1);
-	*res_right = (res == 0) ? right : (-1);
-
-	return (res == 0);
+	return result;
 }
+
 
 __global__ void prejoin_filter(GNValue *outer_dev,
 								uint outer_part_size,
@@ -872,7 +795,7 @@ __global__ void prejoin_filter(GNValue *outer_dev,
 #endif
 #elif	POST_EXP_
 #ifndef FUNC_CALL_
-		res = (prejoin_size > 1) ? evaluate5(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL) : res;
+		res = (prejoin_size > 1) ? evaluate4(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL) : res;
 #else
 		res = (prejoin_size > 1) ? evaluate2(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL) : res;
 #endif
@@ -881,112 +804,65 @@ __global__ void prejoin_filter(GNValue *outer_dev,
 	}
 }
 
-CUDAH int lowerBound(int search_exp_num,
-						int * key_indices,
-						int64_t *outer_tmp,
-						GNValue *inner_table,
-						int inner_cols,
-						int left,
-						int right,
-						ValueType *outer_gtype)
+
+__global__ void index_filterLowerBound(GNValue *outer_dev,
+										  GNValue *inner_dev,
+										  ulong *index_psum,
+										  ResBound *res_bound,
+										  uint outer_part_size,
+										  uint outer_cols,
+										  uint inner_part_size,
+										  uint inner_cols,
+										  GTreeNode *search_exp_dev,
+										  int *search_exp_size,
+										  int search_exp_num,
+										  int *key_indices,
+										  int key_index_size,
+										  IndexLookupType lookup_type,
+										  bool *prejoin_res_dev)
+
 {
-	int middle = -1, i;
-	int inner_idx;
-	int64_t inner_tmp;
-	ValueType inner_type;
-	int64_t outer_i, inner_i, res_i;
-	double outer_d, inner_d, res_d;
-	int result = -1;
+	int x = blockIdx.x * blockDim.x + threadIdx.x;
+	int k = blockIdx.y * gridDim.x * blockDim.x;
+	int left_bound = BLOCK_SIZE_Y * blockIdx.y;
+	int right_bound = (left_bound + BLOCK_SIZE_Y <= inner_part_size) ? (left_bound + BLOCK_SIZE_Y - 1) : (inner_part_size - 1);
 
-	while (left <= right) {
-		res_i = 0;
-		res_d = 0;
-		middle = (left + right) / 2;
-		inner_idx = middle * inner_cols;
+	res_bound[x + k].left = -1;
 
-		for (i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
-			inner_tmp = inner_table[inner_idx + key_indices[i]].getValue();
-			inner_type = inner_table[inner_idx + key_indices[i]].getValueType();
-			assert(outer_gtype[i] != VALUE_TYPE_NULL && outer_gtype[i] != VALUE_TYPE_INVALID);
-
-			outer_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[i];
-			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
-			outer_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(outer_tmp + i) : static_cast<double>(outer_i);
-			inner_d = (inner_type == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&inner_tmp) : static_cast<double>(inner_i);
-
-			res_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
-			res_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
+	if (x < outer_part_size && prejoin_res_dev[x]) {
+		switch (lookup_type) {
+		case INDEX_LOOKUP_TYPE_EQ:
+		case INDEX_LOOKUP_TYPE_GT:
+		case INDEX_LOOKUP_TYPE_GTE:
+		case INDEX_LOOKUP_TYPE_LT: {
+			res_bound[x + k].left = lowerBound(search_exp_dev, search_exp_size, search_exp_num, key_indices, key_index_size, outer_dev + x * outer_cols, inner_dev, outer_cols, inner_cols, left_bound, right_bound);
+			break;
 		}
-
-		right = (res_i <= 0 && res_d <= 0) ? (middle - 1) : right;	//Move to left
-		left = (res_i > 0 || res_d > 0) ? (middle + 1) : left;		//Move to right
-		result = (res_i <= 0 && res_d <= 0) ? middle : result;
+		case INDEX_LOOKUP_TYPE_LTE: {
+			res_bound[x + k].left = left_bound;
+			break;
+		}
+		default:
+			break;
+		}
 	}
-
-	return result;
 }
 
-
-CUDAH int upperBound(int search_exp_num,
-						int * key_indices,
-						int64_t *outer_tmp,
-						GNValue *inner_table,
-						int inner_cols,
-						int left,
-						int right,
-						ValueType *outer_gtype)
-{
-	int middle = -1, i;
-	int inner_idx;
-	int64_t inner_tmp;
-	ValueType inner_type;
-	int64_t outer_i, inner_i, res_i;
-	double outer_d, inner_d, res_d;
-	int result = right + 1;
-
-	while (left <= right) {
-		res_i = 0;
-		res_d = 0;
-		middle = (left + right) / 2;
-		inner_idx = middle * inner_cols;
-
-		for (i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
-			inner_tmp = inner_table[inner_idx + key_indices[i]].getValue();
-			inner_type = inner_table[inner_idx + key_indices[i]].getValueType();
-
-			assert(inner_type != VALUE_TYPE_NULL && inner_type != VALUE_TYPE_INVALID);
-			outer_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[i];
-			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
-			outer_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(outer_tmp + i) : static_cast<double>(outer_i);
-			inner_d = (inner_type == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&inner_tmp) : static_cast<double>(inner_i);
-
-			res_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? 0 : (outer_i - inner_i);
-			res_d = (outer_gtype[i] == VALUE_TYPE_DOUBLE || inner_type == VALUE_TYPE_DOUBLE) ? (outer_d - inner_d) : 0;
-		}
-
-		right = (res_i < 0 || res_d < 0) ? (middle - 1) : right;	//Move to left
-		left = (res_i >= 0 && res_d >= 0) ? (middle + 1) : left;	//Move to right
-		result = (res_i < 0 || res_d < 0) ? middle : result;
-	}
-
-	return result - 1;
-}
-
-__global__ void index_filter(GNValue *outer_dev,
-							  GNValue *inner_dev,
-							  ulong *index_psum,
-							  ResBound *res_bound,
-							  uint outer_part_size,
-							  uint outer_cols,
-							  uint inner_part_size,
-							  uint inner_cols,
-							  GTreeNode *search_exp_dev,
-							  int *search_exp_size,
-							  int search_exp_num,
-							  int *key_indices,
-							  int key_index_size,
-							  IndexLookupType lookup_type,
-							  bool *prejoin_res_dev)
+__global__ void index_filterUpperBound(GNValue *outer_dev,
+										  GNValue *inner_dev,
+										  ulong *index_psum,
+										  ResBound *res_bound,
+										  uint outer_part_size,
+										  uint outer_cols,
+										  uint inner_part_size,
+										  uint inner_cols,
+										  GTreeNode *search_exp_dev,
+										  int *search_exp_size,
+										  int search_exp_num,
+										  int *key_indices,
+										  int key_index_size,
+										  IndexLookupType lookup_type,
+										  bool *prejoin_res_dev)
 
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -995,109 +871,29 @@ __global__ void index_filter(GNValue *outer_dev,
 	int right_bound = (left_bound + BLOCK_SIZE_Y <= inner_part_size) ? (left_bound + BLOCK_SIZE_Y - 1) : (inner_part_size - 1);
 
 	index_psum[x + k] = 0;
-	res_bound[x + k].left = -1;
 	res_bound[x + k].right = -1;
 
 	if (x < outer_part_size && prejoin_res_dev[x]) {
-		int res_left, res_right;
-
-
-#ifdef POST_EXP_
-#ifndef FUNC_CALL_
-		binarySearchIdx(search_exp_dev,
-							search_exp_size,
-							search_exp_num,
-							key_indices,
-							key_index_size,
-							outer_dev + x * outer_cols,
-							inner_dev,
-							outer_cols,
-							inner_cols,
-							left_bound,
-							right_bound,
-							&res_left,
-							&res_right);
-#else
-		binarySearchIdx3(search_exp_dev,
-							search_exp_size,
-							search_exp_num,
-							key_indices,
-							key_index_size,
-							outer_dev + x * outer_cols,
-							inner_dev,
-							outer_cols,
-							inner_cols,
-							left_bound,
-							right_bound,
-							&res_left,
-							&res_right);
-#endif
-#elif TREE_EVAL_
-#ifndef FUNC_CALL_
-		binarySearchIdx(search_exp_dev,
-							search_exp_size,
-							search_exp_num,
-							key_indices,
-							key_index_size,
-							outer_dev + x * outer_cols,
-							inner_dev,
-							outer_cols,
-							inner_cols,
-							left_bound,
-							right_bound,
-							&res_left,
-							&res_right);
-#else
-		binarySearchIdx2(search_exp_dev,
-							search_exp_size,
-							search_exp_num,
-							key_indices,
-							key_index_size,
-							outer_dev + x * outer_cols,
-							inner_dev,
-							outer_cols,
-							inner_cols,
-							left_bound,
-							right_bound,
-							&res_left,
-							&res_right);
-#endif
-
-#endif
-
 		switch (lookup_type) {
-		case INDEX_LOOKUP_TYPE_EQ: {
-//			res_bound[x + k].left = lowerBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
-//			res_bound[x + k].right = upperBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
-			res_bound[x + k].left = res_left;
-			res_bound[x + k].right = res_right;
-
+		case INDEX_LOOKUP_TYPE_EQ:
+		case INDEX_LOOKUP_TYPE_LTE: {
+			res_bound[x + k].right = upperBound(search_exp_dev, search_exp_size, search_exp_num, key_indices, key_index_size, outer_dev + x * outer_cols, inner_dev, outer_cols, inner_cols, left_bound, right_bound);
 			break;
 		}
-		case INDEX_LOOKUP_TYPE_GT: {
-//			res_bound[x + k].left = upperBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
-			res_bound[x + k].left = res_right + 1;
-			res_bound[x + k].right = right_bound;
-			break;
-		}
+		case INDEX_LOOKUP_TYPE_GT:
 		case INDEX_LOOKUP_TYPE_GTE: {
-//			res_bound[x + k].left = lowerBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype);
-			res_bound[x + k].left = res_left;
 			res_bound[x + k].right = right_bound;
 			break;
 		}
 		case INDEX_LOOKUP_TYPE_LT: {
+			res_bound[x + k].right = res_bound[x + k].left - 1;
 			res_bound[x + k].left = left_bound;
-			res_bound[x + k].right = res_left - 1;
-//			res_bound[x + k].right = lowerBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype) - 1;
 			break;
 		}
-		case INDEX_LOOKUP_TYPE_LTE: {
-			res_bound[x + k].left = left_bound;
-			res_bound[x + k].right = res_right;
-//			res_bound[x + k].right = upperBound(search_exp_num, key_indices, outer_tmp, inner_dev, inner_cols, left_bound, right_bound, outer_gtype) - 1;
-			break;
-		}
+//		case INDEX_LOOKUP_TYPE_LTE: {
+//			res_bound[x + k].right = upperBound(search_exp_dev, search_exp_size, search_exp_num, key_indices, key_index_size, outer_dev + x * outer_cols, inner_dev, outer_cols, inner_cols, left_bound, right_bound) - 1;
+//			break;
+//		}
 		default:
 			break;
 		}
@@ -1110,7 +906,6 @@ __global__ void index_filter(GNValue *outer_dev,
 		index_psum[x + k + 1] = 0;
 	}
 }
-
 
 __global__ void exp_filter(GNValue *outer_dev,
 							GNValue *inner_dev,
@@ -1164,8 +959,8 @@ __global__ void exp_filter(GNValue *outer_dev,
 			res = (post_size > 0 && res.isTrue()) ? evaluate2(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 
 #else
-			res = (end_size > 0) ? evaluate5(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate5(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (end_size > 0) ? evaluate4(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (post_size > 0 && res.isTrue()) ? evaluate4(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 #endif
 #endif
 			result_dev[writeloc].lkey = (res.isTrue()) ? (x + outer_base_idx) : (-1);
@@ -1253,17 +1048,31 @@ void index_filterWrapper(int grid_x, int grid_y,
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	index_filter<<<grid_size, block_size>>>(outer_dev, inner_dev,
-											index_psum, res_bound,
-											outer_part_size, outer_cols,
-											inner_part_size, inner_cols,
-											search_exp_dev, search_exp_size,
-											search_exp_num, key_indices,
-											key_index_size, lookup_type,
-											prejoin_res_dev);
+	index_filterLowerBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
+														index_psum, res_bound,
+														outer_part_size, outer_cols,
+														inner_part_size, inner_cols,
+														search_exp_dev, search_exp_size,
+														search_exp_num, key_indices,
+														key_index_size, lookup_type,
+														prejoin_res_dev);
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
-		printf("Error: Async kernel (index_filter) error: %s\n", cudaGetErrorString(err));
+		printf("Error: Async kernel (index_filterLowerBound) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	index_filterUpperBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
+														index_psum, res_bound,
+														outer_part_size, outer_cols,
+														inner_part_size, inner_cols,
+														search_exp_dev, search_exp_size,
+														search_exp_num, key_indices,
+														key_index_size, lookup_type,
+														prejoin_res_dev);
+	err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (index_filterUpperBound) error: %s\n", cudaGetErrorString(err));
 	}
 	checkCudaErrors(cudaDeviceSynchronize());
 

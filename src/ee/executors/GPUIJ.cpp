@@ -359,6 +359,16 @@ bool GPUIJ::join(){
 	}
 	printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
 
+//#if defined(POST_EXP_) && defined(FUNC_CALL_)
+//	res = cudaMalloc(&stack, block_x * grid_x * sizeof(GNValue) * MAX_STACK_SIZE);
+//	if (res != cudaSuccess) {
+//		printf("Error: cudaMalloc(stack) failed. Error code: %s\n", cudaGetErrorString(res));
+//		return false;
+//	}
+//#else
+//	stack = NULL;
+//#endif
+
 	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
 	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
@@ -384,7 +394,7 @@ bool GPUIJ::join(){
 			block_y = 1;
 			gpu_size = block_x * block_y * grid_x * grid_y + 1;
 
-
+			printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
 			loop_count2++;
 			/**** Copy IndexData to GPU memory ****/
 			res = cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice);
@@ -425,6 +435,7 @@ bool GPUIJ::join(){
 				continue;
 			}
 
+			printf("jr_size = %lu\n", jr_size);
 			res = cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT));
 			if (res != cudaSuccess) {
 				printf("Error: cudaMalloc(jresult_dev) failed. Error code %s\n", cudaGetErrorString(res));

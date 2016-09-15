@@ -553,7 +553,7 @@ SHAREDLIB_JNIEXPORT jint JNICALL Java_org_voltdb_jni_ExecutionEngine_nativeExecu
         jlong undoToken)
 {
     //VOLT_DEBUG("nativeExecutePlanFragments() start");
-
+	//std::cout << "nativeExecutePlanFragments" << std::endl;
     // setup
     VoltDBEngine *engine = castToEngine(engine_ptr);
     assert(engine);

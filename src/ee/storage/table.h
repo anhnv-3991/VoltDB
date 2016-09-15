@@ -197,6 +197,16 @@ class Table {
         return m_columnCount;
     }
 
+
+    //Add for getting address of table data on GPU memory
+    inline void *getGPUAddress() const {
+    	return m_gaddress;
+    }
+
+    inline void setGPUAddress(void *new_address) {
+    	m_gaddress = new_address;
+    }
+
     // ------------------------------------------------------------------
     // INDEXES
     // ------------------------------------------------------------------
@@ -418,6 +428,9 @@ protected:
     // identity information
     CatalogId m_databaseId;
     std::string m_name;
+
+    //GPU address
+    void *m_gaddress;
 
     // If this table owns the TupleSchema it is responsible for deleting it in the destructor
     bool m_ownsTupleSchema;
