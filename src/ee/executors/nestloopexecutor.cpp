@@ -125,7 +125,7 @@ copy m_data,SourceInlined and ValueType from NValue to GNValue
 void setGNValue(GNValue *column_data, NValue value)
 {
 	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
-	column_data->setSourceInlined(value.getSourceInlinedForGPU());
+//	column_data->setSourceInlined(value.getSourceInlinedForGPU());
 	column_data->setValueType(value.getValueTypeForGPU());
 }
 
@@ -261,20 +261,34 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
        get left NValue of condition
     */
     int idx = 0;
+    int tmp_idx = 0;
+    int block = 0;
 
     while (iterator0.next(outer_tuple)) {
     	tmp_outer_tuple[idx] = outer_tuple;
     	for (int i = 0; i < outer_cols; i++)
-    		setGNValue(&outer_data[idx * outer_cols + i], outer_tuple.getNValue(i));
+    		setGNValue(&outer_data[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * outer_cols], outer_tuple.getNValue(i));
     	idx++;
+    	tmp_idx++;
+    	if (idx % DEFAULT_PART_SIZE_ == 0) {
+    		block++;
+    		tmp_idx = 0;
+    	}
     }
     idx = 0;
+    tmp_idx = 0;
+    block = 0;
 
     while (iterator1.next(inner_tuple)) {
     	tmp_inner_tuple[idx] = inner_tuple;
     	for (int i = 0; i < inner_cols; i++)
-    		setGNValue(&inner_data[idx * inner_cols + i], inner_tuple.getNValue(i));
+    		setGNValue(&inner_data[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * inner_cols], inner_tuple.getNValue(i));
     	idx++;
+    	tmp_idx++;
+    	if (idx % DEFAULT_PART_SIZE_ == 0) {
+    		block++;
+    		tmp_idx = 0;
+    	}
     }
 
     RESULT *join_result = NULL;

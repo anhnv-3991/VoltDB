@@ -29,6 +29,7 @@ namespace voltdb{
 #define JOIN_SHARED 256
 #define MAX_GNVALUE 10
 #define MAX_STACK_SIZE 8
+#define MAX_SHARED_MEM 16
 #define MAX_BUFFER_SIZE (1024 * 1024)
 
 /*

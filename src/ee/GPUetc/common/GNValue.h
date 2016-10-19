@@ -86,13 +86,13 @@ class GNValue {
     inline CUDAH GNValue(const ValueType type) {
 		m_data = 0;
 		m_valueType = type;
-		m_sourceInlined = false;
+//		m_sourceInlined = false;
     }
 
 	inline CUDAH GNValue(const ValueType type, int64_t mdata) {
 		m_data = mdata;
 		m_valueType = type;
-		m_sourceInlined = false;
+//		m_sourceInlined = false;
 	}
 
 
@@ -101,9 +101,9 @@ class GNValue {
 
     inline CUDAH void setNull();
 
-    CUDAH bool getSourceInlined() const {
-    	return m_sourceInlined;
-    }
+//    CUDAH bool getSourceInlined() const {
+//    	return m_sourceInlined;
+//    }
 
     CUDAH int64_t getMdata() const {
     	return m_data;
@@ -211,10 +211,10 @@ class GNValue {
     	}
     }
 
-    inline CUDAH void setSourceInlined(bool sourceInlined)
-    {
-        m_sourceInlined = sourceInlined;
-    }
+//    inline CUDAH void setSourceInlined(bool sourceInlined)
+//    {
+//        m_sourceInlined = sourceInlined;
+//    }
 
     /**
      * Set the type of the value that will be stored in this instance.
@@ -310,7 +310,7 @@ class GNValue {
   private:
     int64_t m_data;
     ValueType m_valueType;
-    bool m_sourceInlined;
+//    bool m_sourceInlined;
 
     /**
      * Private constructor that initializes storage and the specifies the type of value
@@ -347,7 +347,7 @@ class GNValue {
 inline CUDAH GNValue::GNValue() {
     m_data = 0;
     m_valueType = VALUE_TYPE_INVALID;
-    m_sourceInlined = false;
+//    m_sourceInlined = false;
 }
 
 

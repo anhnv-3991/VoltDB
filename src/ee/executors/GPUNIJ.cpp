@@ -580,7 +580,7 @@ void GPUNIJ::setNValue(NValue *nvalue, GNValue &gnvalue)
 	char gtmp[16];
 	memcpy(gtmp, &tmp, sizeof(double));
 	nvalue->setMdataFromGPU(gtmp);
-	nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
+//	nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
 	nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 }
 

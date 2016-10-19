@@ -286,7 +286,9 @@ def buildMakefile(CTX):
     makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin -o objects/executors/partitioning.cubin %spartitioning.cu\n"%(GPUPATH))
     makefile.write("objects/executors/index_join_gpu.co:../../src/ee/executors/index_join_gpu.cu %s\n"%GPUINC)
     makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v -o objects/executors/index_join_gpu.co -c %sindex_join_gpu.cu\n"%(GPUPATH))
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin --ptxas-options=-v -o objects/executors/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin --ptxas-options=-preserve-relocs -o /home/anh/VoltDBdebug/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -G --source-in-ptx -ptx -o /home/anh/VoltDBdebug/mix_index_join_gpu.txt %sindex_join_gpu.cu\n"%(GPUPATH))
+
 
 
 #scan_main.cpp ,GPUNIJ.cpp ,GPUSHJ.cpp, GPUIJ.cpp

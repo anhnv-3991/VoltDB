@@ -174,7 +174,7 @@ private:
 	void setGNValue(GNValue *gnvalue, NValue &nvalue)
 	{
 		gnvalue->setMdata(nvalue.getValueTypeForGPU(), nvalue.getMdataForGPU());
-		gnvalue->setSourceInlined(nvalue.getSourceInlinedForGPU());
+//		gnvalue->setSourceInlined(nvalue.getSourceInlinedForGPU());
 		gnvalue->setValueType(nvalue.getValueTypeForGPU());
 	}
 
@@ -184,7 +184,7 @@ private:
 		char tmp[16];
 		memcpy(tmp, &gtmp, sizeof(long double));
 		nvalue->setMdataFromGPU(tmp);
-		nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
+//		nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
 		nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 	}
 
@@ -195,7 +195,7 @@ private:
 		char tmp[16];
 		memcpy(tmp, &gtmp, sizeof(long double));
 		value.setMdataFromGPU(tmp);
-		value.setSourceInlinedFromGPU(column_data.getSourceInlined());
+//		value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 		value.setValueTypeFromGPU(column_data.getValueType());
 
 		std::cout << value.debug() << std::endl;

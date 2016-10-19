@@ -171,7 +171,7 @@ bool InsertExecutor::executePurgeFragmentIfNeeded(PersistentTable** ptrToTable) 
 void setGNValue2(GNValue *column_data, NValue &value)
 {
 	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
-	column_data->setSourceInlined(value.getSourceInlinedForGPU());
+//	column_data->setSourceInlined(value.getSourceInlinedForGPU());
 	column_data->setValueType(value.getValueTypeForGPU());
 }
 
@@ -183,7 +183,7 @@ void GNValueDebug2(GNValue &column_data)
 	char tmp[16];
 	memcpy(tmp, &gtmp, sizeof(long double));
 	value.setMdataFromGPU(tmp);
-	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
+//	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 	value.setValueTypeFromGPU(column_data.getValueType());
 
 	std::cout << value.debug();

@@ -82,7 +82,7 @@ void GPUINSERT::GNValueDebug(GNValue &column_data)
 	char tmp[16];
 	memcpy(tmp, &gtmp, sizeof(long double));
 	value.setMdataFromGPU(tmp);
-	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
+//	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 	value.setValueTypeFromGPU(column_data.getValueType());
 
 	std::cout << value.debug();

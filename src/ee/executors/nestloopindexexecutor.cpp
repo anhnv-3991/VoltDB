@@ -164,7 +164,7 @@ bool NestLoopIndexExecutor::p_init(AbstractPlanNode* abstractNode,
 void setGNValue(GNValue *column_data, NValue &value)
 {
 	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
-	column_data->setSourceInlined(value.getSourceInlinedForGPU());
+	//column_data->setSourceInlined(value.getSourceInlinedForGPU());
 	column_data->setValueType(value.getValueTypeForGPU());
 }
 
@@ -176,7 +176,7 @@ void GNValueDebug(GNValue &column_data)
 	char tmp[16];
 	memcpy(tmp, &gtmp, sizeof(long double));
 	value.setMdataFromGPU(tmp);
-	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
+	//value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 	value.setValueTypeFromGPU(column_data.getValueType());
 
 	std::cout << value.debug();
@@ -368,13 +368,21 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	int col_outer = outer_tuple.sizeInValues();
 	printf("Number of outer_columns: %d and %d\n", col_outer, num_of_outer_cols);
 
+	int block = 0;
+	int tmp_idx = 0;
+
 	while (search_it_out.next(outer_tuple)) {
 		tmp_outer_tuple[idx] = outer_tuple;
 		for (int i = 0; i < col_outer; i++) {
 			NValue tmp_value = outer_tuple.getNValue(i);
-			setGNValue(&index_data_out[idx * col_outer + i], tmp_value);
+			setGNValue(&index_data_out[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * col_outer], tmp_value);
 		}
 		idx++;
+		tmp_idx++;
+		if (idx % DEFAULT_PART_SIZE_ == 0) {
+			tmp_idx = 0;
+			block++;
+		}
 	}
 
 	/********** Get column data for end_expression (index keys) & post_expression from inner table ********************************/
@@ -386,19 +394,24 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	index->moveToEnd(begin, index_cursor2);
 
+
 	idx = 0;
 	int col_inner = inner_tuple.sizeInValues();
+
+	tmp_idx = block = 0;
 
 	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
-
-			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
-			if (index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_INVALID || index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_NULL)
-				printf("PROBLEM!\n");
+			setGNValue(&index_data_in[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * col_inner], tmp_value);
 		}
 		idx++;
+		tmp_idx++;
+		if (idx % DEFAULT_PART_SIZE_ == 0) {
+			tmp_idx = 0;
+			block++;
+		}
 	}
 
 	bool ret = true;

@@ -172,6 +172,12 @@ bool GPUIJ::join(){
 	GTreeNode *initial_dev, *skipNull_dev, *prejoin_dev, *where_dev, *end_dev, *post_dev, *search_exp_dev;
 	uint block_x = 0, block_y = 0, grid_x = 0, grid_y = 0;
 	std::vector<unsigned long> allocation, prejoin, index, expression, ipsum, epsum, wtime, joins_only;
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+	GNValue *stack;
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+	int64_t *val_stack;
+	ValueType *type_stack;
+#endif
 
 	part_size = getPartitionSize();
 	printf("Part size = %u\n", part_size);
@@ -192,128 +198,44 @@ bool GPUIJ::join(){
 
 	/******** Allocate GPU buffer for table data and counting data *****/
 	//res = cuMemAlloc(&outer_dev, part_size * sizeof(IndexData));
-	res = cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue));
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(outer_dev) failed. Error code: %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	res = cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue));
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(inner_dev) failed. Error code: %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	res = cudaMalloc(&prejoin_res_dev, part_size * sizeof(bool));
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(prejoin_res_dev) failed. Error code: %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	res = cudaMalloc(&index_psum, gpu_size * sizeof(ulong));
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(index_psum) failed. Error code: %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	res = cudaMalloc(&exp_psum, gpu_size * sizeof(ulong));
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(exp_psum) failed. Error code: %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	res = cudaMalloc(&res_bound, gpu_size * sizeof(ResBound));
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(res_bound) failed. Error code: %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
+	checkCudaErrors(cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&prejoin_res_dev, part_size * sizeof(bool)));
+	checkCudaErrors(cudaMalloc(&index_psum, gpu_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&exp_psum, gpu_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&res_bound, gpu_size * sizeof(ResBound)));
 	//cudaMemset(&count_dev, 0, gpu_size * sizeof(ulong));
 
 	/******* Allocate GPU buffer for join condition *********/
 
 	if (prejoin_size_ > 0) {
-		res = cudaMalloc(&prejoin_dev, prejoin_size_ * sizeof(GTreeNode));
-		if (res != cudaSuccess) {
-			printf("Error: cudaMalloc(prejoin_dev) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
-
-		res = cudaMemcpy(prejoin_dev, prejoin_expression_, prejoin_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice);
-		if (res != cudaSuccess) {
-			printf("Error: cudaMemcpy(prejoin_dev, prejoin_expression_) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&prejoin_dev, prejoin_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(prejoin_dev, prejoin_expression_, prejoin_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	if (initial_size_ > 0) {
-		res = cudaMalloc(&initial_dev, initial_size_ * sizeof(GTreeNode));
-		if (res != cudaSuccess) {
-			printf("Error: cudaMalloc(initial_dev) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
-
-		res = cudaMemcpy(initial_dev, initial_expression_, initial_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice);
-		if (res != cudaSuccess) {
-			printf("cudaMemcpy(initial_dev, initial_expression) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&initial_dev, initial_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(initial_dev, initial_expression_, initial_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	if (skipNull_size_ > 0) {
-		res = cudaMalloc(&skipNull_dev, skipNull_size_ * sizeof(GTreeNode));
-		if (res != cudaSuccess) {
-			printf("Error: cudaMalloc(skipNull_dev) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
-
-		res = cudaMemcpy(skipNull_dev, skipNullExpr_, skipNull_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice);
-		if (res != cudaSuccess) {
-			printf("Error: cudaMemcpy(skipNull_dev, skipNullExpr_) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&skipNull_dev, skipNull_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(skipNull_dev, skipNullExpr_, skipNull_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	if (end_size_ > 0) {
-		res = cudaMalloc(&end_dev, end_size_ * sizeof(GTreeNode));
-		if (res != cudaSuccess) {
-			printf("Error: cudaMalloc(end_dev) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
-
-		res = cudaMemcpy(end_dev, end_expression_, end_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice);
-		if (res != cudaSuccess) {
-			printf("Error: cudaMemcpy(end_ex_dev, end_expression) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&end_dev, end_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(end_dev, end_expression_, end_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	if (post_size_ > 0) {
-		res = cudaMalloc(&post_dev, post_size_ * sizeof(GTreeNode));
-		if (res != cudaSuccess) {
-			printf("Error: cudaMalloc(post_dev) failed. Error code: res = %s\n", cudaGetErrorString(res));
-			return false;
-		}
-
-		res = cudaMemcpy(post_dev, post_expression_, post_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice);
-		if (res != cudaSuccess) {
-			printf("Error: cudaMemcpy(post_dev, post_expression) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&post_dev, post_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(post_dev, post_expression_, post_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	if (where_size_ > 0) {
-		res = cudaMalloc(&where_dev, where_size_ * sizeof(GTreeNode));
-		if (res != cudaSuccess) {
-			printf("Error: cudaMalloc(where_dev) failed. Error code %s\n", cudaGetErrorString(res));
-			return false;
-		}
-
-		res = cudaMemcpy(where_dev, where_expression_, where_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice);
-		if (res != cudaSuccess) {
-			printf("Error: cudaMemcpy(where_dev, where_expression) failed. Error code: %s\n", cudaGetErrorString(res));
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&where_dev, where_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(where_dev, where_expression_, where_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	/******* Allocate GPU buffer for search keys and index keys *****/
@@ -322,52 +244,25 @@ bool GPUIJ::join(){
 		tmp_size += search_exp_size_[i];
 	}
 
-	res = cudaMalloc(&search_exp_dev, sizeof(GTreeNode) * tmp_size);
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(search_exp_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	checkCudaErrors(cudaMalloc(&search_exp_dev, sizeof(GTreeNode) * tmp_size));
+	checkCudaErrors(cudaMalloc(&search_exp_size, sizeof(int) * search_exp_num_));
 
-	res = cudaMalloc(&search_exp_size, sizeof(int) * search_exp_num_);
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(search_exp_size) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	checkCudaErrors(cudaMemcpy(search_exp_dev, search_exp_, sizeof(GTreeNode) * tmp_size, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(search_exp_size, search_exp_size_, sizeof(int) * search_exp_num_, cudaMemcpyHostToDevice));
 
-	res = cudaMemcpy(search_exp_dev, search_exp_, sizeof(GTreeNode) * tmp_size, cudaMemcpyHostToDevice);
-	if (res != cudaSuccess) {
-		printf("Error: cudaMemcpy(search_exp_dev, search_exp_) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	checkCudaErrors(cudaMalloc(&indices_dev, sizeof(int) * indices_size_));
+	checkCudaErrors(cudaMemcpy(indices_dev, indices_, sizeof(int) * indices_size_, cudaMemcpyHostToDevice));
 
-	res = cudaMemcpy(search_exp_size, search_exp_size_, sizeof(int) * search_exp_num_, cudaMemcpyHostToDevice);
-	if (res != cudaSuccess) {
-		printf("Error: cudaMemcpy(search_exp_size, search_exp_size_) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	res = cudaMalloc(&indices_dev, sizeof(int) * indices_size_);
-	if (res != cudaSuccess) {
-		printf("Error: cudaMalloc(indices_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	res = cudaMemcpy(indices_dev, indices_, sizeof(int) * indices_size_, cudaMemcpyHostToDevice);
-	if (res != cudaSuccess) {
-		printf("Error: cudaMemcpy(indices_dev, indices_) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
 	printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
 
-//#if defined(POST_EXP_) && defined(FUNC_CALL_)
-//	res = cudaMalloc(&stack, block_x * grid_x * sizeof(GNValue) * MAX_STACK_SIZE);
-//	if (res != cudaSuccess) {
-//		printf("Error: cudaMalloc(stack) failed. Error code: %s\n", cudaGetErrorString(res));
-//		return false;
-//	}
-//#else
-//	stack = NULL;
-//#endif
+#ifdef POST_EXP_
+#ifdef FUNC_CALL_
+	checkCudaErrors(cudaMalloc(&stack, block_x * grid_x * sizeof(GNValue) * MAX_STACK_SIZE));
+#else
+	checkCudaErrors(cudaMalloc(&val_stack, block_x * grid_x * sizeof(int64_t) * MAX_STACK_SIZE));
+	checkCudaErrors(cudaMalloc(&type_stack, block_x * grid_x * sizeof(ValueType) * MAX_STACK_SIZE));
+#endif
+#endif
 
 	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
@@ -378,11 +273,7 @@ bool GPUIJ::join(){
 		block_x = (outer_part_size < BLOCK_SIZE_X) ? outer_part_size : BLOCK_SIZE_X;
 		grid_x = divUtility(outer_part_size, block_x);
 
-		res = cudaMemcpy(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice);
-		if (res != cudaSuccess) {
-			printf("Error: cudaMemcpy(outer_dev, outer_table_ + %u) failed. Error code %s\n", outer_idx, cudaGetErrorString(res));
-			return false;
-		}
+		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 
 		loop_count++;
 		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size) {
@@ -394,26 +285,36 @@ bool GPUIJ::join(){
 			block_y = 1;
 			gpu_size = block_x * block_y * grid_x * grid_y + 1;
 
-			printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
+			//printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
 			loop_count2++;
 			/**** Copy IndexData to GPU memory ****/
-			res = cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice);
-			if (res != cudaSuccess) {
-				printf("Error: cudaMemcpy(inner_dev, inner_table_ + %u) failed. Error code %s\n", inner_idx, cudaGetErrorString(res));
-				return false;
-			}
+			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 
 			/* Evaluate prejoin predicate */
 			gettimeofday(&pre_start, NULL);
-			prejoin_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev);
+			prejoin_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, outer_part_size, prejoin_dev, prejoin_size_, prejoin_res_dev
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+					,stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+					,val_stack,
+					type_stack
+#endif
+					);
 			gettimeofday(&pre_end, NULL);
 
 			prejoin.push_back((pre_end.tv_sec - pre_start.tv_sec) * 1000000 + (pre_end.tv_usec - pre_start.tv_usec));
 
 			/* Binary search for index */
 			gettimeofday(&istart, NULL);
-			index_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, inner_dev, index_psum, res_bound, outer_part_size, outer_cols_, inner_part_size, inner_cols_,
-							search_exp_dev, search_exp_size, search_exp_num_, indices_dev, indices_size_, lookup_type_, prejoin_res_dev);
+			index_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, inner_dev, index_psum, res_bound, outer_part_size, inner_part_size,
+								search_exp_dev, search_exp_size, search_exp_num_, indices_dev, indices_size_, lookup_type_, prejoin_res_dev
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+								,stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+								,val_stack,
+								type_stack
+#endif
+								);
 			gettimeofday(&iend, NULL);
 
 			/* Prefix sum on the result */
@@ -435,17 +336,20 @@ bool GPUIJ::join(){
 				continue;
 			}
 
-			printf("jr_size = %lu\n", jr_size);
-			res = cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT));
-			if (res != cudaSuccess) {
-				printf("Error: cudaMalloc(jresult_dev) failed. Error code %s\n", cudaGetErrorString(res));
-				return false;
-			}
+			//printf("jr_size = %lu\n", jr_size);
+			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 
 			gettimeofday(&estart, NULL);
 			exp_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, inner_dev, jresult_dev, index_psum, exp_psum,
-								outer_part_size, outer_cols_, inner_cols_, jr_size, end_dev, end_size_, post_dev, post_size_,
-								where_dev, where_size_, res_bound, outer_idx, inner_idx, prejoin_res_dev);
+								outer_part_size, jr_size, end_dev, end_size_, post_dev, post_size_,
+								where_dev, where_size_, res_bound, outer_idx, inner_idx, prejoin_res_dev
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+								,stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+								,val_stack,
+								type_stack
+#endif
+								);
 			gettimeofday(&eend, NULL);
 
 
@@ -459,42 +363,22 @@ bool GPUIJ::join(){
 			gettimeofday(&wstart, NULL);
 
 			if (jr_size2 == 0) {
-				printf("Empty2\n");
-				res = cudaFree(jresult_dev);
-				if (res != cudaSuccess) {
-					printf("Error: cudaFree(jresult_dev) failed. Error code %s\n", cudaGetErrorString(res));
-					return false;
-				}
+				//printf("Empty2\n");
+				checkCudaErrors(cudaFree(jresult_dev));
 				continue;
 			}
 
-			res = cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT));
-			if (res != cudaSuccess) {
-				printf("Error: cudaMalloc(write_dev) failed. Error code %s\n", cudaGetErrorString(res));
-				return false;
-			}
+			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
 
 			write_outWrapper(grid_x, grid_y, block_x, block_y, write_dev, jresult_dev, index_psum, exp_psum, outer_part_size, jr_size2, jr_size);
 			join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size2) * sizeof(RESULT));
 
 			gettimeofday(&end_join, NULL);
 
-			res = cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost);
-			if (res != cudaSuccess) {
-				printf("Error: cudaMemcpy(join_result_[%u], jresult_dev) failed. Error code %s\n", result_size_, cudaGetErrorString(res));
-				return false;
-			}
+			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
 
-			res = cudaFree(jresult_dev);
-			if (res != cudaSuccess) {
-				printf("Error: cudaFree(jresult_dev) failed. Error code %s\n", cudaGetErrorString(res));
-				return false;
-			}
-			res = cudaFree(write_dev);
-			if (res != cudaSuccess) {
-				printf("Error: cudaFree(write_dev) failed. Error code %s\n", cudaGetErrorString(res));
-				return false;
-			}
+			checkCudaErrors(cudaFree(jresult_dev));
+			checkCudaErrors(cudaFree(write_dev));
 
 			result_size_ += jr_size2;
 			jr_size = 0;
@@ -508,107 +392,41 @@ bool GPUIJ::join(){
 
 
 	/******** Free GPU memory, unload module, end session **************/
-	res = cudaFree(outer_dev);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(outer_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	checkCudaErrors(cudaFree(outer_dev));
+	checkCudaErrors(cudaFree(inner_dev));
+	checkCudaErrors(cudaFree(search_exp_dev));
+	checkCudaErrors(cudaFree(search_exp_size));
+	checkCudaErrors(cudaFree(indices_dev));
+	checkCudaErrors(cudaFree(index_psum));
+	checkCudaErrors(cudaFree(exp_psum));
+	checkCudaErrors(cudaFree(res_bound));
+	checkCudaErrors(cudaFree(prejoin_res_dev));
 
-	res = cudaFree(inner_dev);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(inner_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	if (initial_size_ > 0)
+		checkCudaErrors(cudaFree(initial_dev));
 
-	res = cudaFree(search_exp_dev);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(search_exp_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	if (skipNull_size_ > 0)
+		checkCudaErrors(cudaFree(skipNull_dev));
 
-	res = cudaFree(search_exp_size);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(search_exp_size) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	if (prejoin_size_ > 0)
+		checkCudaErrors(cudaFree(prejoin_dev));
 
-	res = cudaFree(indices_dev);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(indices_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	if (where_size_ > 0)
+		checkCudaErrors(cudaFree(where_dev));
 
-	res = cudaFree(index_psum);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(count_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	if (end_size_ > 0)
+		checkCudaErrors(cudaFree(end_dev));
 
-	res = cudaFree(exp_psum);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(count_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+	if (post_size_ > 0)
+		checkCudaErrors(cudaFree(post_dev));
 
-	res = cudaFree(res_bound);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(res_bound) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+	checkCudaErrors(cudaFree(stack));
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+	checkCudaErrors(cudaFree(val_stack));
+	checkCudaErrors(cudaFree(type_stack));
+#endif
 
-	res = cudaFree(prejoin_res_dev);
-	if (res != cudaSuccess) {
-		printf("Error: cudaFree(prejoin_res_dev) failed. Error code %s\n", cudaGetErrorString(res));
-		return false;
-	}
-
-	if (initial_size_ > 0) {
-		res = cudaFree(initial_dev);
-		if (res != cudaSuccess) {
-			printf("Error: cudaFree(initial_dev) failed. Error code %s\n", cudaGetErrorString(res));
-			return false;
-		}
-	}
-
-	if (skipNull_size_ > 0) {
-		res = cudaFree(skipNull_dev);
-		if (res != cudaSuccess) {
-			printf("Error: cudaFree(skipNull_dev) failed. Error code %s\n", cudaGetErrorString(res));
-			return false;
-		}
-	}
-
-	if (prejoin_size_ > 0) {
-		res = cudaFree(prejoin_dev);
-		if (res != cudaSuccess) {
-			printf("Error: cudaFree(prejoin_dev) failed. Error code %s\n", cudaGetErrorString(res));
-			return false;
-		}
-	}
-
-	if (where_size_ > 0) {
-		res = cudaFree(where_dev);
-		if (res != cudaSuccess) {
-			printf("Error: cudaFree(where_dev) failed. Error code %s\n", cudaGetErrorString(res));
-			return false;
-		}
-	}
-
-	if (end_size_ > 0) {
-		res = cudaFree(end_dev);
-		if (res != cudaSuccess) {
-			printf("Error: cudaFree(end_dev) failed. Error code %s\n", cudaGetErrorString(res));
-			return false;
-		}
-	}
-
-	if (post_size_ > 0) {
-		res = cudaFree(post_dev);
-		if (res != cudaSuccess) {
-			printf("Error: cudaFree(post_dev) failed. Error code %s\n", cudaGetErrorString(res));
-			return false;
-		}
-	}
 	gettimeofday(&all_end, NULL);
 
 	unsigned long allocation_time = 0, prejoin_time = 0, index_time = 0, expression_time = 0, ipsum_time = 0, epsum_time = 0, wtime_time = 0, joins_only_time = 0, all_time = 0;
@@ -829,7 +647,7 @@ void GPUIJ::setNValue(NValue *nvalue, GNValue &gnvalue)
 	char gtmp[16];
 	memcpy(gtmp, &tmp, sizeof(double));
 	nvalue->setMdataFromGPU(gtmp);
-	nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
+//	nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
 	nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 }
 

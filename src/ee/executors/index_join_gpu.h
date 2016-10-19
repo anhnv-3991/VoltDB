@@ -27,10 +27,16 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
 							GNValue *outer_dev,
 							uint outer_part_size,
-							uint outer_cols,
 							GTreeNode *prejoin_dev,
 							uint prejoin_size,
-							bool *result);
+							bool *result
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+							,GNValue *stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+							,int64_t *val_stack,
+							ValueType *type_stack
+#endif
+							);
 
 void index_filterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
@@ -39,16 +45,21 @@ void index_filterWrapper(int grid_x, int grid_y,
 							ulong *index_psum,
 							ResBound *res_bound,
 							uint outer_part_size,
-							uint outer_cols,
 							uint inner_part_size,
-							uint inner_cols,
 							GTreeNode *search_exp_dev,
 							int *search_exp_size,
 							int search_exp_num,
 							int *key_indices,
 							int key_index_size,
 							IndexLookupType lookup_type,
-							bool *prejoin_res_dev);
+							bool *prejoin_res_dev
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+							,GNValue *stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+							,int64_t *val_stack,
+							ValueType *type_stack
+#endif
+							);
 
 void exp_filterWrapper(int grid_x, int grid_y,
 						int block_x, int block_y,
@@ -58,8 +69,6 @@ void exp_filterWrapper(int grid_x, int grid_y,
 						ulong *index_psum,
 						ulong *exp_psum,
 						uint outer_part_size,
-						uint outer_cols,
-						uint inner_cols,
 						uint jr_size,
 						GTreeNode *end_dev,
 						int end_size,
@@ -70,7 +79,14 @@ void exp_filterWrapper(int grid_x, int grid_y,
 						ResBound *res_bound,
 						int outer_base_idx,
 						int inner_base_idx,
-						bool *prejoin_res_dev);
+						bool *prejoin_res_dev
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+						,GNValue *stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+						,int64_t *val_stack,
+						ValueType *type_stack
+#endif
+						);
 
 void write_outWrapper(int grid_x, int grid_y,
 						int block_x, int block_y,

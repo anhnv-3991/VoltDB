@@ -24,6 +24,7 @@ typedef struct _TreeNode {
 //#define TREE_EVAL_ 1
 #define POST_EXP_ 1
 //#define FUNC_CALL_ 1
+#define COALESCE_ 1
 
 }
 
