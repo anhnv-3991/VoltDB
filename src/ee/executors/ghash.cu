@@ -118,10 +118,10 @@ __global__ void ghash(uint64_t *packedKey, int tupleNum, int keySize, uint64_t *
 	}
 }
 
-__global__ void hashIndexCount(GNValue *outer_table, int tuple_num, int col_num, uint64_t *searchPackedKey,
+__global__ void hashIndexCount(GNValue *outer_table, int outer_rows, uint64_t *searchPackedKey,
 								GTreeNode *searchKeyExp, int *searchKeySize, int searchExpNum,
 								uint64_t *packedKey, uint64_t *bucketLocation, uint64_t *hashedIndex,
-								int *indexCount, int keySize, int numberOfBuckets, GNValue *stack)
+								int *indexCount, int keySize, int maxNumberOfBuckets, GNValue *stack)
 {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -129,32 +129,54 @@ __global__ void hashIndexCount(GNValue *outer_table, int tuple_num, int col_num,
 	int search_ptr = 0;
 	int count_res = 0;
 
-	for (int i = index; i < tuple_num; i += stride) {
+	for (int i = index; i < outer_rows; i += stride) {
 		for (int j = 0; j < searchExpNum; search_ptr += searchKeySize[j], j++) {
 			tmp_outer[j] = evaluate2(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i, NULL, stack + index, stride);
 		}
 
 		keyGenerate(tmp_outer, NULL, searchExpNum, searchPackedKey + i * keySize);
 
-		uint64_t hash = hasher(searchPackedKey + i * keySize, keySize);
-		uint64_t bucketOffset = hash % maxNumberOfBuckets;
-		int start = bucketLocation[bucketOffset];
-		int end = bucketLocation[bucketOffset + 1];
+		uint64_t bucketOffset = hasher(searchPackedKey + i * keySize, keySize) % maxNumberOfBuckets;
+		uint64_t start = bucketLocation[bucketOffset];
+		uint64_t end = bucketLocation[bucketOffset + 1];
 
-		for (int j = start; j < end; j++) {
+		for (uint64_t j = start; j < end; j++) {
 			count_res += (equalityChecker(searchPackedKey + i * keySize, packedKey + j, keySize)) ? 1 : 0;
 		}
 	}
 
 	indexCount[index] = count_res;
-	if (index == tuple_num - 1) {
-		indexCount[tuple_num] = 0;
+	if (index == outer_rows - 1) {
+		indexCount[outer_rows] = 0;
 	}
 }
 
-__global__ void hashJoin()
+__global__ void hashJoin(GNValue *outer_table, GNValue *inner_table, int outer_rows,
+							GTreeNode *end_expression, int end_size,
+							GTreeNode *post_expression,	int post_size,
+							uint64_t *searchPackedKey,
+							uint64_t *packedKey,
+							uint64_t *bucketLocation,
+							uint64_t *hashedIndex,
+							int *indexCount,
+							int keySize,
+							int maxNumberOfBuckets,
+							RESULT *result)
 {
+	int index = blockDim.x * blockIdx.x + threadIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	bool key_check;
+	GNValue exp_check = GNValue::getTrue();
 
+	for (int i = index; i < outer_rows; i += stride) {
+		uint64_t bucketOffset = hasher(searchPackedKey + i * keySize, keySize) % maxNumberOfBuckets;
+		uint64_t start = bucketLocation[bucketOffset];
+		uint64_t end = bucketLocation[bucketOffset + 1];
+
+		for (uint64_t j = start; j < end; j++) {
+
+		}
+	}
 }
 
 void packKeyWrapper(int block_x, int block_y,
@@ -229,8 +251,9 @@ void ghashWrapper(int block_x, int block_y,
 void indexCountWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
 					GNValue *outer_table,
-					int tuple_num,
+					int outer_rows,
 					int col_num,
+					uint64_t *searchPackedKey,
 					GTreeNode *searchKeyExp,
 					int *searchKeySize,
 					int searchExpNum,
@@ -239,17 +262,18 @@ void indexCountWrapper(int block_x, int block_y,
 					uint64_t *hashedIndex,
 					int *indexCount,
 					int keySize,
-					int numberOfBuckets
+					int maxNumberOfBuckets,
+					GNValue *stack
 					)
 {
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
-	hashIndexCount<<<gridSize, blockSize>>>(outer_table, tuple_num, col_num,
+	hashIndexCount<<<gridSize, blockSize>>>(outer_table, outer_rows, searchPackedKey,
 											searchKeyExp, searchKeySize, searchExpNum,
 											packedKey, bucketLocation,
 											hashedIndex, indexCount,
-											keySize, numberOfBuckets);
+											keySize, maxNumberOfBuckets, stack);
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (hashIndexCount) error: %s\n", cudaGetErrorString(err));
@@ -263,9 +287,38 @@ void hashJoinWrapper(int block_x, int block_y,
 						int grid_x, int grid_y,
 						GNValue *outer_table,
 						GNValue *inner_table,
-						int outer_cols,
-						int inner_cols,
+						int outer_rows,
+						GTreeNode *end_expression,
+						int end_size,
+						GTreeNode *post_expression,
+						int post_size,
+						uint64_t *searchPackedKey,
+						uint64_t *packedKey,
+						uint64_t *bucketLocation,
+						uint64_t *hashedIndex,
 						int *indexCount,
+						int keySize,
+						int maxNumberOfBuckets,
 						RESULT *result
-						);
+						)
+{
+	dim3 gridSize(grid_x, grid_y, 1);
+	dim3 blockSize(block_x, block_y, 1);
+
+	hashJoin<<<gridSize, blockSize>>>(outer_table, inner_table, outer_rows,
+										end_expression, end_size,
+										post_expression, post_size,
+										searchPackedKey,
+										packedKey, bucketLocation,
+										hashedIndex, indexCount,
+										keySize, maxNumberOfBuckets,
+										stack, result);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (hashIndexCount) error: %s\n", cudaGetErrorString(err));
+		exit(1);
+	}
+
+	checkCudaErrors(cudaDeviceSynchronize());
+}
 }
