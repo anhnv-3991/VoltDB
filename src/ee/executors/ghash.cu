@@ -5,23 +5,32 @@ extern "C" {
 #define MASK_BITS 0x9e3779b9
 
 
-__device__ void keyGenerate(GNValue *tuple, int col_num, uint64_t *packedKey)
+__device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint64_t *packedKey)
 {
+	int keyOffset = 0;
+	int intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
 
-}
-
-__global__ void packKey(GNValue **index_table, int tuple_num, int col_num, int *indices, int index_num, uint64_t *packedKey, int keySize)
-{
-	for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < tuple_num; i += blockDim.x * gridDim.x) {
-		int keyOffset = 0;
-		int intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-
-		for (int j = 0; j < index_num; j++) {
-			int64_t value = index_table[i][j].getValue();
+	if (keyIndices != NULL) {
+		for (int i = 0; i < indexNum; i++) {
+			int64_t value = tuple[keyIndices[i]].getValue();
 			uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
 
-			for (int k = sizeof(int64_t) - 1; k >= 0; k--) {
-				packedKey[keyOffset + i * keySize] |= (0xFF & (keyValue >> (k * 8))) << (intraKeyOffset * 8);
+			for (int j = sizeof(int64_t) - 1; k >= 0; k--) {
+				packedKey[keyOffset] |= (0xFF & (keyValue >> (k * 8))) << (intraKeyOffset * 8);
+				intraKeyOffset--;
+				if (intraKeyOffset < 0) {
+					intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+					keyOffset++;
+				}
+			}
+		}
+	} else {
+		for (int i = 0; i < indexNum; i++) {
+			int64_t value = tuple[i].getValue();
+			uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
+
+			for (int j = sizeof(int64_t) - 1; k >= 0; k--) {
+				packedKey[keyOffset] |= (0xFF & (keyValue >> (k * 8))) << (intraKeyOffset * 8);
 				intraKeyOffset--;
 				if (intraKeyOffset < 0) {
 					intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
@@ -32,17 +41,49 @@ __global__ void packKey(GNValue **index_table, int tuple_num, int col_num, int *
 	}
 }
 
-__global__ void ghashCount(uint64_t *packedKey, int keyNum, int keySize, uint64_t *hashCount, uint64_t maxNumberOfBuckets)
+__device__ uint64_t hasher(uint64_t *packedKey, int keySize)
+{
+	uint64_t seed = 0;
+
+	for (int i = 0; i <  keySize; i++) {
+		seed ^= packedKey[i] + MASK_BITS + (seed << 6) + (seed >> 2);
+	}
+
+	return seed;
+}
+
+__device__ bool equalityChecker(uint64_t *leftKey, uint64_t *rightKey, int keySize)
+{
+	bool res = true;
+
+	for (int i = 0; i < keySize; i++) {
+		res &= (leftKey[i] == rightKey[i]);
+	}
+
+	return res;
+}
+
+__device__ GNValue evaluate2(GTreeNode *tree_expression,
+								int tree_size,
+								GNValue *outer_tuple,
+								GNValue *inner_tuple,
+								GNValue *stack,
+								int offset);
+
+__global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *indices, int index_num, uint64_t *packedKey, int keySize)
+{
+	for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < tuple_num; i += blockDim.x * gridDim.x) {
+		keyGenerate(index_table + i, indices, index_num, packedKey + i * keySize);
+	}
+}
+
+__global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, uint64_t *hashCount, uint64_t maxNumberOfBuckets)
 {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
 
-	for (int i = index; i < keyNum; i += stride) {
-		uint64_t hash = 0;
-
-		for (int j = 0; j < sizeof(uint64_t); j++) {
-			hash ^= packedKey[i * keySize + j] + MASK_BITS + (hash << 6) + (hash >> 2);
-		}
+	for (int i = index; i < tupleNum; i += stride) {
+		uint64_t hash = hasher(packedKey + i * keySize, keySize);
 		uint64_t bucketOffset = hash % maxNumberOfBuckets;
 		hashCount[bucketOffset * stride + index]++;
 	}
@@ -54,7 +95,7 @@ __global__ void ghashCount(uint64_t *packedKey, int keyNum, int keySize, uint64_
 	}
 }
 
-__global__ void ghash(uint64_t *packedKey, int keyNum, int keySize, uint64_t *hashCount, uint64_t maxNumberOfBuckets, uint64_t *hashedIndex, uint64_t *bucketLocation)
+__global__ void ghash(uint64_t *packedKey, int tupleNum, int keySize, uint64_t *hashCount, uint64_t maxNumberOfBuckets, uint64_t *hashedIndex, uint64_t *bucketLocation)
 {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -63,35 +104,51 @@ __global__ void ghash(uint64_t *packedKey, int keyNum, int keySize, uint64_t *ha
 		bucketLocation[index] = hashCount[index * stride];
 	}
 
+	if (index == maxNumberOfBuckets) {
+		bucketLocation[index] = hashCount[(index - 1) * stride];
+	}
+
 	__syncthreads();
 
-	for (int i = index; i < keyNum; i += stride) {
-		uint64_t hash = 0;
-
-		for (int j = 0; j < sizeof(uint64_t); j++) {
-			hash ^= packedKey[i * keySize + j] + MASK_BITS + (hash << 6) + (hash >> 2);
-		}
+	for (int i = index; i < tupleNum; i += stride) {
+		uint64_t hash = hasher(packedKey + i * keySize, keySize);
 		uint64_t bucketOffset = hash % maxNumberOfBuckets;
-		hashdedIndex[hashCount[bucketOffset * stride + index]] = i;
+		hashedIndex[hashCount[bucketOffset * stride + index]] = i;
 		hashCount[bucketOffset * stride + index]++;
 	}
 }
 
-__global__ void hashIndexCount(GNValue *outer_table, int tuple_num,	int col_num,
+__global__ void hashIndexCount(GNValue *outer_table, int tuple_num, int col_num, uint64_t *searchPackedKey,
 								GTreeNode *searchKeyExp, int *searchKeySize, int searchExpNum,
 								uint64_t *packedKey, uint64_t *bucketLocation, uint64_t *hashedIndex,
-								int *indexCount, int keySize, int numberOfBuckets)
+								int *indexCount, int keySize, int numberOfBuckets, GNValue *stack)
 {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
+	GNValue tmp_outer[4];
+	int search_ptr = 0;
+	int count_res = 0;
 
 	for (int i = index; i < tuple_num; i += stride) {
-		uint64_t hash = 0;
-
-		for (int j = 0; j < sizeof(uint64_t); j++) {
-			hash ^= packedKey[i * keySize + j] + MASK_BITS + (hash << 6) + (hash >> 2);
+		for (int j = 0; j < searchExpNum; search_ptr += searchKeySize[j], j++) {
+			tmp_outer[j] = evaluate2(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i, NULL, stack + index, stride);
 		}
+
+		keyGenerate(tmp_outer, NULL, searchExpNum, searchPackedKey + i * keySize);
+
+		uint64_t hash = hasher(searchPackedKey + i * keySize, keySize);
 		uint64_t bucketOffset = hash % maxNumberOfBuckets;
+		int start = bucketLocation[bucketOffset];
+		int end = bucketLocation[bucketOffset + 1];
+
+		for (int j = start; j < end; j++) {
+			count_res += (equalityChecker(searchPackedKey + i * keySize, packedKey + j, keySize)) ? 1 : 0;
+		}
+	}
+
+	indexCount[index] = count_res;
+	if (index == tuple_num - 1) {
+		indexCount[tuple_num] = 0;
 	}
 }
 
