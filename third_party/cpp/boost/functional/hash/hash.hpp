@@ -18,6 +18,7 @@
 #include <boost/type_traits/is_enum.hpp>
 #include <boost/type_traits/is_integral.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <iostream>
 
 #if defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION)
 #include <boost/type_traits/is_pointer.hpp>
@@ -144,6 +145,7 @@ namespace boost
         template <class T>
         inline std::size_t hash_value_signed(T val)
         {
+        	std::cout << "Hash value signed" << std::endl;
              const int size_t_bits = std::numeric_limits<std::size_t>::digits;
              // ceiling(std::numeric_limits<T>::digits / size_t_bits) - 1
              const int length = (std::numeric_limits<T>::digits - 1)
@@ -165,6 +167,7 @@ namespace boost
         template <class T>
         inline std::size_t hash_value_unsigned(T val)
         {
+        	std::cout << "Hash value unsigned" << std::endl;
              const int size_t_bits = std::numeric_limits<std::size_t>::digits;
              // ceiling(std::numeric_limits<T>::digits / size_t_bits) - 1
              const int length = (std::numeric_limits<T>::digits - 1)
@@ -186,18 +189,21 @@ namespace boost
     template <typename T>
     typename boost::hash_detail::basic_numbers<T>::type hash_value(T v)
     {
+    	std::cout << "Hash basic numbers" << std::endl;
         return static_cast<std::size_t>(v);
     }
 
     template <typename T>
     typename boost::hash_detail::long_numbers<T>::type hash_value(T v)
     {
+    	std::cout << "Hash long numbers" << std::endl;
         return hash_detail::hash_value_signed(v);
     }
 
     template <typename T>
     typename boost::hash_detail::ulong_numbers<T>::type hash_value(T v)
     {
+    	std::cout << "Hash unsigned long numbers" << std::endl;
         return hash_detail::hash_value_unsigned(v);
     }
 

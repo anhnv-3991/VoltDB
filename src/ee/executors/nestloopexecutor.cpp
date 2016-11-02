@@ -263,11 +263,14 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     int idx = 0;
     int tmp_idx = 0;
     int block = 0;
+    int outer_block_size = (outer_size < DEFAULT_PART_SIZE_) ? outer_size : DEFAULT_PART_SIZE_;
+    int inner_block_size = (inner_size < DEFAULT_PART_SIZE_) ? inner_size : DEFAULT_PART_SIZE_;
 
     while (iterator0.next(outer_tuple)) {
     	tmp_outer_tuple[idx] = outer_tuple;
     	for (int i = 0; i < outer_cols; i++)
-    		setGNValue(&outer_data[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * outer_cols], outer_tuple.getNValue(i));
+    		setGNValue(&outer_data[tmp_idx + i * outer_block_size + block * outer_block_size * outer_cols], outer_tuple.getNValue(i));
+
     	idx++;
     	tmp_idx++;
     	if (idx % DEFAULT_PART_SIZE_ == 0) {
@@ -279,10 +282,12 @@ bool NestLoopExecutor::p_execute(const NValueArray &params) {
     tmp_idx = 0;
     block = 0;
 
+    std::cout << std::endl;
     while (iterator1.next(inner_tuple)) {
     	tmp_inner_tuple[idx] = inner_tuple;
     	for (int i = 0; i < inner_cols; i++)
-    		setGNValue(&inner_data[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * inner_cols], inner_tuple.getNValue(i));
+    		setGNValue(&inner_data[tmp_idx + i * inner_block_size + block * inner_block_size * inner_cols], inner_tuple.getNValue(i));
+
     	idx++;
     	tmp_idx++;
     	if (idx % DEFAULT_PART_SIZE_ == 0) {

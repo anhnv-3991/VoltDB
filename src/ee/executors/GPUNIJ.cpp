@@ -11,6 +11,7 @@
 #include <helper_functions.h>
 #include "GPUTUPLE.h"
 #include "GPUNIJ.h"
+#include "join_gpu.h"
 #include "scan_common.h"
 #include "common/types.h"
 //#include "GPUetc/common/GNValue.h"
@@ -97,57 +98,17 @@ bool GPUNIJ::join(){
 	}
 
 
-	/****************** Initialize GPU ********************/
-	if ((vd = getenv("VOLT_HOME")) != NULL) {
-		snprintf(path, 256, "%s/voltdb", vd);
-	} else if ((vd = getenv("HOME")) != NULL) {
-		snprintf(path, 256, "%s/voltdb", vd);
-	} else
-		return false;
-
-	res = cuInit(0);
-	if (res != CUDA_SUCCESS) {
-		printf("cuInit failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuDeviceGet(&dev, 0);
-	if (res != CUDA_SUCCESS) {
-		printf("cuDeviceGet failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuCtxCreate(&ctx, 0, dev);
-	if (res != CUDA_SUCCESS) {
-		printf("cuCtxCreate failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	sprintf(fname, "%s/join_gpu.cubin", path);
-	res = cuModuleLoad(&module, fname);
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleLoad(join) failed: res = %lu\n file name = %s\n", (unsigned long)res, fname);
-		return false;
-	}
-
-	res = cuModuleGetFunction(&count, module, "count");
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleGetFunction(expression_filter) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuModuleGetFunction(&join, module, "join");
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleGetFunction(write_out) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
 	/******** Calculate size of blocks, grids, and GPU buffers *********/
 	uint gpu_size = 0, part_size = 0;
 	ulong jr_size = 0, jr_size2 = 0;
-	CUdeviceptr outer_dev, inner_dev, jresult_dev, preJoinPred_dev, joinPred_dev, where_dev, count_psum;
+	GNValue *outer_dev, *inner_dev;
+	RESULT *jresult_dev;
+	GTreeNode *preJoinPred_dev, *joinPred_dev, *where_dev;
+	ulong *count_psum;
 	uint block_x = 0, block_y = 0, grid_x = 0, grid_y = 0;
 	std::vector<unsigned long> allocation, count_time, scan_time, join_time, joins_only;
+	int64_t *val_stack;
+	ValueType *type_stack;
 
 	part_size = getPartitionSize();
 	block_x = BLOCK_SIZE_X;
@@ -165,71 +126,31 @@ bool GPUNIJ::join(){
 		gpu_size = MAX_SHORT_ARRAY_SIZE;
 	}
 
+	printf("part_size = %d, outer_cols = %d, inner_cols = %d\n", part_size, outer_cols_, inner_cols_);
+
 	/******** Allocate GPU buffer for table data and counting data *****/
 	//res = cuMemAlloc(&outer_dev, part_size * sizeof(IndexData));
-	res = cuMemAlloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(outer_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuMemAlloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(inner_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	printf("Original GPU SIZE = %d\n", gpu_size);
-
-	res = cuMemAlloc(&count_psum, gpu_size * sizeof(ulong));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(index_psum) failed: res = %lu\n gpu_size = %u\n", (unsigned long)res, gpu_size);
-		return false;
-	}
+	checkCudaErrors(cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&count_psum, gpu_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&val_stack, block_x * grid_x * MAX_STACK_SIZE * sizeof(int64_t)));
+	checkCudaErrors(cudaMalloc(&type_stack, block_x * grid_x * MAX_STACK_SIZE * sizeof(ValueType)));
 
 	/******* Allocate GPU buffer for join condition *********/
 	if (preJoin_size_ >= 1) {
-		res = cuMemAlloc(&preJoinPred_dev, preJoin_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemAlloc(preJoinPred_dev) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
-
-		res = cuMemcpyHtoD(preJoinPred_dev, preJoinPredicate_, preJoin_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(preJoinPred_dev, preJoinPredicate_) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&preJoinPred_dev, preJoin_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(preJoinPred_dev, preJoinPredicate_, preJoin_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	if (join_size_ >= 1) {
-		res = cuMemAlloc(&joinPred_dev, join_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemAlloc(joinPred_dev) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
-
-		res = cuMemcpyHtoD(joinPred_dev, joinPredicate_, join_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(preJoinPred_dev, preJoinPredicate) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&joinPred_dev, join_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(joinPred_dev, joinPredicate_, join_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	if (where_size_ >= 1) {
-		res = cuMemAlloc(&where_dev, where_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemAlloc(where_dev) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
-
-		res = cuMemcpyHtoD(where_dev, wherePredicate_, where_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(where_dev, wherePredicate_) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
+		checkCudaErrors(cudaMalloc(&where_dev, where_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(where_dev, wherePredicate_, where_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
-
 
 	struct timeval cstart, cend, pcstart, pcend, jstart, jend, end_join;
 
@@ -241,11 +162,7 @@ bool GPUNIJ::join(){
 		block_x = (outer_part_size < BLOCK_SIZE_X) ? outer_part_size : BLOCK_SIZE_X;
 		grid_x = divUtility(outer_part_size, block_x);
 
-		res = cuMemcpyHtoD(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(outer_dev, outer_table_ + %u) failed: res = %lu\n", outer_idx, (unsigned long)res);
-			return false;
-		}
+		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 
 		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size) {
 			//Size of inner small table
@@ -257,53 +174,21 @@ bool GPUNIJ::join(){
 			gpu_size = block_x * block_y * grid_x * grid_y + 1;
 
 			/**** Copy IndexData to GPU memory ****/
-			res = cuMemcpyHtoD(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemcpyHtoD(inner_dev, inner_table_ + %u) failed: res = %lu\n", inner_idx, (unsigned long)res);
-				return false;
-			}
-
-			void *count_args[] = {
-									(void *)&outer_dev,
-									(void *)&inner_dev,
-									(void *)&count_psum,
-									(void *)&outer_part_size,
-									(void *)&outer_cols_,
-									(void *)&inner_part_size,
-									(void *)&inner_cols_,
-									(void *)&preJoinPred_dev,
-									(void *)&preJoin_size_,
-									(void *)&joinPred_dev,
-									(void *)&join_size_,
-									(void *)&where_dev,
-									(void *)&where_size_
-									};
-
+			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 			gettimeofday(&cstart, NULL);
-			res = cuLaunchKernel(count, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, count_args, NULL);
-			if (res != CUDA_SUCCESS) {
-				printf("cuLaunchKernel(index_filter) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
+			prefixSumFilterWrapper(grid_x, grid_y, block_x, block_y,
+									outer_dev, inner_dev,
+									count_psum,
+									outer_part_size, inner_part_size,
+									preJoinPred_dev, preJoin_size_,
+									joinPred_dev, join_size_,
+									where_dev, where_size_,
+									val_stack, type_stack);
 
-			res = cuCtxSynchronize();
-			if (res != CUDA_SUCCESS) {
-				printf("cuCtxSynchronize(index_filter) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
 			gettimeofday(&cend, NULL);
 
 			gettimeofday(&pcstart, NULL);
-			if (!((new GPUSCAN<ulong, ulong4>)->presum(&count_psum, gpu_size))) {
-				printf("Prefix(&count_psum, gpu_size) sum error.\n");
-				return false;
-			}
-
-			if (!((new GPUSCAN<ulong, ulong4>)->getValue(count_psum, gpu_size, &jr_size))) {
-				printf("getValue(count_psum, gpu_size, &jr_size) error");
-				return false;
-			}
-
+			prefixSumWrapper(count_psum, gpu_size, &jr_size);
 			gettimeofday(&pcend, NULL);
 
 			count_time.push_back((cend.tv_sec - cstart.tv_sec) * 1000000 + (cend.tv_usec - cstart.tv_usec));
@@ -321,45 +206,19 @@ bool GPUNIJ::join(){
 				//goto free_count;
 			}
 
-			res = cuMemAlloc(&jresult_dev, jr_size * sizeof(RESULT));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemAlloc(jresult_dev) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-
-			void *join_args[] = {
-									(void *)&outer_dev,
-									(void *)&inner_dev,
-									(void *)&jresult_dev,
-									(void *)&count_psum,
-									(void *)&outer_part_size,
-									(void *)&outer_cols_,
-									(void *)&inner_part_size,
-									(void *)&inner_cols_,
-									(void *)&jr_size,
-									(void *)&outer_idx,
-									(void *)&inner_idx,
-									(void *)&preJoinPred_dev,
-									(void *)&preJoin_size_,
-									(void *)&joinPred_dev,
-									(void *)&join_size_,
-									(void *)&where_dev,
-									(void *)&where_size_
-									};
-
+			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 			gettimeofday(&jstart, NULL);
-
-			res = cuLaunchKernel(join, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, join_args, NULL);
-			if (res != CUDA_SUCCESS) {
-				printf("cuLaunchKernel(join) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-
-			res = cuCtxSynchronize();
-			if (res != CUDA_SUCCESS) {
-				printf("cuCtxSynchronize(join) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
+			expFilterWrapper(grid_x, grid_y, block_x, block_y,
+								outer_dev, inner_dev,
+								jresult_dev,
+								count_psum,
+								outer_part_size, inner_part_size,
+								jr_size,
+								outer_idx, inner_idx,
+								preJoinPred_dev, preJoin_size_,
+								joinPred_dev, join_size_,
+								where_dev, where_size_,
+								val_stack, type_stack);
 			gettimeofday(&jend, NULL);
 
 			join_time.push_back((jend.tv_sec - jstart.tv_sec) * 1000000 + (jend.tv_usec - jstart.tv_usec));
@@ -368,18 +227,7 @@ bool GPUNIJ::join(){
 
 			gettimeofday(&end_join, NULL);
 
-			res = cuMemcpyDtoH(join_result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemcpyDtoH(join_result_[%u], jresult_dev) failed: res = %lu\n", result_size_, (unsigned long)res);
-				return false;
-			}
-
-			res = cuMemFree(jresult_dev);
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemFree(jresult_dev) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-
+			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
 			result_size_ += jr_size;
 			jr_size = 0;
 
@@ -389,35 +237,11 @@ bool GPUNIJ::join(){
 
 
 	/******** Free GPU memory, unload module, end session **************/
-	res = cuMemFree(outer_dev);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(outer_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuMemFree(inner_dev);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(inner_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuMemFree(count_psum);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(count_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuModuleUnload(module);
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleUnload(module) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuCtxDestroy(ctx);
-	if (res != CUDA_SUCCESS) {
-		printf("cuCtxDestroy(ctx) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	checkCudaErrors(cudaFree(outer_dev));
+	checkCudaErrors(cudaFree(inner_dev));
+	checkCudaErrors(cudaFree(count_psum));
+	checkCudaErrors(cudaFree(val_stack));
+	checkCudaErrors(cudaFree(type_stack));
 	gettimeofday(&all_end, NULL);
 
 	unsigned long allocation_time = 0, count_t = 0, join_t = 0, ipsum_time = 0, scan_t = 0, joins_only_time = 0, all_time = 0;

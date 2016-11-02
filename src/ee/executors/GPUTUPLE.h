@@ -14,6 +14,7 @@ namespace voltdb{
 //1blockでのスレッド数の定義。
 //#define BLOCK_SIZE_X 1024//outer ,left
 #define BLOCK_SIZE_X 1024
+
 //#define BLOCK_SIZE_Y 2048  //inner ,right
 #define BLOCK_SIZE_Y (1024 * 1024)
 
@@ -31,6 +32,7 @@ namespace voltdb{
 #define MAX_STACK_SIZE 8
 #define MAX_SHARED_MEM 16
 #define MAX_BUFFER_SIZE (1024 * 1024)
+#define SHARED_MEM 1024
 
 /*
 typedef struct _TUPLE {
