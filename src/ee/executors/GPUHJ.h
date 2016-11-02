@@ -35,6 +35,11 @@ public:
 			int inner_cols,
 			std::vector<TreeExpression> search_idx,
 			std::vector<int> indices,
+			uint64_t *packedKey,
+			uint64_t *bucketLocation,
+			uint64_t *hashedIndex,
+			int keySize,
+			int maxNumberOfBuckets,
 			TreeExpression end_expression,
 			TreeExpression post_expression,
 			TreeExpression initial_expression,
@@ -60,6 +65,9 @@ private:
 	int result_size_;
 	int end_size_, post_size_, initial_size_, skipNull_size_, prejoin_size_, where_size_, indices_size_, *search_exp_size_, search_exp_num_;
 	IndexLookupType lookup_type_;
+	uint64_t *packedKey_, *bucketLocation_, *hashedIndex_;
+	int keySize_;
+	int maxNumberOfBuckets_;
 
 	GTreeNode *search_exp_;
 	GTreeNode *end_expression_;

@@ -351,22 +351,22 @@ void ghashWrapper(int block_x, int block_y,
 }
 
 void indexCountWrapper(int block_x, int block_y,
-					int grid_x, int grid_y,
-					GNValue *outer_table,
-					int outer_rows,
-					int col_num,
-					uint64_t *searchPackedKey,
-					GTreeNode *searchKeyExp,
-					int *searchKeySize,
-					int searchExpNum,
-					uint64_t *packedKey,
-					uint64_t *bucketLocation,
-					uint64_t *hashedIndex,
-					int *indexCount,
-					int keySize,
-					int maxNumberOfBuckets,
-					GNValue *stack
-					)
+						int grid_x, int grid_y,
+						GNValue *outer_table,
+						int outer_rows,
+						int col_num,
+						uint64_t *searchPackedKey,
+						GTreeNode *searchKeyExp,
+						int *searchKeySize,
+						int searchExpNum,
+						uint64_t *packedKey,
+						uint64_t *bucketLocation,
+						uint64_t *hashedIndex,
+						ulong *indexCount,
+						int keySize,
+						int maxNumberOfBuckets,
+						GNValue *stack
+						)
 {
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
