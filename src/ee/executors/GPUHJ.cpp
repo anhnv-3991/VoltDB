@@ -373,6 +373,7 @@ bool GPUHJ::join()
 	int *indices_dev, *search_exp_size;
 	ulong *indexCount, jr_size;
 	uint64_t *searchPackedKey;
+	RESULT *jresult_dev;
 
 
 	outer_partition = (outer_rows_ < DEFAULT_PART_SIZE) ? outer_rows_ : DEFAULT_PART_SIZE;
@@ -436,8 +437,6 @@ bool GPUHJ::join()
 
 			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, sizeof(GNValue) * inner_part_size * inner_cols_, cudaMemcpyHostToDevice));
 
-
-
 			indexCountWrapper(block_x, 1, grid_x, 1,
 								outer_dev, outer_rows_, outer_part_size,
 								searchPackedKey, search_key_size,
@@ -448,6 +447,17 @@ bool GPUHJ::join()
 
 			prefixSumWrapper(indexCount, outer_part_size + 1, &jr_size);
 
+			if (jr_size < 0) {
+				printf("Scanning failed\n");
+				return false;
+			}
+
+			if (jr_size == 0) {
+				continue;
+			}
+
+			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
+
 			hashJoinWrapper(block_x, 1, grid_x, 1,
 								outer_table, inner_table,
 								outer_rows_, outer_part_size, inner_part_size,
@@ -456,10 +466,36 @@ bool GPUHJ::join()
 								searchPackedKey, packedKey_,
 								bucketLocation_, hashedIndex_,
 								indexCount, keySize,
-								maxNumberOfBuckets, result);
+								maxNumberOfBuckets, jresult_dev);
+
+			join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size) * sizeof(RESULT));
+
+			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size * sizeof(RESULT), cudaMemcpyDeviceToHost));
+			checkCudaErrors(cudaFree(jresult_dev));
 
 		}
 	}
+
+	checkCudaErrors(cudaFree(outer_dev));
+	checkCudaErrors(cudaFree(inner_dev));
+	if (initial_size_ > 0)
+		checkCudaErrors(cudaFree(initial_dev));
+
+	if (end_size_ > 0)
+		checkCudaErrors(cudaFree(end_dev));
+
+	if (post_size_ > 0)
+		checkCudaErrors(cudaFree(post_dev));
+
+	if (where_size_ > 0)
+		checkCudaErrors(cudaFree(where_dev));
+
+	checkCudaErrors(cudaFree(search_exp_dev));
+	checkCudaErrors(cudaFree(search_exp_size));
+	checkCudaErrors(cudaFree(indices_dev));
+	checkCudaErrors(cudaFree(stack));
+	checkCudaErrors(cudaFree(indexCount));
+	checkCudaErrors(cudaFree(searchPackedKey));
 
 	return true;
 }
