@@ -1,4 +1,6 @@
 #include "index_join_gpu.h"
+#include "GPUetc/common/GNValue.h"
+#include "GPUetc/expressions/nodedata.h"
 
 using namespace voltdb;
 

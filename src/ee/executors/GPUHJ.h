@@ -96,7 +96,7 @@ private:
 	int result_size_;
 	int end_size_, post_size_, initial_size_, skipNull_size_, prejoin_size_, where_size_, indices_size_, *search_exp_size_, search_exp_num_;
 	IndexLookupType lookup_type_;
-	int maxNumberOfBuckets_;
+	uint64_t maxNumberOfBuckets_;
 	int keySize_;
 
 	GTreeNode *search_exp_;

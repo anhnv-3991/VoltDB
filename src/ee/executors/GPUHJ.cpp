@@ -63,7 +63,7 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 	indices_size_ = indices.size();
 	lookup_type_ = lookup_type;
 
-	maxNumberOfBuckets_ = 14;
+	maxNumberOfBuckets_ = MAX_BUCKETS[14];
 
 
 	bool ret = true;
@@ -181,12 +181,6 @@ void GPUHJ::getResult(RESULT *output) const
 int GPUHJ::getResultSize() const
 {
 	return result_size_;
-}
-
-
-uint GPUHJ::divUtility(uint dividend, uint divisor) const
-{
-	return ((dividend % divisor) == 0) ? (dividend / divisor) : (dividend / divisor + 1);
 }
 
 bool GPUHJ::getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression)
@@ -430,10 +424,13 @@ bool GPUHJ::join()
 
 
 
-	/******** Hash the index table *******/
+	/******** Hash the inner table *******/
 	uint64_t *packedKeySize;
 	ulong *hashCount;
 	uint64_t *packedKey;
+	ulong sum;
+	uint64_t *hashedIndex;
+	uint64_t *bucketLocation;
 
 
 	int block_x = (inner_rows_ < BLOCK_SIZE_X) ? inner_rows_ : BLOCK_SIZE_X;
@@ -441,14 +438,33 @@ bool GPUHJ::join()
 
 	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_rows_ * inner_cols_));
 	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_rows_ * inner_cols_, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMalloc(&packedKey, sizeof(uint64_t) * inner_rows_ * indices_size_));
+	checkCudaErrors(cudaMalloc(&packedKey, sizeof(uint64_t) * inner_rows_ * keySize_));
 	checkCudaErrors(cudaMalloc(&packedKeySize, sizeof(uint64_t) * inner_rows_ * indices_size_));
-	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * block_x));
+	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x + 1)));
 
 
-	packedKeyWrapper(block_x, 1, 1, 1, inner_dev, inner_rows_, inner_cols_, indices_dev, indices_size_, packedKey, indices_size_);
+	packedKeyWrapper(block_x, 1, 1, 1, inner_dev, inner_rows_, inner_cols_, indices_dev, indices_size_, packedKey, keySize_);
+	ghashCountWrapper(block_x, 1, 1, 1, packedKey, inner_rows_, keySize_, hashCount, maxNumberOfBuckets_);
+	prefixSumWrapper(hashCount, block_x + 1, &sum);
+	checkCudaErrors(cudaMalloc(&hashedIndex, sizeof(uint64_t) * sum));
+	checkCudaErrors(cudaMalloc(&bucketLocation, sizeof(uint64_t) * (maxNumberOfBuckets_ + 1)));
+	ghash(block_x, 1, 1, 1, packedKey, inner_rows_, keySize_, hashCount, maxNumberOfBuckets_, hashedIndex, bucketLocation);
+	checkCudaErrors(cudaFree(inner_dev));
+	checkCudaErrors(cudaFree(hashCount));
 
+	/**** Pack search keys from the outer table ****/
+	uint64_t *packedSearchKey;
 
+	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_rows_ * outer_cols_));
+	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_rows_ * outer_cols_, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc(&packedSearchKey, sizeof(uint64_t) * outer_rows_ * keySize_));
+
+	block_x = (outer_rows_ < BLOCK_SIZE_X) ? outer_rows_ : BLOCK_SIZE_X;
+
+	packSearchKey(block_x, 1, 1, 1, outer_dev, outer_rows_, outer_cols_,
+					searchPackedKey, search_exp_dev, search_exp_size, search_exp_num_,
+					keySize_, stack);
+	checkCudaErrors(cudaFree(outer_dev));
 
 	/** Allocate table memory for join **/
 
@@ -475,8 +491,8 @@ bool GPUHJ::join()
 			indexCountWrapper(block_x, 1, grid_x, 1,
 								outer_dev, outer_rows_, outer_part_size,
 								searchPackedKey, search_key_size,
-								search_exp_num_, packedKey_,
-								bucketLocation_, hashedIndex_,
+								search_exp_num_, packedKey,
+								bucketLocation, hashedIndex,
 								indexCount, keySize_,
 								maxNumberOfBuckets_, stack);
 
@@ -498,8 +514,8 @@ bool GPUHJ::join()
 								outer_rows_, outer_part_size, inner_part_size,
 								end_dev, end_size_,
 								post_dev, post_size_,
-								searchPackedKey, packedKey_,
-								bucketLocation_, hashedIndex_,
+								searchPackedKey, packedKey,
+								bucketLocation, hashedIndex,
 								indexCount, keySize,
 								maxNumberOfBuckets, jresult_dev);
 
@@ -532,6 +548,9 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(stack));
 	checkCudaErrors(cudaFree(indexCount));
 	checkCudaErrors(cudaFree(searchPackedKey));
+	checkCudaErrors(cudaFree(packedKey));
+	checkCudaErrors(cudaFree(bucketLocation));
+	checkCudaErrors(cudaFree(hashedIndex));
 
 	return true;
 }
