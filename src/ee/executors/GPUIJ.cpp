@@ -1,23 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/time.h>
-#include <error.h>
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <helper_cuda.h>
-#include <helper_functions.h>
-#include "GPUTUPLE.h"
 #include "GPUIJ.h"
-#include "scan_common.h"
-#include "common/types.h"
-#include "GPUetc/common/GNValue.h"
-#include <sys/time.h>
-#include <cuda_profiler_api.h>
-#include <cudaProfiler.h>
-#include "index_join_gpu.h"
 
 using namespace voltdb;
 
@@ -129,6 +110,7 @@ GPUIJ::GPUIJ(GNValue *outer_table,
 	ret = getTreeNodes(&where_expression_, where_expression);
 	assert(ret == true);
 }
+
 GPUIJ::~GPUIJ()
 {
 	freeArrays<RESULT>(join_result_);
@@ -153,9 +135,6 @@ int compareTime(const void *a, const void *b)
 bool GPUIJ::join(){
 	int loop_count = 0, loop_count2 = 0;
 	cudaError_t res;
-	char fname[256];
-	char *vd;
-	char path[256];
 
 	struct timeval all_start, all_end;
 	gettimeofday(&all_start, NULL);

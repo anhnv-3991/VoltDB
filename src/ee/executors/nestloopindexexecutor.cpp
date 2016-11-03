@@ -368,20 +368,11 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	int col_outer = outer_tuple.sizeInValues();
 	printf("Number of outer_columns: %d and %d\n", col_outer, num_of_outer_cols);
 
-	int block = 0;
-	int tmp_idx = 0;
-
 	while (search_it_out.next(outer_tuple)) {
 		tmp_outer_tuple[idx] = outer_tuple;
 		for (int i = 0; i < col_outer; i++) {
 			NValue tmp_value = outer_tuple.getNValue(i);
-			setGNValue(&index_data_out[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * col_outer], tmp_value);
-		}
-		idx++;
-		tmp_idx++;
-		if (idx % DEFAULT_PART_SIZE_ == 0) {
-			tmp_idx = 0;
-			block++;
+			setGNValue(&index_data_out[idx * col_outer + i], tmp_value);
 		}
 	}
 
@@ -404,13 +395,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
-			setGNValue(&index_data_in[tmp_idx + i * DEFAULT_PART_SIZE_ + block * DEFAULT_PART_SIZE_ * col_inner], tmp_value);
-		}
-		idx++;
-		tmp_idx++;
-		if (idx % DEFAULT_PART_SIZE_ == 0) {
-			tmp_idx = 0;
-			block++;
+			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
 		}
 	}
 
@@ -423,8 +408,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	if (outer_size != 0 && inner_size != 0) {
 
 		gettimeofday(&join_start, NULL);
-		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
-					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
+//		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
+//					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
 
 
 		ret = gn.join();
