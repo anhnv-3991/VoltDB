@@ -3,6 +3,7 @@
 #define NODEDATA_H
 
 #include "common/types.h"
+#include "GPUetc/common/GNValue.h"
 
 namespace voltdb{
 

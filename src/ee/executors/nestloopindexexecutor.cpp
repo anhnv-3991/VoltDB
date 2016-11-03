@@ -73,6 +73,7 @@
 #include "GPUNIJ.h"
 #include "GPUSHJ.h"
 #include "GPUIJ.h"
+#include "GPUHJ.h"
 #include "GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
@@ -223,15 +224,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     // will include TupleValueExpression even after this substitution
     //
     int num_of_searchkeys = (int)m_indexNode->getSearchKeyExpressions().size();
-//    for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
-//        VOLT_TRACE("Search Key[%d]:\n%s",
-//                   ctr, m_indexNode->getSearchKeyExpressions()[ctr]->debug(true).c_str());
-//    }
-//    std::cout << "************************* START *************************" << std::endl;
-//    for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
-//    	std::cout << "Search key " << m_indexNode->getSearchKeyExpressions()[ctr]->debug(true).c_str() << std::endl;
-//    }
-//    std::cout << "************************** END *************************" << std::endl;
 
     // end expression
     // where table1.field = table2.field
@@ -410,7 +402,22 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		gettimeofday(&join_start, NULL);
 //		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
 //					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
-
+		GPUHJ gn(index_data_out,
+					index_data_in,
+					outer_size,
+					col_outer,
+					inner_size,
+					col_inner,
+					gsearchKeyExpression,
+					inner_indices,
+					end_ex_tree,
+					post_ex_tree,
+					initial_ex_Tre,
+					skipNull_ex_tree,
+					prejoin_ex_tree,
+					where_ex_tre,
+					lookup_type
+					);
 
 		ret = gn.join();
 		gettimeofday(&join_end, NULL);
@@ -435,22 +442,22 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
-						//join_tuple.setNValue(col_ctr,
-						//		  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+						join_tuple.setNValue(col_ctr,
+								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
 					}
 				}
 
-//                if (m_aggExec != NULL) {
-//                    if (m_aggExec->p_execute_tuple(join_tuple)) {
-//                    	// Get enough rows for LIMIT
-//
-//                        earlyReturned = true;
-//                        break;
-//                    }
-//                } else {
-//                    m_tmpOutputTable->insertTempTuple(join_tuple);
-//                    pmp.countdownProgress();
-//                }
+                if (m_aggExec != NULL) {
+                    if (m_aggExec->p_execute_tuple(join_tuple)) {
+                    	// Get enough rows for LIMIT
+
+                        earlyReturned = true;
+                        break;
+                    }
+                } else {
+                    m_tmpOutputTable->insertTempTuple(join_tuple);
+                    pmp.countdownProgress();
+                }
 
 				if (earlyReturned) {
 					break;
