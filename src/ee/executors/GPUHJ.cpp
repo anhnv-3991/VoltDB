@@ -3,8 +3,7 @@
 GPUHJ::GPUHJ()
 {
 		outer_table_ = inner_table_ = NULL;
-		outer_rows_ =  0;
-		outer_rows_ = 0;
+		outer_rows_ =  inner_rows_ = 0;
 		outer_cols_ = inner_cols_ = 0;
 		join_result_ = NULL;
 		result_size_ = 0;
@@ -18,11 +17,7 @@ GPUHJ::GPUHJ()
 		search_exp_size_ = NULL;
 		search_exp_num_ = 0;
 		indices_ = NULL;
-		packedKey_ = NULL;
-		bucketLocation_ = NULL;
-		hashedIndex_ = NULL;
-		keySize_ = 0;
-		maxNumberOfBuckets_ = 0;
+		maxNumberOfBuckets_ = 14;
 
 		search_exp_ = NULL;
 		end_expression_ = NULL;
@@ -41,11 +36,6 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 				int inner_cols,
 				std::vector<TreeExpression> search_exp,
 				std::vector<int> indices,
-				uint64_t *packedKey,
-				uint64_t *bucketLocation,
-				uint64_t *hashedIndex,
-				int keySize,
-				int maxNumberOfBuckets,
 				TreeExpression end_expression,
 				TreeExpression post_expression,
 				TreeExpression initial_expression,
@@ -73,11 +63,7 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 	indices_size_ = indices.size();
 	lookup_type_ = lookup_type;
 
-	packedKey_ = packedKey;
-	bucketLocation_ = bucketLocation;
-	hashedIndex_ = hashedIndex;
-	keySize_ = keySize;
-	maxNumberOfBuckets_ = maxNumberOfBuckets;
+	maxNumberOfBuckets_ = 14;
 
 
 	bool ret = true;
@@ -123,6 +109,31 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 
 	ret = getTreeNodes(&where_expression_, where_expression);
 	assert(ret == true);
+
+	int size = 0;
+
+	for (int i = 0; i < indices_; i++) {
+		switch(inner_table_[indices_[i]].getValueType()) {
+		case VALUE_TYPE_TINYINT: {
+			size += sizeof(int8_t);
+			break;
+		}
+		case VALUE_TYPE_SMALLINT: {
+			size += sizeof(int16_t);
+			break;
+		}
+		case VALUE_TYPE_INTEGER: {
+			size += sizeof(int32_t);
+			break;
+		}
+		case VALUE_TYPE_BIGINT: {
+			size += sizeof(int64_t);
+			break;
+		}
+		}
+	}
+
+	keySize_ = (size - 1)/8 + 1;
 }
 
 bool GPUHJ::getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression)
@@ -376,12 +387,7 @@ bool GPUHJ::join()
 	RESULT *jresult_dev;
 
 
-	outer_partition = (outer_rows_ < DEFAULT_PART_SIZE) ? outer_rows_ : DEFAULT_PART_SIZE;
-	inner_partition = (inner_rows_ < DEFAULT_PART_SIZE) ? inner_rows_ : DEFAULT_PART_SIZE;
 
-	/* Allocate table memory */
-	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_cols_ * outer_partition));
-	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_cols_ * inner_partition));
 
 	if (initial_size_ > 0) {
 		checkCudaErrors(cudaMalloc(&initial_dev, sizeof(GTreeNode) * initial_size_));
@@ -415,14 +421,43 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMemcpy(search_exp_dev, search_exp_, sizeof(GTreeNode) * tmp_size, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(search_exp_size, search_exp_size_, sizeof(int) * search_exp_num_, cudaMemcpyHostToDevice));
 
-	checkCudaErrors(cudaMalloc(indices_dev, sizeof(int) * indices_size_));
+	checkCudaErrors(cudaMalloc(&indices_dev, sizeof(int) * indices_size_));
 	checkCudaErrors(cudaMemcpy(indices_dev, indices_, sizeof(int) * indices_size_, cudaMemcpyHostToDevice));
 
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * outer_partition));
 	checkCudaErrors(cudaMalloc(&indexCount, sizeof(ulong) * outer_partition + 1));
+
+
+
+
+	/******** Hash the index table *******/
+	uint64_t *packedKeySize;
+	ulong *hashCount;
+	uint64_t *packedKey;
+
+
+	int block_x = (inner_rows_ < BLOCK_SIZE_X) ? inner_rows_ : BLOCK_SIZE_X;
+	int grid_x = (inner_rows_ % block_x == 0) ? (inner_rows_ / block_x) : (inner_rows_ / block_x + 1);
+
+	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_rows_ * inner_cols_));
+	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_rows_ * inner_cols_, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc(&packedKey, sizeof(uint64_t) * inner_rows_ * indices_size_));
+	checkCudaErrors(cudaMalloc(&packedKeySize, sizeof(uint64_t) * inner_rows_ * indices_size_));
+	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * block_x));
+
+
+	packedKeyWrapper(block_x, 1, 1, 1, inner_dev, inner_rows_, inner_cols_, indices_dev, indices_size_, packedKey, indices_size_);
+
+
+
+	/** Allocate table memory for join **/
+
+	outer_partition = (outer_rows_ < DEFAULT_PART_SIZE_) ? outer_rows_ : DEFAULT_PART_SIZE_;
+	inner_partition = (inner_rows_ < DEFAULT_PART_SIZE_) ? inner_rows_ : DEFAULT_PART_SIZE_;
+
+	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_cols_ * outer_partition));
+	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_cols_ * inner_partition));
 	checkCudaErrors(cudaMalloc(&searchPackedKey, sizeof(uint64_) * outer_partition));
-
-
 
 	for (int outer_idx = 0; outer_idx < outer_rows_; outer_idx += outer_partition) {
 		int outer_part_size = (outer_idx + outer_partition < outer_rows_) ? outer_partition : (outer_rows_ - outer_idx);
@@ -478,6 +513,7 @@ bool GPUHJ::join()
 
 	checkCudaErrors(cudaFree(outer_dev));
 	checkCudaErrors(cudaFree(inner_dev));
+
 	if (initial_size_ > 0)
 		checkCudaErrors(cudaFree(initial_dev));
 

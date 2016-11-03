@@ -9,34 +9,122 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 {
 	int keyOffset = 0;
 	int intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+	GNValue tmp_val;
 
 	if (keyIndices != NULL) {
 		for (int i = 0; i < indexNum; i++) {
-			int64_t value = tuple[keyIndices[i]].getValue();
+			tmp_val = tuple[keyIndices[i]];
+
+			int64_t value = tmp_val.getValue();
 			uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
 
-			for (int j = sizeof(int64_t) - 1; k >= 0; k--) {
-				packedKey[keyOffset] |= (0xFF & (keyValue >> (k * 8))) << (intraKeyOffset * 8);
-				intraKeyOffset--;
-				if (intraKeyOffset < 0) {
-					intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-					keyOffset++;
+			switch (tmp_val.getValueType()) {
+			case VALUE_TYPE_TINYINT: {
+				for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
 				}
+				break;
 			}
+			case VALUE_TYPE_SMALLINT: {
+				for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
+				}
+
+				break;
+			}
+			case VALUE_TYPE_INTEGER: {
+				for (int j = sizeof(uint32_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
+				}
+
+				break;
+			}
+			case VALUE_TYPE_BIGINT: {
+				for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
+				}
+
+				break;
+			}
+			}
+
 		}
 	} else {
 		for (int i = 0; i < indexNum; i++) {
-			int64_t value = tuple[i].getValue();
+			tmp_val = tuple[i];
+			int64_t value = tmp_val.getValue();
 			uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
 
-			for (int j = sizeof(int64_t) - 1; k >= 0; k--) {
-				packedKey[keyOffset] |= (0xFF & (keyValue >> (k * 8))) << (intraKeyOffset * 8);
-				intraKeyOffset--;
-				if (intraKeyOffset < 0) {
-					intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-					keyOffset++;
+			switch (tmp_val.getValueType()) {
+			case VALUE_TYPE_TINYINT: {
+				for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
 				}
+				break;
 			}
+			case VALUE_TYPE_SMALLINT: {
+				for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
+				}
+
+				break;
+			}
+			case VALUE_TYPE_INTEGER: {
+				for (int j = sizeof(uint32_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
+				}
+
+				break;
+			}
+			case VALUE_TYPE_BIGINT: {
+				for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
+					packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+					intraKeyOffset--;
+					if (intraKeyOffset < 0) {
+						intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+						keyOffset++;
+					}
+				}
+
+				break;
+			}
+			}
+
 		}
 	}
 }
@@ -171,12 +259,13 @@ __global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *i
 	}
 }
 
-__global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, uint64_t *hashCount, uint64_t maxNumberOfBuckets)
+__global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, ulong *hashCount, uint64_t maxNumberOfBuckets)
 {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
+	int i;
 
-	for (int i = index; i < tupleNum; i += stride) {
+	for (i = index; i < tupleNum; i += stride) {
 		uint64_t hash = hasher(packedKey + i * keySize, keySize);
 		uint64_t bucketOffset = hash % maxNumberOfBuckets;
 		hashCount[bucketOffset * stride + index]++;
@@ -184,22 +273,19 @@ __global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, uint6
 
 	__syncthreads();
 
-	if (i == keyNum) {
+	if (i == tupleNum) {
 		hashCount[i] = 0;
 	}
 }
 
-__global__ void ghash(uint64_t *packedKey, int tupleNum, int keySize, uint64_t *hashCount, uint64_t maxNumberOfBuckets, uint64_t *hashedIndex, uint64_t *bucketLocation)
+__global__ void ghash(uint64_t *packedKey, int tupleNum, int keySize, ulong *hashCount, uint64_t maxNumberOfBuckets, uint64_t *hashedIndex, uint64_t *bucketLocation)
 {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
+	int i;
 
-	if (index < maxNumberOfBuckets) {
-		bucketLocation[index] = hashCount[index * stride];
-	}
-
-	if (index == maxNumberOfBuckets) {
-		bucketLocation[index] = hashCount[(index - 1) * stride];
+	for (i = index; i <= maxNumberOfBuckets; i += stride) {
+		bucketLocation[i] = hashCount[i * stride];
 	}
 
 	__syncthreads();
@@ -212,10 +298,28 @@ __global__ void ghash(uint64_t *packedKey, int tupleNum, int keySize, uint64_t *
 	}
 }
 
-__global__ void hashIndexCount(GNValue *outer_table, int outer_rows, uint64_t *searchPackedKey,
-								GTreeNode *searchKeyExp, int *searchKeySize, int searchExpNum,
-								uint64_t *packedKey, uint64_t *bucketLocation, uint64_t *hashedIndex,
-								ulong *indexCount, int keySize, int maxNumberOfBuckets, GNValue *stack)
+__global__ void packSearchKey(GNValue *outer_table, int outer_rows, int outer_cols,
+								uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
+								int *searchKeySize, int searchExpNum,
+								int keySize, GNValue *stack)
+{
+	int index = blockDim.x * blockIdx.x + threadIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	GNValue tmp_outer[4];
+	int search_ptr = 0;
+
+	for (int i = index; i < outer_rows; i += stride) {
+		for (int j = 0; j < searchExpNum; search_ptr += searchKeySize[j], j++) {
+			tmp_outer[j] = hashEvaluate(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, stack + index, stride);
+		}
+
+		keyGenerate(tmp_outer, NULL, searchExpNum, searchPackedKey + i * keySize);
+	}
+}
+
+__global__ void hashIndexCount(uint64_t *searchPackedKey, int outer_rows,
+								uint64_t *packedKey, uint64_t *bucketLocation,
+								ulong *indexCount, int keySize, int maxNumberOfBuckets)
 {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -224,12 +328,6 @@ __global__ void hashIndexCount(GNValue *outer_table, int outer_rows, uint64_t *s
 	int count_res = 0;
 
 	for (int i = index; i < outer_rows; i += stride) {
-		for (int j = 0; j < searchExpNum; search_ptr += searchKeySize[j], j++) {
-			tmp_outer[j] = hashEvaluate(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i, NULL, stack + index, stride);
-		}
-
-		keyGenerate(tmp_outer, NULL, searchExpNum, searchPackedKey + i * keySize);
-
 		uint64_t bucketOffset = hasher(searchPackedKey + i * keySize, keySize) % maxNumberOfBuckets;
 		uint64_t start = bucketLocation[bucketOffset];
 		uint64_t end = bucketLocation[bucketOffset + 1];
@@ -271,11 +369,13 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table, int outer_r
 		uint64_t end = bucketLocation[bucketOffset + 1];
 
 		for (uint64_t j = start; j < end; j++) {
+			int inner_idx = hashedIndex[j];
+
 			key_check = equalityChecker(searchPackedKey + i * keySize, packedKey + j, keySize);
-			exp_check = (key_check) ? hashEvaluate(end_expression, end_size, outer_table + i * outer_cols, inner_table + j * inner_cols, stack + index, stride) : GNValue::getFalse();
-			exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size, outer_table + i * outer_cols, inner_table + j * inner_cols, stack + index, stride) : GNValue::getFalse();
+			exp_check = (key_check) ? hashEvaluate(end_expression, end_size, outer_table + i * outer_cols, inner_table + inner_idx * inner_cols, stack + index, stride) : GNValue::getFalse();
+			exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size, outer_table + i * outer_cols, inner_table + inner_idx * inner_cols, stack + index, stride) : GNValue::getFalse();
 			result[write_location].lkey = (exp_check.isTrue()) ? i : (-1);
-			result[write_location].rkey = (exp_check.isTrue()) ? hashedIndex[j] : (-1);
+			result[write_location].rkey = (exp_check.isTrue()) ? inner_idx : (-1);
 			write_location++;
 		}
 	}
@@ -283,7 +383,7 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table, int outer_r
 
 void packKeyWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
-					GNValue **index_table,
+					GNValue *index_table,
 					int tuple_num,
 					int col_num,
 					int *indices,
@@ -309,7 +409,7 @@ void ghashCountWrapper(int block_x, int block_y,
 						uint64_t *packedKey,
 						int keyNum,
 						int keySize,
-						uint64_t *hashCount,
+						ulong *hashCount,
 						uint64_t maxNumberOfBuckets
 						)
 {
@@ -330,7 +430,7 @@ void ghashWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
 					uint64_t *packedKey,
 					int keyNum,
-					uint64_t *hashCount,
+					ulong *hashCount,
 					int keySize,
 					int numberOfBuckets,
 					uint64_t *hashedIndex,
@@ -340,7 +440,7 @@ void ghashWrapper(int block_x, int block_y,
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
-	ghash<<<gridSize, blockSize>>>(packedKey, keyNum, hashCount, keySize, numberOfBuckets, hashedIndex, bucketLocation);
+	ghash<<<gridSize, blockSize>>>(packedKey, keyNum, keySize, hashCount, numberOfBuckets, hashedIndex, bucketLocation);
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (ghash) error: %s\n", cudaGetErrorString(err));
@@ -350,32 +450,44 @@ void ghashWrapper(int block_x, int block_y,
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
+void packSearchKeyWrapper(int block_x, int block_y,
+							int grid_x, int grid_y,
+							GNValue *outer_table, int outer_rows, int outer_cols,
+							uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
+							int *searchKeySize, int searchExpNum,
+							int keySize, GNValue *stack)
+{
+	dim3 gridSize(grid_x, grid_y, 1);
+	dim3 blockSize(block_x, block_y, 1);
+
+	packSearchKey<<<gridSize, blockSize>>>(outer_table, outer_rows, outer_cols, searchPackedKey, searchKeyExp, searchKeySize, searchExpNum, keySize, stack);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (ghash) error: %s\n", cudaGetErrorString(err));
+		exit(1);
+	}
+
+	checkCudaErrors(cudaDeviceSynchronize());
+
+}
+
 void indexCountWrapper(int block_x, int block_y,
 						int grid_x, int grid_y,
-						GNValue *outer_table,
-						int outer_rows,
-						int col_num,
 						uint64_t *searchPackedKey,
-						GTreeNode *searchKeyExp,
-						int *searchKeySize,
-						int searchExpNum,
+						int outer_rows,
 						uint64_t *packedKey,
 						uint64_t *bucketLocation,
-						uint64_t *hashedIndex,
 						ulong *indexCount,
 						int keySize,
-						int maxNumberOfBuckets,
-						GNValue *stack
+						int maxNumberOfBuckets
 						)
 {
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
-	hashIndexCount<<<gridSize, blockSize>>>(outer_table, outer_rows, searchPackedKey,
-											searchKeyExp, searchKeySize, searchExpNum,
-											packedKey, bucketLocation,
-											hashedIndex, indexCount,
-											keySize, maxNumberOfBuckets, stack);
+	hashIndexCount<<<gridSize, blockSize>>>(searchPackedKey, outer_rows,
+											packedKey, bucketLocation, indexCount,
+											keySize, maxNumberOfBuckets);
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (hashIndexCount) error: %s\n", cudaGetErrorString(err));
@@ -403,6 +515,7 @@ void hashJoinWrapper(int block_x, int block_y,
 						ulong *indexCount,
 						int keySize,
 						int maxNumberOfBuckets,
+						GNValue *stack,
 						RESULT *result
 						)
 {

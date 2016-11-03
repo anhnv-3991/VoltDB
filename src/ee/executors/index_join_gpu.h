@@ -20,7 +20,7 @@
 #include <thrust/scan.h>
 #include <thrust/fill.h>
 
-namespace voltdb{
+using namespace voltdb;
 
 extern "C" {
 void prejoin_filterWrapper(int grid_x, int grid_y,
@@ -100,5 +100,5 @@ void write_outWrapper(int grid_x, int grid_y,
 
 void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum);
 }
-}
+
 #endif

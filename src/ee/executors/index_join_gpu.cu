@@ -1,6 +1,6 @@
 #include "index_join_gpu.h"
 
-namespace voltdb {
+using namespace voltdb;
 
 /**
 count() is counting match tuple.
@@ -1609,4 +1609,4 @@ void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum)
 }
 
 }
-}
+

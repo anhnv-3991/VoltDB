@@ -82,7 +82,7 @@ class GNValue {
 
   public:
     /* Create a default NValue */
-    inline CUDAH GNValue();
+	inline CUDAH GNValue();
     inline CUDAH GNValue(const ValueType type) {
 		m_data = 0;
 		m_valueType = type;

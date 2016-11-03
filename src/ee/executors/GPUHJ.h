@@ -35,11 +35,6 @@ public:
 			int inner_cols,
 			std::vector<TreeExpression> search_idx,
 			std::vector<int> indices,
-			uint64_t *packedKey,
-			uint64_t *bucketLocation,
-			uint64_t *hashedIndex,
-			int keySize,
-			int maxNumberOfBuckets,
 			TreeExpression end_expression,
 			TreeExpression post_expression,
 			TreeExpression initial_expression,
@@ -57,6 +52,42 @@ public:
 	int getResultSize() const;
 
 	void debug();
+
+	static const uint64_t MAX_BUCKETS[] = {
+	        3,
+	        7,
+	        13,
+	        31,
+	        61,
+	        127,
+	        251,
+	        509,
+	        1021,
+	        2039,
+	        4093,
+	        8191,
+	        16381,
+	        32749,
+	        65521,
+	        131071,
+	        262139,
+	        524287,
+	        1048573,
+	        2097143,
+	        4194301,
+	        8388593,
+	        16777213,
+	        33554393,
+	        67108859,
+	        134217689,
+	        268435399,
+	        536870909,
+	        1073741789,
+	        2147483647,
+	        4294967291,
+	        8589934583
+	};
+
 private:
 	GNValue *outer_table_, *inner_table_;
 	int outer_rows_, inner_rows_, outer_cols_, inner_cols_;
@@ -65,9 +96,8 @@ private:
 	int result_size_;
 	int end_size_, post_size_, initial_size_, skipNull_size_, prejoin_size_, where_size_, indices_size_, *search_exp_size_, search_exp_num_;
 	IndexLookupType lookup_type_;
-	uint64_t *packedKey_, *bucketLocation_, *hashedIndex_;
-	int keySize_;
 	int maxNumberOfBuckets_;
+	int keySize_;
 
 	GTreeNode *search_exp_;
 	GTreeNode *end_expression_;
@@ -78,7 +108,6 @@ private:
 	GTreeNode *where_expression_;
 
 	uint getPartitionSize() const;
-	uint divUtility(uint divident, uint divisor) const;
 	bool getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression);
 	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);

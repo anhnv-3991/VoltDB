@@ -24,7 +24,7 @@ using namespace voltdb;
 extern "C" {
 void packKeyWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
-					GNValue **index_table,
+					GNValue *index_table,
 					int tuple_num,
 					int col_num,
 					int *indices,
@@ -37,7 +37,7 @@ void ghashCountWrapper(int block_x, int block_y,
 						uint64_t *packedKey,
 						int keyNum,
 						int keySize,
-						uint64_t *hashCount,
+						ulong *hashCount,
 						uint64_t maxNumberOfBuckets
 						);
 
@@ -45,29 +45,29 @@ void ghashWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
 					uint64_t *packedKey,
 					int keyNum,
-					uint64_t *hashCount,
+					ulong *hashCount,
 					int keySize,
 					int numberOfBuckets,
 					uint64_t *hashedIndex,
 					uint64_t *bucketLocation
 					);
 
+void packSearchKeyWrapper(int block_x, int block_y,
+							int grid_x, int grid_y,
+							GNValue *outer_table, int outer_rows, int outer_cols,
+							uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
+							int *searchKeySize, int searchExpNum,
+							int keySize, GNValue *stack);
+
 void indexCountWrapper(int block_x, int block_y,
 						int grid_x, int grid_y,
-						GNValue *outer_table,
-						int outer_rows,
-						int col_num,
 						uint64_t *searchPackedKey,
-						GTreeNode *searchKeyExp,
-						int *searchKeySize,
-						int searchExpNum,
+						int outer_rows,
 						uint64_t *packedKey,
 						uint64_t *bucketLocation,
-						uint64_t *hashedIndex,
 						ulong *indexCount,
 						int keySize,
-						int maxNumberOfBuckets,
-						GNValue *stack
+						int maxNumberOfBuckets
 						);
 
 void hashJoinWrapper(int block_x, int block_y,
@@ -88,6 +88,7 @@ void hashJoinWrapper(int block_x, int block_y,
 						ulong *indexCount,
 						int keySize,
 						int maxNumberOfBuckets,
+						GNValue *stack,
 						RESULT *result
 						);
 
