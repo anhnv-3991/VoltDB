@@ -20,6 +20,7 @@
 #include "common/types.h"
 #include "GPUetc/common/GNValue.h"
 #include "ghash.h"
+#include <math.h>
 
 using namespace voltdb;
 

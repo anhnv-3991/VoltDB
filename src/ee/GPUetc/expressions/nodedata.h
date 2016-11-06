@@ -21,6 +21,14 @@ typedef struct _TreeNode {
 	GNValue value;		// Value of const, = NULL if not const
 } GTreeNode;
 
+typedef struct _HashNode {
+	uint64_t *hashedIdx;
+	uint64_t *hashedKey;
+	uint64_t *bucketLocation;
+	int bucketNum;
+	int keySize;
+	int size;	//number of elements
+} GHashNode;
 
 //#define TREE_EVAL_ 1
 #define POST_EXP_ 1

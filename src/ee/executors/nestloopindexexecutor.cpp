@@ -368,28 +368,37 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		}
 	}
 
-	/********** Get column data for end_expression (index keys) & post_expression from inner table ********************************/
-	IndexCursor index_cursor2(index->getTupleSchema());
-
-	/* Move to smallest key */
-	bool begin = true;
-	TableTuple tmp_tuple(inner_table->schema());
-
-	index->moveToEnd(begin, index_cursor2);
-
-
-	idx = 0;
-	int col_inner = inner_tuple.sizeInValues();
-
-	tmp_idx = block = 0;
-
-	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
+	while (search_it_in.next(inner_tuple)) {
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
-			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
+			setGNValue(&index_data_in[idx * col_outer + i], tmp_value);
 		}
 	}
+
+	/* Get column data for end_expression (index keys) &
+	 * post_expression from inner table.
+	 */
+	//IndexCursor index_cursor2(index->getTupleSchema());
+
+	/* Move to smallest key */
+//	bool begin = true;
+//
+//	index->moveToEnd(begin, index_cursor2);
+//
+//
+//	idx = 0;
+//	int col_inner = inner_tuple.sizeInValues();
+//
+//	tmp_idx = block = 0;
+//
+//	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
+//		tmp_inner_tuple[idx] = inner_tuple;
+//		for (int i = 0; i < col_inner; i++) {
+//			NValue tmp_value = inner_tuple.getNValue(i);
+//			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
+//		}
+//	}
 
 	bool ret = true;
 	RESULT *join_result = NULL;

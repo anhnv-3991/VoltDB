@@ -44,12 +44,8 @@ void ghashCountWrapper(int block_x, int block_y,
 void ghashWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
 					uint64_t *packedKey,
-					int keyNum,
 					ulong *hashCount,
-					int keySize,
-					int numberOfBuckets,
-					uint64_t *hashedIndex,
-					uint64_t *bucketLocation
+					GHashNode hashTable
 					);
 
 void packSearchKeyWrapper(int block_x, int block_y,
@@ -61,33 +57,30 @@ void packSearchKeyWrapper(int block_x, int block_y,
 
 void indexCountWrapper(int block_x, int block_y,
 						int grid_x, int grid_y,
-						uint64_t *searchPackedKey,
-						int outer_rows,
-						uint64_t *packedKey,
-						uint64_t *bucketLocation,
+						GHashNode outerHash,
+						GHashNode innerHash,
+						int lowerBound,
+						int upperBound,
 						ulong *indexCount,
-						int keySize,
-						int maxNumberOfBuckets
+						int size
 						);
 
 void hashJoinWrapper(int block_x, int block_y,
 						int grid_x, int grid_y,
 						GNValue *outer_table,
 						GNValue *inner_table,
-						int outer_rows,
 						int outer_cols,
 						int inner_cols,
 						GTreeNode *end_expression,
 						int end_size,
 						GTreeNode *post_expression,
 						int post_size,
-						uint64_t *searchPackedKey,
-						uint64_t *packedKey,
-						uint64_t *bucketLocation,
-						uint64_t *hashedIndex,
+						GHashNode outerHash,
+						GHashNode innerHash,
+						int lowerBound,
+						int upperBound,
 						ulong *indexCount,
-						int keySize,
-						int maxNumberOfBuckets,
+						int size,
 						GNValue *stack,
 						RESULT *result
 						);

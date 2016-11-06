@@ -124,14 +124,6 @@ GPUIJ::~GPUIJ()
 	freeArrays<GTreeNode>(where_expression_);
 }
 
-int compareTime(const void *a, const void *b)
-{
-	long int x = *((long int*)a);
-	long int y = *((long int*)b);
-
-	return (x > y) ? 1 : ((x < y) ? -1 : 0);
-}
-
 bool GPUIJ::join(){
 	int loop_count = 0, loop_count2 = 0;
 	cudaError_t res;
