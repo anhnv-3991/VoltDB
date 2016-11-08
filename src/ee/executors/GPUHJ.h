@@ -1,26 +1,10 @@
 #ifndef GPUHJ_H_
 #define GPUHJ_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/time.h>
-#include <error.h>
 #include <cuda.h>
-#include <cuda_runtime.h>
-#include <helper_cuda.h>
-#include <helper_functions.h>
-#include <cuda_profiler_api.h>
-#include <cudaProfiler.h>
 #include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/expressions/nodedata.h"
 #include "GPUTUPLE.h"
-#include "common/types.h"
-#include "GPUetc/common/GNValue.h"
-#include "ghash.h"
-#include <math.h>
 
 using namespace voltdb;
 
@@ -54,41 +38,7 @@ public:
 
 	void debug();
 
-	static const uint64_t MAX_BUCKETS[] = {
-	        3,
-	        7,
-	        13,
-	        31,
-	        61,
-	        127,
-	        251,
-	        509,
-	        1021,
-	        2039,
-	        4093,
-	        8191,
-	        16381,
-	        32749,
-	        65521,
-	        131071,
-	        262139,
-	        524287,
-	        1048573,
-	        2097143,
-	        4194301,
-	        8388593,
-	        16777213,
-	        33554393,
-	        67108859,
-	        134217689,
-	        268435399,
-	        536870909,
-	        1073741789,
-	        2147483647,
-	        4294967291,
-	        8589934583
-	};
-
+	static const uint64_t MAX_BUCKETS[];
 private:
 	GNValue *outer_table_, *inner_table_;
 	int outer_rows_, inner_rows_, outer_cols_, inner_cols_;
@@ -128,5 +78,40 @@ private:
 	}
 
 };
+
+const uint64_t GPUHJ::MAX_BUCKETS[] = {
+	        3,
+	        7,
+	        13,
+	        31,
+	        61,
+	        127,
+	        251,
+	        509,
+	        1021,
+	        2039,
+	        4093,
+	        8191,
+	        16381,
+	        32749,
+	        65521,
+	        131071,
+	        262139,
+	        524287,
+	        1048573,
+	        2097143,
+	        4194301,
+	        8388593,
+	        16777213,
+	        33554393,
+	        67108859,
+	        134217689,
+	        268435399,
+	        536870909,
+	        1073741789,
+	        2147483647,
+	        4294967291,
+	        8589934583
+	};
 
 #endif

@@ -1,23 +1,8 @@
 #ifndef GPUIJ_H
 #define GPUIJ_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/time.h>
-#include <error.h>
 #include <cuda.h>
-#include <cuda_runtime.h>
-#include <helper_cuda.h>
-#include <helper_functions.h>
 #include "GPUTUPLE.h"
-#include "common/types.h"
-#include "GPUetc/common/GNValue.h"
-#include <cuda_profiler_api.h>
-#include <cudaProfiler.h>
-#include "index_join_gpu.h"
 #include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/expressions/nodedata.h"
 

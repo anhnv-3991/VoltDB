@@ -189,7 +189,7 @@ namespace boost
     template <typename T>
     typename boost::hash_detail::basic_numbers<T>::type hash_value(T v)
     {
-    	std::cout << "Hash basic numbers" << std::endl;
+    	//std::cout << "Hash basic numbers" << std::endl;
         return static_cast<std::size_t>(v);
     }
 

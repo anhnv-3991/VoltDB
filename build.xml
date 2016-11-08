@@ -1215,6 +1215,9 @@ NATIVE EE STUFF
         <fileset dir="${build.dir}/objects/executors">
             <include name="index_join_gpu.o"/>
         </fileset>
+        <fileset dir="${build.dir}/objects/executors">
+            <include name="ghash.o"/>
+        </fileset>
     </copy>
 </target>
 

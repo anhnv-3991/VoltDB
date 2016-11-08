@@ -2,7 +2,20 @@
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/nodedata.h"
 
-using namespace voltdb;
+#include <stdio.h>
+#include <stdint.h>
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <helper_cuda.h>
+#include <helper_functions.h>
+#include <sys/time.h>
+#include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
+#include <thrust/copy.h>
+#include <thrust/scan.h>
+#include <thrust/fill.h>
+
+namespace voltdb {
 
 /**
 count() is counting match tuple.
@@ -1610,5 +1623,6 @@ void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum)
 	*sum = *(dev_ptr + ele_num - 1);
 }
 
+}
 }
 

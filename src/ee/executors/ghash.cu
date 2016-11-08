@@ -391,7 +391,7 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 		write_location = indexCount[index];
 
 		for (bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x; bucketIdx < upperBound; bucketIdx += stride) {
-			for (outerIdx = threadIdx + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
+			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
 				for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
 					outerTupleIdx = outerHash.hashedIdx[outerIdx];
 					innerTupleIdx = innerHash.hashedIdx[innerIdx];
@@ -565,7 +565,7 @@ void hashJoinWrapper(int block_x, int block_y,
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void prefixSumWrapper(ulong *input, int ele_num, ulong *sum)
+void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum)
 {
 	thrust::device_ptr<ulong> dev_ptr(input);
 

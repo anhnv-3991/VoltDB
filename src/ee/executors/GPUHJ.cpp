@@ -1,5 +1,21 @@
 #include "GPUHJ.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/time.h>
+#include <error.h>
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <helper_cuda.h>
+#include <helper_functions.h>
+#include <cuda_profiler_api.h>
+#include <cudaProfiler.h>
+#include <math.h>
+#include "ghash.h"
+
 GPUHJ::GPUHJ()
 {
 		outer_table_ = inner_table_ = NULL;
@@ -525,7 +541,7 @@ bool GPUHJ::join()
 							outerHash, innerHash,
 							bucketIdx, bucketIdx + bucketStride,
 							indexCount, partitionSize);
-		prefixSumWrapper(indexCount, partitionSize + 1, &jr_size);
+		hprefixSumWrapper(indexCount, partitionSize + 1, &jr_size);
 
 		if (jr_size < 0) {
 			printf("Scanning failed\n");

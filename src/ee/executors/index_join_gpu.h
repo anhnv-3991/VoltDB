@@ -1,6 +1,7 @@
 #ifndef INDEX_JOIN_GPU_H_
 #define INDEX_JOIN_GPU_H_
 
+
 #include <iostream>
 #include <stdio.h>
 #include <stdint.h>
@@ -9,9 +10,9 @@
 #include <helper_cuda.h>
 #include <helper_functions.h>
 #include <sys/time.h>
-#include "GPUetc/common/GNValue.h"
 #include "GPUTUPLE.h"
 #include "common/types.h"
+#include "GPUetc/common/GNValue.h"
 #include "GPUetc/cudaheader.h"
 #include "GPUetc/expressions/nodedata.h"
 #include <thrust/device_ptr.h>

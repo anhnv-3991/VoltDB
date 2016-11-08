@@ -1,4 +1,19 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/time.h>
+#include <error.h>
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <helper_cuda.h>
+#include <helper_functions.h>
+#include <cuda_profiler_api.h>
+#include <cudaProfiler.h>
 #include "GPUIJ.h"
+#include "scan_common.h"
+#include "index_join_gpu.h"
 
 using namespace voltdb;
 

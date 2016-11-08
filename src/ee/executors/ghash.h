@@ -85,7 +85,7 @@ void hashJoinWrapper(int block_x, int block_y,
 						RESULT *result
 						);
 
-void prefixSumWrapper(ulong *input, int ele_num, ulong *sum);
+void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum);
 }
 
 #endif

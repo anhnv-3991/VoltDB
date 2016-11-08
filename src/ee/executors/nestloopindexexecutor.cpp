@@ -368,6 +368,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		}
 	}
 
+	int col_inner = inner_tuple.sizeInValues();
 	while (search_it_in.next(inner_tuple)) {
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
@@ -388,7 +389,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 //
 //
 //	idx = 0;
-//	int col_inner = inner_tuple.sizeInValues();
 //
 //	tmp_idx = block = 0;
 //
@@ -417,14 +417,14 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 					col_outer,
 					inner_size,
 					col_inner,
-					gsearchKeyExpression,
+					gsearchKeyExpressions,
 					inner_indices,
 					end_ex_tree,
 					post_ex_tree,
-					initial_ex_Tre,
+					initial_ex_tree,
 					skipNull_ex_tree,
 					prejoin_ex_tree,
-					where_ex_tre,
+					where_ex_tree,
 					lookup_type
 					);
 

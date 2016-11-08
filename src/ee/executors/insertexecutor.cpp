@@ -84,7 +84,6 @@ bool InsertExecutor::p_init(AbstractPlanNode* abstractNode,
     assert(m_node->getInputTableCount() == 1);
 
     Table* targetTable = m_node->getTargetTable();
-    //std::cout << "InsertExecutor debug info " << targetTable->debug() << std::endl;
     m_isUpsert = m_node->isUpsert();
 
     setDMLCountOutputTable(limits);
@@ -168,30 +167,7 @@ bool InsertExecutor::executePurgeFragmentIfNeeded(PersistentTable** ptrToTable) 
     return true;
 }
 
-void setGNValue2(GNValue *column_data, NValue &value)
-{
-	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
-//	column_data->setSourceInlined(value.getSourceInlinedForGPU());
-	column_data->setValueType(value.getValueTypeForGPU());
-}
-
-//Test the value of IndexData
-void GNValueDebug2(GNValue &column_data)
-{
-	NValue value;
-	long double gtmp = column_data.getMdata();
-	char tmp[16];
-	memcpy(tmp, &gtmp, sizeof(long double));
-	value.setMdataFromGPU(tmp);
-//	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
-	value.setValueTypeFromGPU(column_data.getValueType());
-
-	std::cout << value.debug();
-}
-
-
 bool InsertExecutor::p_execute(const NValueArray &params) {
-	//std::cout << "Insert Executor p execute" << std::endl;
     assert(m_node == dynamic_cast<InsertPlanNode*>(m_abstractNode));
     assert(m_node);
     assert(m_inputTable == dynamic_cast<TempTable*>(m_node->getInputTable()));
@@ -363,27 +339,7 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
     // add to the planfragments count of modified tuples
     m_engine->addToTuplesModified(modifiedTuples);
     VOLT_DEBUG("Finished inserting %d tuples", modifiedTuples);
-//
-//
-//
-//    TableIterator iterator0 = targetTable->iterator();
-//    TableTuple targetTuple(targetTable->schema());
-//    int table_cols = targetTable->columnCount();
-//    int table_rows = (int)targetTable->activeTupleCount();
-//    GNValue *tmpTable = (GNValue *)malloc(sizeof(GNValue) * table_cols * table_rows);
-//    int idx = 0;
-//
-//    GPUINSERT g_target(table_rows, table_cols);
-//    while (iterator0.next(targetTuple)) {
-//    	for (int i = 0; i < table_cols; i++) {
-//    		NValue value = targetTuple.getNValue(i);
-//    		setGNValue2(tmpTable + idx * table_cols + i, value);
-//    	}
-//    	idx++;
-//    }
-//
-//    g_target.tableCopy(tmpTable, table_rows * table_cols);
-//    targetTable->setGPUAddress((void *)g_target.getTableAddress());
+
 
     return true;
 }
