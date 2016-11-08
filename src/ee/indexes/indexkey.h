@@ -276,6 +276,7 @@ struct IntsKey
         int keyOffset = 0;
         int intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
         if (indexed_expressions.size() != 0) {
+        	std::cout << "Indexed Expression size is not Zero" << std::endl;
             for (int ii = 0; ii < columnCount; ii++) {
                 AbstractExpression* ae = indexed_expressions[ii];
                 switch(ae->getValueType()) {
@@ -310,6 +311,7 @@ struct IntsKey
             }
             return;
         }
+
         for (int ii = 0; ii < columnCount; ii++) {
             switch(keySchema->columnType(ii)) {
             case voltdb::VALUE_TYPE_BIGINT: {
@@ -404,6 +406,7 @@ struct IntsHasher
 
     inline size_t operator()(IntsKey<keySize> const& p) const
     {
+    	std::cout << "InstHasher" << std::endl;
         size_t seed = 0;
         for (int ii = 0; ii < keySize; ii++) {
             boost::hash_combine(seed, p.data[ii]);

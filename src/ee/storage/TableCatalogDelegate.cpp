@@ -395,6 +395,8 @@ Table *TableCatalogDelegate::constructTableFromCatalog(catalog::Database const &
         table->addIndex(index);
     }
 
+
+
     return table;
 }
 
@@ -407,6 +409,7 @@ TableCatalogDelegate::init(catalog::Database const &catalogDatabase,
                                         m_compactionThreshold,
                                         m_materialized,
                                         m_signatureHash);
+
     if (!m_table) {
         return false; // mixing ints and booleans here :(
     }
@@ -418,6 +421,7 @@ TableCatalogDelegate::init(catalog::Database const &catalogDatabase,
     m_table->configureIndexStats(databaseId);
 
     m_table->incrementRefcount();
+
     return 0;
 }
 

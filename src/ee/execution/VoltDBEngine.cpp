@@ -99,6 +99,10 @@
 #include <malloc.h>
 #endif // LINUX
 
+// Added to debug
+#include "plannodes/abstractoperationnode.h"
+#include "plannodes/abstractscannode.h"
+
 ENABLE_BOOST_FOREACH_ON_CONST_MAP(Column);
 ENABLE_BOOST_FOREACH_ON_CONST_MAP(Index);
 ENABLE_BOOST_FOREACH_ON_CONST_MAP(MaterializedViewInfo);
@@ -131,6 +135,7 @@ public:
     static boost::shared_ptr<ExecutorVector> fromJsonPlan(VoltDBEngine* engine,
                                                           const std::string& jsonPlan,
                                                           int64_t fragId) {
+    	//std::cout << "ExecutorVector fromJsonPlan" << std::endl;
         PlanNodeFragment *pnf = NULL;
         try {
             pnf = PlanNodeFragment::createFromCatalog(jsonPlan);
@@ -173,15 +178,38 @@ public:
                                                                 tempTableMemoryLimit,
                                                                 pnf));
         ev->init(engine);
+
         return ev;
     }
 
     /** Build the list of executors from its plan node fragment */
     void init(VoltDBEngine* engine) {
+    	//std::cout << "VoltDBEngine init" << std::endl;
         BOOST_FOREACH(AbstractPlanNode* planNode, m_fragment->getExecuteList()) {
             initPlanNode(engine, planNode);
+            //std::cout << "VoltDBEngine init debug:: planNode type is " << planNode->debug() << std::endl;
             m_list.push_back(planNode->getExecutor());
         }
+
+//        BOOST_FOREACH(AbstractPlanNode* planNode, m_fragment->getExecuteList()) {
+//			AbstractScanPlanNode* scan_node =
+//				 dynamic_cast<AbstractScanPlanNode*>(planNode);
+//			AbstractOperationPlanNode* oper_node =
+//			 dynamic_cast<AbstractOperationPlanNode*>(planNode);
+//			if (scan_node || oper_node)
+//			{
+//			 Table* target_table = NULL;
+//
+//			 string targetTableName;
+//			 if (scan_node) {
+//				 target_table = scan_node->getTargetTable();
+//			 } else if (oper_node) {
+//				 target_table = oper_node->getTargetTable();
+//			 }
+//			 std::cout << "PlanNode:" << planNode->debug() << " Target Table " << target_table->debug() << std::endl;
+//
+//			}
+//        }
     }
 
     /** Accessor function to satisfy boost::multi_index::const_mem_fun template. */
@@ -204,7 +232,6 @@ public:
 
         return oss.str();
     }
-
     /** Execute each executor, in order. */
     int execute(VoltDBEngine* engine) {
         // Walk through the queue and execute each plannode.  The
@@ -215,6 +242,26 @@ public:
         int ctr = 0;
         BOOST_FOREACH(AbstractExecutor *executor, m_list) {
             assert (executor);
+
+            //GPU Test
+//
+//            AbstractScanPlanNode* scan_node =
+//                 dynamic_cast<AbstractScanPlanNode*>(executor->getPlanNode());
+//             AbstractOperationPlanNode* oper_node =
+//                 dynamic_cast<AbstractOperationPlanNode*>(executor->getPlanNode());
+//             if (scan_node || oper_node)
+//             {
+//                 Table* target_table = NULL;
+//
+//                 string targetTableName;
+//                 if (scan_node) {
+//                     target_table = scan_node->getTargetTable();
+//                 } else if (oper_node) {
+//                     target_table = oper_node->getTargetTable();
+//                 }
+//                 std::cout << "PlanNode: " << executor->getPlanNode()->debug() << " Target Table " << target_table->debug() << std::endl;
+//
+//             } else std::cout << "PlanNode: " << executor->getPlanNode()->debug() << "No target table" << std::endl;
 
             try {
                 // Now call the execute method to actually perform
@@ -297,6 +344,7 @@ private:
 
     void initPlanNode(VoltDBEngine* engine, AbstractPlanNode* node)
     {
+    	//std::cout << "InitPlanNode execute" << std::endl;
         assert(node);
         assert(node->getExecutor() == NULL);
 
@@ -565,6 +613,7 @@ int VoltDBEngine::executePlanFragments(int32_t numFragments,
                                        int64_t uniqueId,
                                        int64_t undoToken)
 {
+	//std::cout << "executePlanFragments" << std::endl;
     // count failures
     int failures = 0;
 
@@ -620,6 +669,7 @@ int VoltDBEngine::executePlanFragment(int64_t planfragmentId,
                                       bool first,
                                       bool last)
 {
+	//std::cout << "ExecutePlanFragment" << std::endl;
     assert(planfragmentId != 0);
 
     m_currentInputDepId = static_cast<int32_t>(inputDependencyId);
@@ -653,6 +703,7 @@ int VoltDBEngine::executePlanFragment(int64_t planfragmentId,
     m_numResultDependencies = 0;
     size_t numResultDependenciesCountOffset = m_resultOutput.reserveBytes(4);
 
+
     // configure the execution context.
     m_executorContext->setupForPlanFragments(getCurrentUndoQuantum(),
                                              txnId,
@@ -679,6 +730,8 @@ int VoltDBEngine::executePlanFragment(int64_t planfragmentId,
     }
     assert(execsForFrag);
     m_currExecutorVec = execsForFrag;
+
+
 
     int rc = execsForFrag->execute(this);
 
@@ -937,6 +990,8 @@ static bool haveDifferentSchema(catalog::Table *t1, voltdb::Table *t2)
 bool
 VoltDBEngine::processCatalogAdditions(int64_t timestamp)
 {
+
+	//std::cout << "processCatalogAdditions test" << std::endl;
     // iterate over all of the tables in the new catalog
     BOOST_FOREACH (LabeledTable labeledTable, m_database->tables()) {
         // get the catalog's table object
@@ -967,11 +1022,16 @@ VoltDBEngine::processCatalogAdditions(int64_t timestamp)
             m_catalogDelegates[catalogTable->path()] = tcd;
             m_delegatesByName[tcd->getTable()->name()] = tcd;
 
+
+
             // set export info on the new table
             if (tcd->exportEnabled()) {
                 tcd->getTable()->setSignatureAndGeneration(catalogTable->signature(), timestamp);
                 m_exportingTables[catalogTable->signature()] = tcd->getTable();
             }
+
+
+
         }
         else {
 
@@ -1165,6 +1225,7 @@ VoltDBEngine::processCatalogAdditions(int64_t timestamp)
             BOOST_FOREACH (MaterializedViewMetadata * toDrop, obsoleteViews) {
                 persistenttable->dropMaterializedView(toDrop);
             }
+
         }
     }
 
@@ -1300,6 +1361,7 @@ void VoltDBEngine::rebuildTableCollections()
 
 ExecutorVector *VoltDBEngine::getExecutorVectorForFragmentId(const int64_t fragId)
 {
+	//std::cout << "getExecutorVectorForFragmentId" << std::endl;
     if (m_plans) {
         PlanSet& existing_plans = *m_plans;
         PlanSet::nth_index<1>::type::iterator iter = existing_plans.get<1>().find(fragId);
@@ -1357,6 +1419,7 @@ ExecutorVector *VoltDBEngine::getExecutorVectorForFragmentId(const int64_t fragI
  * Assumes all tables (sources and destinations) have been constructed.
  */
 void VoltDBEngine::initMaterializedViewsAndLimitDeletePlans() {
+	//std::cout << "initMaterializedViewsAndLimitDeletePlans" << std::endl;
     // walk tables
     BOOST_FOREACH (LabeledTable labeledTable, m_database->tables()) {
         catalog::Table *srcCatalogTable = labeledTable.second;

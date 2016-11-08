@@ -82,6 +82,7 @@ Table* TableFactory::getPersistentTable(
 
     initCommon(databaseId, table, name, schema, columnNames, true, compactionThreshold);
 
+
     // initialize stats for the table
     configureStats(databaseId, name, table);
 

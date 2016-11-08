@@ -159,13 +159,14 @@ bool IndexScanExecutor::p_init(AbstractPlanNode *abstractNode,
 
 bool IndexScanExecutor::p_execute(const NValueArray &params)
 {
-	//std::cout << "Index scan executor" << std::endl;
+	std::cout << "Index scan executor" << std::endl;
     assert(m_node);
     assert(m_node == dynamic_cast<IndexScanPlanNode*>(m_abstractNode));
 
     // update local target table with its most recent reference
     Table* targetTable = m_node->getTargetTable();
     TableIndex *tableIndex = targetTable->index(m_node->getTargetIndexName());
+    std::cout << "TargetIndexName = " << m_node->getTargetIndexName() << std::endl;
     IndexCursor indexCursor(tableIndex->getTupleSchema());
 
     TableTuple searchKey(tableIndex->getKeySchema());

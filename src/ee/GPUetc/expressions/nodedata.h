@@ -3,6 +3,7 @@
 #define NODEDATA_H
 
 #include "common/types.h"
+#include "GPUetc/common/GNValue.h"
 
 namespace voltdb{
 
@@ -19,6 +20,20 @@ typedef struct _TreeNode {
 	int tuple_idx;			//0: left, outer, 1: right, inner
 	GNValue value;		// Value of const, = NULL if not const
 } GTreeNode;
+
+typedef struct _HashNode {
+	uint64_t *hashedIdx;
+	uint64_t *hashedKey;
+	uint64_t *bucketLocation;
+	int bucketNum;
+	int keySize;
+	int size;	//number of elements
+} GHashNode;
+
+//#define TREE_EVAL_ 1
+#define POST_EXP_ 1
+//#define FUNC_CALL_ 1
+#define COALESCE_ 1
 
 }
 

@@ -10,6 +10,7 @@
 #include "expressions/tuplevalueexpression.h"
 #include "GPUetc/expressions/nodedata.h"
 
+
 namespace voltdb {
 
 class TreeExpression {
@@ -19,6 +20,7 @@ public:
 	TreeExpression(const AbstractExpression *expression) {
 		int tree_size = 0;
 
+#ifndef TREE_EVAL_
 		tree_size =	getExpressionLength(expression);
 		//int tmp_size = 1;
 		//tree_size =	getTreeSize(expression, tmp_size) + 1;
@@ -27,6 +29,13 @@ public:
 
 		buildPostExpression(expression, &root);
 		//buildTreeExpression(expression, 1);
+#else
+		int tmp_size = 1;
+		tree_size = getTreeSize(expression, tmp_size) + 1;
+		printf("Tree size = %d\n", tree_size);
+		tree_ = std::vector<GTreeNode>(tree_size);
+		buildTreeExpression(expression, 1);
+#endif
 	}
 
 	void debug(void) {
@@ -100,6 +109,22 @@ public:
 					std::cout << "[" << index << "] PARAMETER = " << tmp.debug().c_str()  << std::endl;
 					break;
 				}
+				case EXPRESSION_TYPE_OPERATOR_PLUS: {
+					std::cout << "[" << index << "]" << "OPERATOR PLUS" << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_OPERATOR_MINUS: {
+					std::cout << "[" << index << "]" << "OPERATOR MINUS" << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
+					std::cout << "[" << index << "]" << "OPERATOR DIVIDE" << std::endl;
+					break;
+				}
+				case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
+					std::cout << "[" << index << "]" << "OPERATOR MULTIPLY" << std::endl;
+					break;
+				}
 				case EXPRESSION_TYPE_VALUE_NULL:
 				case EXPRESSION_TYPE_INVALID:
 				default: {
@@ -148,23 +173,29 @@ private:
 
 	void setGNValue(GNValue *gnvalue, NValue &nvalue)
 	{
-		gnvalue->setMdata(nvalue.getMdataForGPU());
-		gnvalue->setSourceInlined(nvalue.getSourceInlinedForGPU());
+		gnvalue->setMdata(nvalue.getValueTypeForGPU(), nvalue.getMdataForGPU());
+//		gnvalue->setSourceInlined(nvalue.getSourceInlinedForGPU());
 		gnvalue->setValueType(nvalue.getValueTypeForGPU());
 	}
 
 	void setNValue(NValue *nvalue, GNValue &gnvalue)
 	{
-		nvalue->setMdataFromGPU(gnvalue.getMdata());
-		nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
+		long double gtmp = gnvalue.getMdata();
+		char tmp[16];
+		memcpy(tmp, &gtmp, sizeof(long double));
+		nvalue->setMdataFromGPU(tmp);
+//		nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
 		nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 	}
 
 	void GNValueDebug(GNValue column_data)
 	{
 		NValue value;
-		value.setMdataFromGPU(column_data.getMdata());
-		value.setSourceInlinedFromGPU(column_data.getSourceInlined());
+		long double gtmp = column_data.getMdata();
+		char tmp[16];
+		memcpy(tmp, &gtmp, sizeof(long double));
+		value.setMdataFromGPU(tmp);
+//		value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 		value.setValueTypeFromGPU(column_data.getValueType());
 
 		std::cout << value.debug() << std::endl;
@@ -221,6 +252,7 @@ private:
 			case EXPRESSION_TYPE_OPERATOR_PLUS:
 			case EXPRESSION_TYPE_OPERATOR_MINUS:
 			case EXPRESSION_TYPE_OPERATOR_MULTIPLY:
+			case EXPRESSION_TYPE_OPERATOR_DIVIDE:
 			case EXPRESSION_TYPE_OPERATOR_CONCAT:
 			case EXPRESSION_TYPE_OPERATOR_MOD:
 			case EXPRESSION_TYPE_OPERATOR_CAST: {
@@ -299,6 +331,7 @@ private:
 			case EXPRESSION_TYPE_OPERATOR_PLUS:
 			case EXPRESSION_TYPE_OPERATOR_MINUS:
 			case EXPRESSION_TYPE_OPERATOR_MULTIPLY:
+			case EXPRESSION_TYPE_OPERATOR_DIVIDE:
 			case EXPRESSION_TYPE_OPERATOR_CONCAT:
 			case EXPRESSION_TYPE_OPERATOR_MOD:
 			case EXPRESSION_TYPE_OPERATOR_CAST: {

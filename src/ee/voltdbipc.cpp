@@ -258,6 +258,7 @@ VoltDBIPC::~VoltDBIPC() {
 bool VoltDBIPC::execute(struct ipc_command *cmd) {
     int8_t result = kErrorCode_None;
 
+    //std::cout << "VoltDBIPC execute" << std::endl;
     if (0)
         std::cout << "IPC client command: " << ntohl(cmd->command) << std::endl;
 
@@ -555,6 +556,7 @@ int8_t VoltDBIPC::quiesce(struct ipc_command *cmd) {
 }
 
 void VoltDBIPC::executePlanFragments(struct ipc_command *cmd) {
+	std::cout << "executePlanFragments V22222222222222" << std::endl;
     int errors = 0;
 
     querypfs *queryCommand = (querypfs*) cmd;
