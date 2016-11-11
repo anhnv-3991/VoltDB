@@ -35,6 +35,7 @@
 #include <vector>
 #include <stdio.h>
 
+#include <cuda.h>
 #include "boost/scoped_ptr.hpp"
 #include "boost/functional/hash.hpp"
 #include "ttmath/ttmathint.h"

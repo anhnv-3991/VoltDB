@@ -238,7 +238,7 @@ def buildMakefile(CTX):
 
     makefile.write("# main jnilib target\n")
 #    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + "\n")  # add part
-    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/executors/scan.co objects/executors/GPUNIJ.co objects/executors/GPUSHJ.co objects/executors/GPUIJ.co objects/executors/GPUINSERT.co objects/executors/index_join_gpu.co objects/executors/join_gpu.co objects/executors/ghash.co" + "\n")  # add part
+    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/executors/scan.co objects/executors/GPUNIJ.co objects/executors/GPUSHJ.co objects/executors/GPUIJ.co objects/executors/GPUHJ.co objects/executors/GPUINSERT.co objects/executors/index_join_gpu.co objects/executors/join_gpu.co objects/executors/ghash.co" + "\n")  # add part
     makefile.write("\t$(LINK.cpp) $(JNILIBFLAGS) $(GPUFLAGS) -o $@ $^\n") #add part
     makefile.write("\n")
 

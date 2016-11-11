@@ -5,8 +5,10 @@
 #include "GPUTUPLE.h"
 #include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/expressions/nodedata.h"
+#include "common/types.h"
+#include "GPUetc/common/GNValue.h"
 
-using namespace voltdb;
+namespace voltdb {
 
 
 class GPUIJ {
@@ -299,5 +301,6 @@ private:
 	}
 
 };
+}
 
 #endif

@@ -1,23 +1,11 @@
 #ifndef GHASH_H_
 #define GHASH_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <helper_cuda.h>
-#include <helper_functions.h>
-#include <sys/time.h>
 #include "GPUTUPLE.h"
 #include "common/types.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/cudaheader.h"
 #include "GPUetc/expressions/nodedata.h"
-#include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
-#include <thrust/copy.h>
-#include <thrust/scan.h>
-#include <thrust/fill.h>
 
 using namespace voltdb;
 

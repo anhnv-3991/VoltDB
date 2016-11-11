@@ -15,7 +15,7 @@
 #include "scan_common.h"
 #include "index_join_gpu.h"
 
-using namespace voltdb;
+namespace voltdb {
 
 GPUIJ::GPUIJ()
 {
@@ -704,4 +704,5 @@ void GPUIJ::debugGTrees(const GTreeNode *expression, int size)
 			}
 		}
 	}
+}
 }

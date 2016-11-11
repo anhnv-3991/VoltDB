@@ -15,6 +15,45 @@
 #include <cudaProfiler.h>
 #include <math.h>
 #include "ghash.h"
+#include "common/types.h"
+#include <inttypes.h>
+
+namespace voltdb {
+
+const uint64_t GPUHJ::MAX_BUCKETS[] = {
+	        3,
+	        7,
+	        13,
+	        31,
+	        61,
+	        127,
+	        251,
+	        509,
+	        1021,
+	        2039,
+	        4093,
+	        8191,
+	        16381,
+	        32749,
+	        65521,
+	        131071,
+	        262139,
+	        524287,
+	        1048573,
+	        2097143,
+	        4194301,
+	        8388593,
+	        16777213,
+	        33554393,
+	        67108859,
+	        134217689,
+	        268435399,
+	        536870909,
+	        1073741789,
+	        2147483647,
+	        4294967291,
+	        8589934583
+	};
 
 GPUHJ::GPUHJ()
 {
@@ -33,7 +72,7 @@ GPUHJ::GPUHJ()
 		search_exp_size_ = NULL;
 		search_exp_num_ = 0;
 		indices_ = NULL;
-		maxNumberOfBuckets_ = 14;
+		maxNumberOfBuckets_ = 0;
 
 		search_exp_ = NULL;
 		end_expression_ = NULL;
@@ -128,7 +167,7 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 
 	int size = 0;
 
-	for (int i = 0; i < indices_; i++) {
+	for (int i = 0; i < indices_size_; i++) {
 		switch(inner_table_[indices_[i]].getValueType()) {
 		case VALUE_TYPE_TINYINT: {
 			size += sizeof(int8_t);
@@ -150,6 +189,7 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 	}
 
 	keySize_ = (size - 1)/8 + 1;
+	printf("KEYSIZE = %d\n", keySize_);
 }
 
 bool GPUHJ::getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression)
@@ -199,19 +239,10 @@ int GPUHJ::getResultSize() const
 	return result_size_;
 }
 
-bool GPUHJ::getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression)
+bool GPUHJ::getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression)
 {
-	int tmp_size = tree_expression.getSize();
-	if (tmp_size >= 1) {
-		*expression = (GTreeNode *)malloc(sizeof(GTreeNode) * tmp_size);
-		if (expression == NULL) {
-			std::cout << "Error: malloc(expression) failed." << std::endl;
-			return false;
-		}
-		tree_expression.getNodesArray(*expression);
-	} else {
-		*expression = NULL;
-	}
+	if (tree_expression.getSize() >= 1)
+		tree_expression.getNodesArray(expression);
 
 	return true;
 }
@@ -386,6 +417,153 @@ void GPUHJ::debugGTrees(const GTreeNode *expression, int size)
 	}
 }
 
+unsigned long GPUHJ::timeDiff(struct timeval start, struct timeval end)
+{
+	return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
+}
+
+void GPUHJ::keyGenerateTest(GNValue *tuple, int *keyIndices, int indexNum, uint64_t *packedKey)
+{
+	int keyOffset = 0;
+	int intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+	GNValue tmp_val;
+
+	if (keyIndices != NULL) {
+		for (int i = 0; i < indexNum; i++) {
+			tmp_val = tuple[keyIndices[i]];
+
+			switch (tmp_val.getValueType()) {
+				case VALUE_TYPE_TINYINT: {
+					int8_t value = static_cast<int8_t>(tmp_val.getValue());
+					uint8_t keyValue = static_cast<uint8_t>(value + INT8_MAX + 1);
+					for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+					break;
+				}
+				case VALUE_TYPE_SMALLINT: {
+					int16_t value = static_cast<int16_t>(tmp_val.getValue());
+					uint16_t keyValue = static_cast<uint16_t>(value + INT16_MAX + 1);
+					for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+
+					break;
+				}
+				case VALUE_TYPE_INTEGER: {
+					int32_t value = static_cast<int32_t>(tmp_val.getValue());
+					uint32_t keyValue = static_cast<uint32_t>(value + INT32_MAX + 1);
+					for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+
+					break;
+				}
+				case VALUE_TYPE_BIGINT: {
+					int64_t value = tmp_val.getValue();
+					uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
+					for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+
+					break;
+				}
+				default: {
+					printf("Error: no match type. Type = %d\n", tmp_val.getValueType());
+				}
+			}
+
+			printf("middle val = %" PRIu64 "\n", packedKey[0]);
+
+		}
+	} else {
+		for (int i = 0; i < indexNum; i++) {
+			tmp_val = tuple[i];
+
+			switch (tmp_val.getValueType()) {
+				case VALUE_TYPE_TINYINT: {
+					int8_t value = static_cast<int8_t>(tmp_val.getValue());
+					uint8_t keyValue = static_cast<uint8_t>(value + INT8_MAX + 1);
+					for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+					break;
+				}
+				case VALUE_TYPE_SMALLINT: {
+					int16_t value = static_cast<int16_t>(tmp_val.getValue());
+					uint16_t keyValue = static_cast<uint16_t>(value + INT16_MAX + 1);
+					for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+
+					break;
+				}
+				case VALUE_TYPE_INTEGER: {
+					int32_t value = static_cast<int32_t>(tmp_val.getValue());
+					uint32_t keyValue = static_cast<uint32_t>(value + INT32_MAX + 1);
+					for (int j = sizeof(uint32_t) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+
+					break;
+				}
+				case VALUE_TYPE_BIGINT: {
+					int64_t value = tmp_val.getValue();
+					uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
+					for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
+						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						intraKeyOffset--;
+						if (intraKeyOffset < 0) {
+							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
+							keyOffset++;
+						}
+					}
+
+					break;
+				}
+				default:
+					printf("Error: cannot detect type at index %d\n", i);
+			}
+
+		}
+	}
+}
+
 bool GPUHJ::join()
 {
 	GNValue *outer_dev, *inner_dev, *stack;
@@ -432,14 +610,29 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMemcpy(indices_dev, indices_, sizeof(int) * indices_size_, cudaMemcpyHostToDevice));
 
 
+	int count_test = 0;
+	GNValue tmp1 = inner_table_[0], tmp2 = inner_table_[1];
+	uint64_t tmp0 = tmp1.getValue() * (int)pow(2,32) + tmp1.getValue();
+	uint64_t tmp3, tmp4;
+	for (int i = 0; i < inner_rows_; i++) {
+		tmp3 = static_cast<uint64_t>(inner_table_[i * inner_cols_].getValue() + INT64_MAX + 1);
+		tmp4 = static_cast<uint64_t>(inner_table_[i * inner_cols_ + 1].getValue() + INT64_MAX + 1);
+		if (tmp3 * (int)pow(2,32) + tmp4 == tmp0)
+			count_test++;
+	}
+
+	printf("Count test new is %d\n", count_test);
+
 	/******** Hash the inner table *******/
 	GHashNode innerHash;
-	ulong *hashCount;
+	ulong *hashCount, *tmpHashCount;
 	uint64_t *innerKey;
 	ulong sum;
-	uint64_t *hBucketInnerLocation = (uint64_t *)malloc(sizeof(uint64_t) * (maxNumberOfBuckets_ + 1));
+	uint64_t *innerTest;
+	ulong *testCount;
 
 
+	printf("Max number of buckets is %d\n", maxNumberOfBuckets_);
 	int block_x = (inner_rows_ < BLOCK_SIZE_X) ? inner_rows_ : BLOCK_SIZE_X;
 	int grid_x = (inner_rows_ % block_x == 0) ? (inner_rows_ / block_x) : (inner_rows_ / block_x + 1);
 	innerHash.keySize = keySize_;
@@ -449,18 +642,77 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_rows_ * inner_cols_));
 	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_rows_ * inner_cols_, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMalloc(&innerKey, sizeof(uint64_t) * inner_rows_ * keySize_));
-	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x + 1)));
+	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * maxNumberOfBuckets_ + 1)));
 
-	packedKeyWrapper(block_x, 1, 1, 1, inner_dev, inner_rows_, inner_cols_, indices_dev, indices_size_, innerKey, keySize_);
+	struct timeval innerPackStart, innerPackEnd, innerHashCountStart, innerHashCountEnd, innerHashStart, innerHashEnd, innerPrefixStart, innerPrefixEnd;
+	std::vector<unsigned long> innerPack, innerHashCount, innerHasher, innerPrefix;
+
+	gettimeofday(&innerPackStart, NULL);
+	packKeyWrapper(block_x, 1, 1, 1, inner_dev, inner_rows_, inner_cols_, indices_dev, indices_size_, innerKey, keySize_);
+
+	gettimeofday(&innerPackEnd, NULL);
+	innerPack.push_back(timeDiff(innerPackStart, innerPackEnd));
+
+	gettimeofday(&innerHashCountStart, NULL);
 	ghashCountWrapper(block_x, 1, 1, 1, innerKey, inner_rows_, keySize_, hashCount, maxNumberOfBuckets_);
-	prefixSumWrapper(hashCount, block_x + 1, &sum);
+
+
+	gettimeofday(&innerHashCountEnd, NULL);
+	innerHashCount.push_back(timeDiff(innerHashCountStart, innerHashCountEnd));
+
+
+	gettimeofday(&innerPrefixStart, NULL);
+	hprefixSumWrapper(hashCount, block_x * maxNumberOfBuckets_ + 1, &sum);
+
+	gettimeofday(&innerPrefixEnd, NULL);
+	innerPrefix.push_back(timeDiff(innerPrefixStart, innerPrefixEnd));
 
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedIdx), sizeof(uint64_t) * inner_rows_));
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedKey), sizeof(uint64_t) * inner_rows_ * keySize_));
 	checkCudaErrors(cudaMalloc(&(innerHash.bucketLocation), sizeof(uint64_t) * (maxNumberOfBuckets_ + 1)));
+	innerTest = (uint64_t *)malloc(sizeof(uint64_t) * inner_rows_ * keySize_);
+	checkCudaErrors(cudaMemcpy(innerTest, innerKey, sizeof(uint64_t) * inner_rows_ * keySize_, cudaMemcpyDeviceToHost));
+	uint64_t packKeyTest = 0;
+	keyGenerateTest(inner_table_, indices_, indices_size_, &packKeyTest);
+	printf("Test pack key %" PRIu64 " and real pack key %" PRIu64 "\n", packKeyTest, innerTest[0]);
+	packKeyTest = 0;
+	keyGenerateTest(inner_table_, indices_, indices_size_, &packKeyTest);
+	printf("%" PRIu64 ",%" PRIu64 "\n", inner_table_[0].getValue(), inner_table_[1].getValue());
+	printf("Test pack key %" PRIu64 " and real pack key %" PRIu64 "\n", packKeyTest, innerTest[0]);
 
+	int countTest = 0;
+	uint64_t temp_val = innerTest[1];
+/*	for (int i = 0; i < inner_rows_ * keySize_; i++) {
+		if (innerTest[i] == innerTest[1]) {
+			printf("%" PRIu64 ",%" PRIu64 "\n", inner_table_[i * inner_cols_].getValue(), inner_table_[i * inner_cols_ + 1].getValue());
+			countTest++;
+		}
+	}*/
+
+	printf("Loop test = %d\n", countTest);
+
+//	testCount = (ulong *)malloc(sizeof(ulong) * (block_x * maxNumberOfBuckets_ + 1));
+//	checkCudaErrors(cudaMemcpy(testCount, hashCount, sizeof(ulong) * (block_x * maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
+//	for (int i = 0; i < block_x * maxNumberOfBuckets_ + 1; i++) {
+//		if (testCount[i] != 0 && i % block_x == 0)
+//		printf("keyLOCATION = %lu\n", testCount[i]);
+//	}
+
+	gettimeofday(&innerHashStart, NULL);
 	ghashWrapper(block_x, 1, 1, 1, innerKey, hashCount, innerHash);
-	checkCudaErrors(cudaMemcpy(hBucketInnerLocation, innerHash.bucketLocation, sizeof(uint64_) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
+
+	innerTest = (uint64_t *)malloc(sizeof(uint64_t) * inner_rows_ * keySize_);
+	checkCudaErrors(cudaMemcpy(innerTest, innerHash.hashedKey, sizeof(uint64_t) * inner_rows_ * keySize_, cudaMemcpyDeviceToHost));
+	countTest = 0;
+	for (int i = 0; i < inner_rows_ * keySize_; i++) {
+		if (innerTest[i] == temp_val)
+			countTest++;
+	}
+
+	printf("Loop test after prefix sum %d\n", countTest);
+	gettimeofday(&innerHashEnd, NULL);
+	innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
+
 
 	checkCudaErrors(cudaFree(inner_dev));
 	checkCudaErrors(cudaFree(hashCount));
@@ -470,7 +722,7 @@ bool GPUHJ::join()
 	/******* Hash the outer table *******/
 	uint64_t *outerKey;
 	GHashNode outerHash;
-	uint64_t *hBucketOuterLocation = (uint64_t *)malloc(sizeof(uint64_t) * (maxNumberOfBuckets_ + 1));
+	//uint64_t *testKey = (uint64_t *)malloc(sizeof(uint64_t) * outer_rows_ * keySize_);
 
 	block_x = (outer_rows_ < BLOCK_SIZE_X) ? outer_rows_ : BLOCK_SIZE_X;
 	outerHash.keySize = keySize_;
@@ -480,36 +732,71 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_rows_ * outer_cols_));
 	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_rows_ * outer_cols_, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMalloc(&outerKey, sizeof(uint64_t) * outer_rows_ * keySize_));
-	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x + 1)));
+	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * maxNumberOfBuckets_ + 1)));
+	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x));
 
-	packSearchKey(block_x, 1, 1, 1, outer_dev, outer_rows_, outer_cols_,
-					outerKey, search_exp_dev, search_exp_size, search_exp_num_,
-					keySize_, stack);
+	struct timeval outerPackStart, outerPackEnd, outerHashCountStart, outerHashCountEnd, outerPrefixStart, outerPrefixEnd, outerHashStart, outerHashEnd;
+	std::vector<unsigned long> outerPack, outerHashCount, outerPrefix, outerHasher;
+
+	gettimeofday(&outerPackStart, NULL);
+	packSearchKeyWrapper(block_x, 1, 1, 1, outer_dev, outer_rows_, outer_cols_,
+							outerKey, search_exp_dev, search_exp_size, search_exp_num_,
+							keySize_, stack);
+//	checkCudaErrors(cudaMemcpy(testKey, outerKey, sizeof(uint64_t) * outer_rows_ * keySize_, cudaMemcpyDeviceToHost));
+//	for (int i = 0; i < outer_rows_; i++) {
+//		printf("testKey at %d is %" PRIu64 "\n", i, testKey[i * keySize_]);
+//	}
+	gettimeofday(&outerPackEnd, NULL);
+	printf("PASSED outer pack key\n");
+	outerPack.push_back(timeDiff(outerPackStart, outerPackEnd));
+
+	gettimeofday(&outerHashCountStart, NULL);
 	ghashCountWrapper(block_x, 1, 1, 1, outerKey, outer_rows_, keySize_, hashCount, maxNumberOfBuckets_);
-	prefixSumWrapper(hashCount, block_x + 1, &sum);
+	gettimeofday(&outerHashCountEnd, NULL);
+	outerHashCount.push_back(timeDiff(outerHashCountStart, outerHashCountEnd));
+
+	gettimeofday(&outerPrefixStart, NULL);
+	hprefixSumWrapper(hashCount, block_x * maxNumberOfBuckets_ + 1, &sum);
+	gettimeofday(&outerPrefixEnd, NULL);
+	outerPrefix.push_back(timeDiff(outerPrefixStart, outerPrefixEnd));
+
 
 	checkCudaErrors(cudaMalloc(&(outerHash.hashedIdx), sizeof(uint64_t) * outer_rows_));
 	checkCudaErrors(cudaMalloc(&(outerHash.hashedKey), sizeof(uint64_t) * outer_rows_ * keySize_));
 	checkCudaErrors(cudaMalloc(&(outerHash.bucketLocation), sizeof(uint64_t) * (maxNumberOfBuckets_ + 1)));
 
+	gettimeofday(&outerHashStart, NULL);
 	ghashWrapper(block_x, 1, 1, 1, outerKey, hashCount, outerHash);
-	checkCudaErrors(cudaMemcpy(hBucketOuterLocation, outerHash.bucketLocation, sizeof(uint64_t) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
+	gettimeofday(&outerHashEnd, NULL);
+//	checkCudaErrors(cudaMemcpy(testKey, outerHash.hashedKey, sizeof(uint64_t) * outer_rows_ * keySize_, cudaMemcpyDeviceToHost));
+//	for (int i = 0; i < outer_rows_; i++) {
+//		printf("testKey at %d is %" PRIu64 "\n", i, testKey[i * keySize_]);
+//	}
+	outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
 
+	checkCudaErrors(cudaFree(stack));
 	checkCudaErrors(cudaFree(outer_dev));
-	checkCudaErrors(cudaFree(inner_dev));
+	checkCudaErrors(cudaFree(outerKey));
 
 	/**** Allocate table memory for join ****/
 	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_rows_ * outer_cols_));
 	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_rows_ * inner_cols_));
 
+	printf("END OF ALLOCATING NEW buffer\n");
 	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_rows_ * outer_cols_, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_rows_ * inner_cols_, cudaMemcpyHostToDevice));
 
 	int partitionSize = (outer_rows_ < DEFAULT_PART_SIZE_) ? outer_rows_ : DEFAULT_PART_SIZE_;
-	int sizeOfBucket = outer_rows_ / maxNumberOfBuckets_;
-	double tmp = (partitionSize - 1)/sizeOfBucket + 1;
+	int sizeOfBuckets = (outer_rows_ - 1) / maxNumberOfBuckets_ + 1;
+	printf("Size of Buckets = %d\n", sizeOfBuckets);
+	double tmp = (partitionSize - 1)/sizeOfBuckets + 1;
 	int bucketStride = (int)pow(2, (int)(log2(tmp)));
 
+	//uint64_t *hostBucketLocation = (uint64_t *)malloc(sizeof(uint64_t) * (maxNumberOfBuckets_ + 1));
+	//checkCudaErrors(cudaMemcpy(hostBucketLocation, outerHash.bucketLocation, sizeof(uint64_t) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
+	//for (int i = 0; i < maxNumberOfBuckets_ + 1; i++) {
+//		printf("bucketLocation of bucket %d is %" PRIu64 "\n", i, hostBucketLocation[i]);
+	//}
 	printf("bucketStride = %d\n", bucketStride);
 	/* Calculate blockDim and gridDim. Each block takes responsibility of one
 	 * bucket.
@@ -529,19 +816,32 @@ bool GPUHJ::join()
 	 */
 	block_x = (sizeOfBuckets <= BLOCK_SIZE_X) ? sizeOfBuckets : BLOCK_SIZE_X;
 	grid_x = (bucketStride < GRID_SIZE_X) ? bucketStride : GRID_SIZE_X;
-	grid_y = (bucketStride < GRID_SIZE_X) ? 1 : bucketStride/GRID_SIZE_X;
+	int grid_y = (bucketStride < GRID_SIZE_X) ? 1 : bucketStride/GRID_SIZE_X;
 	partitionSize = grid_x * grid_y * block_x;
 
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * partitionSize));
 	checkCudaErrors(cudaMalloc(&indexCount, sizeof(ulong) * (partitionSize + 1)));
 
+	struct timeval indexCountStart, indexCountEnd, prefixStart, prefixEnd, joinStart, joinEnd;
+	std::vector<unsigned long> indexHCount, prefixSum, joinTime;
+	int realBucketStride;
+	printf("PartitionSize = %d\n", partitionSize);
 	/* Iterate over chunks of buckets */
 	for (int bucketIdx = 0; bucketIdx < maxNumberOfBuckets_; bucketIdx += bucketStride) {
+		realBucketStride = (bucketIdx + bucketStride < maxNumberOfBuckets_) ? bucketStride : (maxNumberOfBuckets_ - bucketIdx);
+		gettimeofday(&indexCountStart, NULL);
 		indexCountWrapper(block_x, 1, grid_x, grid_y,
 							outerHash, innerHash,
-							bucketIdx, bucketIdx + bucketStride,
+							bucketIdx, bucketIdx + realBucketStride,
 							indexCount, partitionSize);
+		gettimeofday(&indexCountEnd, NULL);
+		indexHCount.push_back(timeDiff(indexCountStart, indexCountEnd));
+
+		gettimeofday(&prefixStart, NULL);
 		hprefixSumWrapper(indexCount, partitionSize + 1, &jr_size);
+		printf("Prefix sum result from join: %lu\n", jr_size);
+		gettimeofday(&prefixEnd, NULL);
+		prefixSum.push_back(timeDiff(prefixStart, prefixEnd));
 
 		if (jr_size < 0) {
 			printf("Scanning failed\n");
@@ -554,22 +854,100 @@ bool GPUHJ::join()
 
 		checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 
+		gettimeofday(&joinStart, NULL);
 		hashJoinWrapper(block_x, 1, grid_x, 1,
-							outer_table, inner_table,
+							outer_dev, inner_dev,
 							outer_cols_, inner_cols_,
 							end_dev, end_size_,
 							post_dev, post_size_,
 							outerHash, innerHash,
-							bucketIdx, bucketIdx + bucketStride,
+							bucketIdx, bucketIdx + realBucketStride,
 							indexCount, partitionSize,
 							stack, jresult_dev);
+		gettimeofday(&joinEnd, NULL);
+		joinTime.push_back(timeDiff(joinStart, joinEnd));
 
 		join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size) * sizeof(RESULT));
 
 		checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size * sizeof(RESULT), cudaMemcpyDeviceToHost));
 		checkCudaErrors(cudaFree(jresult_dev));
-
+		result_size_ += jr_size;
+		jr_size = 0;
 	}
+	unsigned long innerPackFinal, innerHashCountFinal, innerPrefixFinal, innerHashFinal;
+	unsigned long outerPackFinal, outerHashCountFinal, outerPrefixFinal, outerHashFinal;
+	unsigned long indexCountFinal, prefixSumFinal, joinFinal;
+
+	innerPackFinal = 0;
+	for (int i = 0; i < innerPack.size(); i++) {
+		innerPackFinal += innerPack[i];
+	}
+
+	innerHashCountFinal = 0;
+	for (int i = 0; i < innerHashCount.size(); i++) {
+		innerHashCountFinal += innerHashCount[i];
+	}
+
+	innerPrefixFinal = 0;
+	for (int i = 0; i < innerPrefix.size(); i++) {
+		innerPrefixFinal += innerPrefix[i];
+	}
+
+	innerHashFinal = 0;
+	for (int i = 0; i < innerHasher.size(); i++) {
+		innerHashFinal += innerHasher[i];
+	}
+
+	outerPackFinal = 0;
+	for (int i = 0; i < outerPack.size(); i++) {
+		outerPackFinal += outerPack[i];
+	}
+
+	outerHashCountFinal = 0;
+	for (int i = 0; i < outerHashCount.size(); i++) {
+		outerHashCountFinal += outerHashCount[i];
+	}
+
+	outerPrefixFinal = 0;
+	for (int i = 0; i < outerPrefix.size(); i++) {
+		outerPrefixFinal += outerPrefix[i];
+	}
+
+	outerHashFinal = 0;
+	for (int i = 0; i < outerHasher.size(); i++) {
+		outerHashFinal += outerHasher[i];
+	}
+
+	indexCountFinal = 0;
+	for (int i = 0; i < indexHCount.size(); i++) {
+		indexCountFinal += indexHCount[i];
+	}
+
+	prefixSumFinal = 0;
+	for (int i = 0; i < prefixSum.size(); i++) {
+		prefixSumFinal += prefixSum[i];
+	}
+
+	joinFinal = 0;
+	for (int i = 0; i < joinTime.size(); i++) {
+		joinFinal += joinTime[i];
+	}
+
+	printf("\n*** Execution time *****************************\n"
+			"Inner pack: %lu\n"
+			"Inner hash count: %lu\n"
+			"Inner prefix sum: %lu\n"
+			"Inner hash: %lu\n"
+			"Outer pack: %lu\n"
+			"Outer hash count: %lu\n"
+			"Outer prefix sum: %lu\n"
+			"Outer hash: %lu\n"
+			"Index count: %lu\n"
+			"Prefix Sum: %lu\n"
+			"Join final: %lu\n", innerPackFinal, innerHashCountFinal, innerPrefixFinal, innerHashFinal,
+									outerPackFinal, outerHashCountFinal, outerPrefixFinal, outerHashFinal,
+									indexCountFinal, prefixSumFinal, joinFinal);
+
 
 	checkCudaErrors(cudaFree(outer_dev));
 	checkCudaErrors(cudaFree(inner_dev));
@@ -599,4 +977,5 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(outerHash.hashedKey));
 
 	return true;
+}
 }

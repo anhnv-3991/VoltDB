@@ -5,8 +5,11 @@
 #include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/expressions/nodedata.h"
 #include "GPUTUPLE.h"
+#include "common/types.h"
+#include "GPUetc/common/GNValue.h"
+#include <sys/time.h>
 
-using namespace voltdb;
+namespace voltdb {
 
 class GPUHJ {
 public:
@@ -64,6 +67,8 @@ private:
 	template <typename T> void freeArrays(T *expression);
 	void setNValue(NValue *nvalue, GNValue &gnvalue);
 	void debugGTrees(const GTreeNode *expression, int size);
+	unsigned long timeDiff(struct timeval start, struct timeval end);
+	void keyGenerateTest(GNValue *tuple, int *keyIndices, int indexNum, uint64_t *packedKey);
 
 	void GNValueDebug(GNValue &column_data)	{
 		NValue value;
@@ -79,39 +84,5 @@ private:
 
 };
 
-const uint64_t GPUHJ::MAX_BUCKETS[] = {
-	        3,
-	        7,
-	        13,
-	        31,
-	        61,
-	        127,
-	        251,
-	        509,
-	        1021,
-	        2039,
-	        4093,
-	        8191,
-	        16381,
-	        32749,
-	        65521,
-	        131071,
-	        262139,
-	        524287,
-	        1048573,
-	        2097143,
-	        4194301,
-	        8388593,
-	        16777213,
-	        33554393,
-	        67108859,
-	        134217689,
-	        268435399,
-	        536870909,
-	        1073741789,
-	        2147483647,
-	        4294967291,
-	        8589934583
-	};
-
+}
 #endif

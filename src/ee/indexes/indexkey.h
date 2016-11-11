@@ -406,7 +406,7 @@ struct IntsHasher
 
     inline size_t operator()(IntsKey<keySize> const& p) const
     {
-    	std::cout << "InstHasher" << std::endl;
+    	//std::cout << "InstHasher" << std::endl;
         size_t seed = 0;
         for (int ii = 0; ii < keySize; ii++) {
             boost::hash_combine(seed, p.data[ii]);

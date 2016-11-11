@@ -350,6 +350,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
 		TreeExpression tmp(m_indexNode->getSearchKeyExpressions()[ctr]);
 		gsearchKeyExpressions.push_back(tmp);
+		tmp.debug();
+		std::cout << std::endl;
 	}
 
 	for (int ctr = 0; ctr < inner_indices.size(); ctr++) {
@@ -366,15 +368,18 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			NValue tmp_value = outer_tuple.getNValue(i);
 			setGNValue(&index_data_out[idx * col_outer + i], tmp_value);
 		}
+		idx++;
 	}
 
+	idx = 0;
 	int col_inner = inner_tuple.sizeInValues();
 	while (search_it_in.next(inner_tuple)) {
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
-			setGNValue(&index_data_in[idx * col_outer + i], tmp_value);
+			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
 		}
+		idx++;
 	}
 
 	/* Get column data for end_expression (index keys) &
@@ -445,6 +450,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
 				int l = join_result[i].lkey;
 				int r = join_result[i].rkey;
+				//printf("Index of output outer = %d and inner = %d\n", l, r);
 
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
 					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
