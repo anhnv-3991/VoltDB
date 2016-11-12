@@ -450,9 +450,10 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
 				int l = join_result[i].lkey;
 				int r = join_result[i].rkey;
-				//printf("Index of output outer = %d and inner = %d\n", l, r);
+
 
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
+					//printf("Index of output outer = %d and inner = %d\n", l, r);
 					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {

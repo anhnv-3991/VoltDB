@@ -30,11 +30,11 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 	if (keyIndices != NULL) {
 		for (int i = 0; i < indexNum; i++) {
 			tmp_val = tuple[keyIndices[i]];
+			int64_t value = tmp_val.getValue();
+			uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
 
 			switch (tmp_val.getValueType()) {
 				case VALUE_TYPE_TINYINT: {
-					int8_t value = static_cast<int8_t>(tmp_val.getValue());
-					uint8_t keyValue = static_cast<uint8_t>(value + INT8_MAX + 1);
 					for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
@@ -46,8 +46,6 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_SMALLINT: {
-					int16_t value = static_cast<int16_t>(tmp_val.getValue());
-					uint16_t keyValue = static_cast<uint16_t>(value + INT16_MAX + 1);
 					for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
@@ -60,10 +58,8 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_INTEGER: {
-					int32_t value = static_cast<int32_t>(tmp_val.getValue());
-					uint32_t keyValue = static_cast<uint32_t>(value + INT32_MAX + 1);
 					for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
+						packedKey[keyOffset] |= ((0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8));
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
 							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
@@ -74,8 +70,6 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_BIGINT: {
-					int64_t value = tmp_val.getValue();
-					uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
 					for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
@@ -91,16 +85,15 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					printf("Error: no match type. Type = %d\n", tmp_val.getValueType());
 				}
 			}
-
 		}
 	} else {
 		for (int i = 0; i < indexNum; i++) {
 			tmp_val = tuple[i];
+			int64_t value = tmp_val.getValue();
+			uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
 
 			switch (tmp_val.getValueType()) {
 				case VALUE_TYPE_TINYINT: {
-					int8_t value = static_cast<int8_t>(tmp_val.getValue());
-					uint8_t keyValue = static_cast<uint8_t>(value + INT8_MAX + 1);
 					for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
@@ -112,8 +105,6 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_SMALLINT: {
-					int16_t value = static_cast<int16_t>(tmp_val.getValue());
-					uint16_t keyValue = static_cast<uint16_t>(value + INT16_MAX + 1);
 					for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
@@ -126,8 +117,6 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_INTEGER: {
-					int32_t value = static_cast<int32_t>(tmp_val.getValue());
-					uint32_t keyValue = static_cast<uint32_t>(value + INT32_MAX + 1);
 					for (int j = sizeof(uint32_t) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
@@ -140,8 +129,6 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_BIGINT: {
-					int64_t value = tmp_val.getValue();
-					uint64_t keyValue = static_cast<uint64_t>(value + INT64_MAX + 1);
 					for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
@@ -154,7 +141,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				default:
-					//printf("Error: cannot detect type at index %d\n", i);
+					printf("Error: cannot detect type at index %d\n", i);
 			}
 
 		}
@@ -358,12 +345,8 @@ __global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable
 	int keySize = hashTable.keySize;
 	int maxNumberOfBuckets = hashTable.bucketNum;
 
-	for (i = index; i < maxNumberOfBuckets; i += stride) {
+	for (i = index; i <= maxNumberOfBuckets; i += stride) {
 		hashTable.bucketLocation[i] = hashCount[i * stride];
-	}
-
-	if (i == maxNumberOfBuckets) {
-		hashTable.bucketLocation[i] = hashCount[(i - 1) * stride + 1];
 	}
 
 	__syncthreads();
@@ -380,6 +363,8 @@ __global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable
 		}
 
 		hashCount[bucketOffset * stride + index]++;
+
+		//printf("index %d at bucket %d\n", i, (int)bucketOffset);
 	}
 }
 
@@ -393,31 +378,27 @@ __global__ void hashIndexCount(GHashNode outerHash, GHashNode innerHash, int low
 	int threadGlobalIndex = threadIdx.x + blockIdx.x * blockDim.x + blockDim.x * gridDim.x * blockIdx.y;
 	int stride = gridDim.x * gridDim.y;
 	int keySize = outerHash.keySize;
-	bool res;
+	//bool res_check;
+
+	for (int i = threadGlobalIndex; i <= size; i += stride * blockDim.x) {
+		indexCount[threadGlobalIndex] = 0;
+	}
+
+	__syncthreads();
 
 	if (threadGlobalIndex < size) {
-		indexCount[threadGlobalIndex] = 0;
 
 		for (bucketIdx = lowerBound + blockIdx.x + gridDim.x * blockIdx.y; bucketIdx < upperBound; bucketIdx += stride) {
 			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
 				for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-					//printf("innerIdx = %d, endInnerIdx = %d\n", innerIdx, endInnerIdx);
-					res = equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize);
-					count_res += (res) ? 1 : 0;
+
+					count_res += (equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize)) ? 1 : 0;
 				}
 			}
 		}
 
 		indexCount[threadGlobalIndex] = count_res;
-//		if (count_res != 0)
-//			printf("count_res = %lu at threadIdx = %d\n", count_res, threadGlobalIndex);
 	}
-
-	if (threadGlobalIndex == size - 1) {
-		printf("End of the array\n");
-		indexCount[threadGlobalIndex + 1] = 0;
-	}
-
 }
 
 __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
@@ -445,6 +426,7 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 	int outerIdx, innerIdx;
 	int keySize = outerHash.keySize;
 	int outerTupleIdx, innerTupleIdx;
+	bool writeLocChanged = false;
 
 	if (index < size) {
 		write_location = indexCount[index];
@@ -466,9 +448,11 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 																						inner_table + innerTupleIdx * inner_cols,
 																						stack + index, globalStride) : exp_check;
 
-					result[write_location].lkey = (exp_check.isTrue()) ? outerTupleIdx : (-1);
-					result[write_location].rkey = (exp_check.isTrue()) ? innerTupleIdx : (-1);
+					result[write_location].lkey = (exp_check.isTrue()) ? outerTupleIdx : ((!writeLocChanged) ? result[write_location].lkey : (-1));
+					result[write_location].rkey = (exp_check.isTrue()) ? innerTupleIdx : ((!writeLocChanged) ? result[write_location].lkey : (-1));
 					write_location += (key_check) ? 1 : 0;
+					writeLocChanged = (key_check) ? true : false;
+
 				}
 			}
 		}
