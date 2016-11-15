@@ -572,6 +572,7 @@ bool GPUHJ::join()
 	int *indices_dev, *search_exp_size;
 	ulong *indexCount, jr_size;
 	RESULT *jresult_dev;
+	int block_x, grid_x, grid_y;
 
 
 	if (initial_size_ > 0) {
@@ -609,32 +610,18 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&indices_dev, sizeof(int) * indices_size_));
 	checkCudaErrors(cudaMemcpy(indices_dev, indices_, sizeof(int) * indices_size_, cudaMemcpyHostToDevice));
 
-
-	int count_test = 0;
-	GNValue tmp1 = inner_table_[0], tmp2 = inner_table_[1];
-	uint64_t tmp0 = tmp1.getValue() * (int)pow(2,32) + tmp1.getValue();
-	uint64_t tmp3, tmp4;
-	for (int i = 0; i < inner_rows_; i++) {
-		tmp3 = static_cast<uint64_t>(inner_table_[i * inner_cols_].getValue() + INT64_MAX + 1);
-		tmp4 = static_cast<uint64_t>(inner_table_[i * inner_cols_ + 1].getValue() + INT64_MAX + 1);
-		if (tmp3 * (int)pow(2,32) + tmp4 == tmp0)
-			count_test++;
-	}
-
-	printf("Count test new is %d\n", count_test);
-
 	/******** Hash the inner table *******/
 	GHashNode innerHash;
-	ulong *hashCount, *tmpHashCount;
+	ulong *hashCount;
 	uint64_t *innerKey;
 	ulong sum;
-	uint64_t *innerTest;
-	ulong *testCount;
-
 
 	printf("Max number of buckets is %d\n", maxNumberOfBuckets_);
-	int block_x = (inner_rows_ < BLOCK_SIZE_X) ? inner_rows_ : BLOCK_SIZE_X;
-	int grid_x = (inner_rows_ % block_x == 0) ? (inner_rows_ / block_x) : (inner_rows_ / block_x + 1);
+	block_x = (inner_rows_ < BLOCK_SIZE_X) ? inner_rows_ : BLOCK_SIZE_X;
+	//grid_x = (inner_rows_ - 1)/block_x + 1;
+	//grid_x = (grid_x < GRID_SIZE_X) ? grid_x : GRID_SIZE_X;
+	//grid_y = (grid_x - 1)/GRID_SIZE_X + 1;
+	grid_x = grid_y = 1;
 	innerHash.keySize = keySize_;
 	innerHash.size = inner_rows_;
 	innerHash.bucketNum = maxNumberOfBuckets_;
@@ -642,66 +629,35 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_rows_ * inner_cols_));
 	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_rows_ * inner_cols_, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMalloc(&innerKey, sizeof(uint64_t) * inner_rows_ * keySize_));
-	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * maxNumberOfBuckets_ + 1)));
+	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1)));
 
 	struct timeval innerPackStart, innerPackEnd, innerHashCountStart, innerHashCountEnd, innerHashStart, innerHashEnd, innerPrefixStart, innerPrefixEnd;
 	std::vector<unsigned long> innerPack, innerHashCount, innerHasher, innerPrefix;
 
 	gettimeofday(&innerPackStart, NULL);
-	packKeyWrapper(block_x, 1, 1, 1, inner_dev, inner_rows_, inner_cols_, indices_dev, indices_size_, innerKey, keySize_);
-
+	packKeyWrapper(block_x, 1, grid_x, grid_y, inner_dev, inner_rows_, inner_cols_, indices_dev, indices_size_, innerKey, keySize_);
 	gettimeofday(&innerPackEnd, NULL);
 	innerPack.push_back(timeDiff(innerPackStart, innerPackEnd));
 
 	gettimeofday(&innerHashCountStart, NULL);
-	ghashCountWrapper(block_x, 1, 1, 1, innerKey, inner_rows_, keySize_, hashCount, maxNumberOfBuckets_);
-
-
+	ghashCountWrapper(block_x, 1, grid_x, grid_y, innerKey, inner_rows_, keySize_, hashCount, maxNumberOfBuckets_);
 	gettimeofday(&innerHashCountEnd, NULL);
 	innerHashCount.push_back(timeDiff(innerHashCountStart, innerHashCountEnd));
 
 
 	gettimeofday(&innerPrefixStart, NULL);
-	hprefixSumWrapper(hashCount, block_x * maxNumberOfBuckets_ + 1, &sum);
-
+	hprefixSumWrapper(hashCount, block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1, &sum);
 	gettimeofday(&innerPrefixEnd, NULL);
 	innerPrefix.push_back(timeDiff(innerPrefixStart, innerPrefixEnd));
 
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedIdx), sizeof(uint64_t) * inner_rows_));
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedKey), sizeof(uint64_t) * inner_rows_ * keySize_));
 	checkCudaErrors(cudaMalloc(&(innerHash.bucketLocation), sizeof(uint64_t) * (maxNumberOfBuckets_ + 1)));
-	innerTest = (uint64_t *)malloc(sizeof(uint64_t) * inner_rows_ * keySize_);
-	checkCudaErrors(cudaMemcpy(innerTest, innerKey, sizeof(uint64_t) * inner_rows_ * keySize_, cudaMemcpyDeviceToHost));
 
 	gettimeofday(&innerHashStart, NULL);
 	ghashWrapper(block_x, 1, 1, 1, innerKey, hashCount, innerHash);
 	gettimeofday(&innerHashEnd, NULL);
 	innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
-//
-//	uint64_t *innerTestIdx;
-//	uint64_t *innerTestKey;
-//	innerTestIdx = (uint64_t *)malloc(sizeof(uint64_t) * inner_rows_);
-//	innerTestKey = (uint64_t *)malloc(sizeof(uint64_t) * inner_rows_ * keySize_);
-//
-//	cudaMemcpy(innerTestKey, innerKey, sizeof(uint64_t) * inner_rows_ * keySize_, cudaMemcpyDeviceToHost);
-//	printf("Before hash *************\n");
-//	for (int i = 0; i < inner_rows_; i++) {
-//		printf("Keyval = %" PRIu64 " at ", innerTestKey[i * keySize_]);
-//		for (int j = 0; j < inner_cols_; j++) {
-//			printf("col %d = %d", j, (int)(inner_table_[i * inner_cols_ + j].getValue()));
-//		}
-//		printf("\n");
-//	}
-//	cudaMemcpy(innerTestIdx, innerHash.hashedIdx, sizeof(uint64_t) * inner_rows_, cudaMemcpyDeviceToHost);
-//	cudaMemcpy(innerTestKey, innerHash.hashedKey, sizeof(uint64_t) * inner_rows_ * keySize_, cudaMemcpyDeviceToHost);
-//	printf("After hash ***************\n");
-//	for (int i = 0; i < inner_rows_; i++) {
-//		printf("Keyval = %" PRIu64 " at ", innerTestKey[i * keySize_]);
-//		for (int j = 0; j < inner_cols_; j++) {
-//			printf("col %d = %d", j, (int)(inner_table_[innerTestIdx[i] * inner_cols_ + j].getValue()));
-//		}
-//		printf("\n");
-//	}
 
 	checkCudaErrors(cudaFree(inner_dev));
 	checkCudaErrors(cudaFree(hashCount));
@@ -712,9 +668,11 @@ bool GPUHJ::join()
 	uint64_t *outerKey;
 	GHashNode outerHash;
 
-
-
 	block_x = (outer_rows_ < BLOCK_SIZE_X) ? outer_rows_ : BLOCK_SIZE_X;
+	//grid_x = (outer_rows_ - 1)/block_x + 1;
+	//grid_x = (grid_x < GRID_SIZE_X) ? grid_x : GRID_SIZE_X;
+	//grid_y = (grid_x - 1)/GRID_SIZE_X + 1;
+	grid_x = grid_y = 1;
 	outerHash.keySize = keySize_;
 	outerHash.size = outer_rows_;
 	outerHash.bucketNum = maxNumberOfBuckets_;
@@ -722,27 +680,26 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_rows_ * outer_cols_));
 	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_rows_ * outer_cols_, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMalloc(&outerKey, sizeof(uint64_t) * outer_rows_ * keySize_));
-	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * maxNumberOfBuckets_ + 1)));
-	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x));
+	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1)));
+	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x * grid_x * grid_y));
 
 	struct timeval outerPackStart, outerPackEnd, outerHashCountStart, outerHashCountEnd, outerPrefixStart, outerPrefixEnd, outerHashStart, outerHashEnd;
 	std::vector<unsigned long> outerPack, outerHashCount, outerPrefix, outerHasher;
 
 	gettimeofday(&outerPackStart, NULL);
-	packSearchKeyWrapper(block_x, 1, 1, 1, outer_dev, outer_rows_, outer_cols_,
+	packSearchKeyWrapper(block_x, 1, grid_x, grid_y, outer_dev, outer_rows_, outer_cols_,
 							outerKey, search_exp_dev, search_exp_size, search_exp_num_,
 							keySize_, stack);
 	gettimeofday(&outerPackEnd, NULL);
-	printf("PASSED outer pack key\n");
 	outerPack.push_back(timeDiff(outerPackStart, outerPackEnd));
 
 	gettimeofday(&outerHashCountStart, NULL);
-	ghashCountWrapper(block_x, 1, 1, 1, outerKey, outer_rows_, keySize_, hashCount, maxNumberOfBuckets_);
+	ghashCountWrapper(block_x, 1, grid_x, grid_y, outerKey, outer_rows_, keySize_, hashCount, maxNumberOfBuckets_);
 	gettimeofday(&outerHashCountEnd, NULL);
 	outerHashCount.push_back(timeDiff(outerHashCountStart, outerHashCountEnd));
 
 	gettimeofday(&outerPrefixStart, NULL);
-	hprefixSumWrapper(hashCount, block_x * maxNumberOfBuckets_ + 1, &sum);
+	hprefixSumWrapper(hashCount, block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1, &sum);
 	gettimeofday(&outerPrefixEnd, NULL);
 	outerPrefix.push_back(timeDiff(outerPrefixStart, outerPrefixEnd));
 
@@ -752,52 +709,19 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&(outerHash.bucketLocation), sizeof(uint64_t) * (maxNumberOfBuckets_ + 1)));
 
 	gettimeofday(&outerHashStart, NULL);
-	ghashWrapper(block_x, 1, 1, 1, outerKey, hashCount, outerHash);
+	ghashWrapper(block_x, 1, grid_x, grid_y, outerKey, hashCount, outerHash);
 	gettimeofday(&outerHashEnd, NULL);
 	outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
-//
-//	uint64_t *outerTestIdx;
-//	uint64_t *outerTestKey;
-//	uint64_t *outerBucketLoc;
-//	outerTestIdx = (uint64_t *)malloc(sizeof(uint64_t) * outer_rows_);
-//	outerTestKey = (uint64_t *)malloc(sizeof(uint64_t) * outer_rows_ * keySize_);
-//	outerBucketLoc = (uint64_t *)malloc(sizeof(uint64_t) * (maxNumberOfBuckets_ + 1));
-//
-//	cudaMemcpy(outerTestKey, outerKey, sizeof(uint64_t) * outer_rows_ * keySize_, cudaMemcpyDeviceToHost);
-//	printf("Before hash outer *************\n");
-//	for (int i = 0; i < outer_rows_; i++) {
-//		printf("Keyval = %" PRIu64 " at ", outerTestKey[i * keySize_]);
-//		for (int j = 0; j < outer_cols_; j++) {
-//			printf("col %d = %d", j, (int)(outer_table_[i * outer_cols_ + j].getValue()));
-//		}
-//		printf("\n");
-//	}
-//	cudaMemcpy(outerTestIdx, outerHash.hashedIdx, sizeof(uint64_t) * outer_rows_, cudaMemcpyDeviceToHost);
-//	cudaMemcpy(outerTestKey, outerHash.hashedKey, sizeof(uint64_t) * outer_rows_ * keySize_, cudaMemcpyDeviceToHost);
-//	printf("After hash outer ***************\n");
-//	for (int i = 0; i < outer_rows_; i++) {
-//		printf("Keyval = %" PRIu64 " at ", outerTestKey[i * keySize_]);
-//		for (int j = 0; j < inner_cols_; j++) {
-//			printf("col %d = %d", j, (int)(outer_table_[outerTestIdx[i] * outer_cols_ + j].getValue()));
-//		}
-//		printf("\n");
-//	}
-//
-//	cudaMemcpy(outerBucketLoc, outerHash.bucketLocation, sizeof(uint64_t) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost);
-//	printf("Outer bucket location *******\n");
-//	for (int i = 0; i < maxNumberOfBuckets_ + 1; i++) {
-//		printf("Bucket location %d is %d\n", i, (int)outerBucketLoc[i]);
-//	}
 
 	checkCudaErrors(cudaFree(stack));
 	checkCudaErrors(cudaFree(outer_dev));
 	checkCudaErrors(cudaFree(outerKey));
+	checkCudaErrors(cudaFree(hashCount));
 
 	/**** Allocate table memory for join ****/
 	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_rows_ * outer_cols_));
 	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_rows_ * inner_cols_));
 
-	printf("END OF ALLOCATING NEW buffer\n");
 	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_rows_ * outer_cols_, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_rows_ * inner_cols_, cudaMemcpyHostToDevice));
 
@@ -826,7 +750,7 @@ bool GPUHJ::join()
 	 */
 	block_x = (sizeOfBuckets <= BLOCK_SIZE_X) ? sizeOfBuckets : BLOCK_SIZE_X;
 	grid_x = (bucketStride < GRID_SIZE_X) ? bucketStride : GRID_SIZE_X;
-	int grid_y = (bucketStride < GRID_SIZE_X) ? 1 : bucketStride/GRID_SIZE_X;
+	grid_y = (bucketStride - 1)/GRID_SIZE_X + 1;
 	partitionSize = grid_x * grid_y * block_x;
 
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * partitionSize));
@@ -866,7 +790,7 @@ bool GPUHJ::join()
 		checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 
 		gettimeofday(&joinStart, NULL);
-		hashJoinWrapper(block_x, 1, grid_x, 1,
+		hashJoinWrapper(block_x, 1, grid_x, grid_y,
 							outer_dev, inner_dev,
 							outer_cols_, inner_cols_,
 							end_dev, end_size_,
@@ -881,14 +805,8 @@ bool GPUHJ::join()
 		join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size) * sizeof(RESULT));
 
 		checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size * sizeof(RESULT), cudaMemcpyDeviceToHost));
-//		for (int i = 0; i < result_size_; i++)  {
-//
-//		}
 		checkCudaErrors(cudaFree(jresult_dev));
 		result_size_ += jr_size;
-//		for (int i = 0; i < result_size_; i++)  {
-//			printf("result at index %d is left = %d, right = %d\n", i, join_result_[i].lkey, join_result_[i].rkey);
-//		}
 		jr_size = 0;
 	}
 	unsigned long innerPackFinal, innerHashCountFinal, innerPrefixFinal, innerHashFinal;

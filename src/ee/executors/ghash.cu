@@ -391,7 +391,6 @@ __global__ void hashIndexCount(GHashNode outerHash, GHashNode innerHash, int low
 		for (bucketIdx = lowerBound + blockIdx.x + gridDim.x * blockIdx.y; bucketIdx < upperBound; bucketIdx += stride) {
 			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
 				for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-
 					count_res += (equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize)) ? 1 : 0;
 				}
 			}
