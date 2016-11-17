@@ -583,7 +583,6 @@ bool GPUHJ::join()
 	ValueType *type_stack;
 #endif
 
-
 	gettimeofday(&start_all, NULL);
 	if (initial_size_ > 0) {
 		checkCudaErrors(cudaMalloc(&initial_dev, sizeof(GTreeNode) * initial_size_));
@@ -665,6 +664,7 @@ bool GPUHJ::join()
 	gettimeofday(&innerPrefixEnd, NULL);
 	innerPrefix.push_back(timeDiff(innerPrefixStart, innerPrefixEnd));
 
+
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedIdx), sizeof(int) * inner_rows_));
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedKey), sizeof(uint64_t) * inner_rows_ * keySize_));
 	checkCudaErrors(cudaMalloc(&(innerHash.bucketLocation), sizeof(int) * (maxNumberOfBuckets_ + 1)));
@@ -674,7 +674,16 @@ bool GPUHJ::join()
 	gettimeofday(&innerHashEnd, NULL);
 	innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
 
+#ifdef PHYSICAL_HASH_
+	//Physical hash
+	GNValue *inner_dev_tmp;
+
+	checkCudaErrors(cudaMalloc(&inner_dev_tmp, sizeof(GNValue) * inner_rows_ * inner_cols_));
+	ghashPhysicalWrapper(block_x, 1, grid_x, grid_y, inner_dev, inner_dev_tmp, inner_cols_, inner_rows_, innerHash);
 	checkCudaErrors(cudaFree(inner_dev));
+	inner_dev = inner_dev_tmp;
+#endif
+
 	checkCudaErrors(cudaFree(hashCount));
 	checkCudaErrors(cudaFree(innerKey));
 
@@ -745,6 +754,7 @@ bool GPUHJ::join()
 	printf("End hashing inner table\n");
 	outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
 
+
 #ifdef FUNC_CALL_
 	checkCudaErrors(cudaFree(stack));
 #else
@@ -752,7 +762,17 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(type_stack));
 #endif
 
+#ifdef PHYSICAL_HASH_
+	//Physical hash
+	GNValue *outer_dev_tmp;
+
+	checkCudaErrors(cudaMalloc(&outer_dev_tmp, sizeof(GNValue) * outer_rows_ * outer_cols_));
+	ghashPhysicalWrapper(block_x, 1, grid_x, grid_y, outer_dev, outer_dev_tmp, outer_cols_, outer_rows_, outerHash);
 	checkCudaErrors(cudaFree(outer_dev));
+	//Physical hash
+	outer_dev = outer_dev_tmp;
+#endif
+
 	checkCudaErrors(cudaFree(outerKey));
 	checkCudaErrors(cudaFree(hashCount));
 
@@ -773,17 +793,13 @@ bool GPUHJ::join()
 //	}
 
 	/**** Allocate table memory for join ****/
-	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_rows_ * outer_cols_));
-	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_rows_ * inner_cols_));
-
-	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_rows_ * outer_cols_, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_rows_ * inner_cols_, cudaMemcpyHostToDevice));
-
 	int partitionSize = (outer_rows_ < DEFAULT_PART_SIZE_) ? outer_rows_ : DEFAULT_PART_SIZE_;
 	int sizeOfBuckets = (outer_rows_ - 1) / maxNumberOfBuckets_ + 1;
+
 	printf("Size of Buckets = %d\n", sizeOfBuckets);
-	double tmp = (partitionSize - 1)/sizeOfBuckets + 1;
-	int bucketStride = (int)pow(2, (int)(log2(tmp)));
+	int bucketStride = (partitionSize - 1)/sizeOfBuckets + 1;
+//	double tmp = (partitionSize - 1)/sizeOfBuckets + 1;
+//	int bucketStride = (int)pow(2, (int)(log2(tmp)));
 
 	printf("bucketStride = %d\n", bucketStride);
 	printf("Partition size 1 = %d\n", partitionSize);
@@ -853,6 +869,7 @@ bool GPUHJ::join()
 		checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 
 		gettimeofday(&joinStart, NULL);
+#ifndef PHYSICAL_HASH_
 		hashJoinWrapper(block_x, 1, grid_x, grid_y,
 							outer_dev, inner_dev,
 							outer_cols_, inner_cols_,
@@ -868,6 +885,23 @@ bool GPUHJ::join()
 							type_stack,
 #endif
 							jresult_dev);
+#else
+		hashPhysicalJoinWrapper(block_x, 1, grid_x, grid_y,
+								outer_dev, inner_dev,
+								outer_cols_, inner_cols_,
+								end_dev, end_size_,
+								post_dev, post_size_,
+								outerHash, innerHash,
+								bucketIdx, bucketIdx + realBucketStride,
+								indexCount, partitionSize,
+#ifdef FUNC_CALL_
+								stack,
+#else
+								val_stack,
+								type_stack,
+#endif
+								jresult_dev);
+#endif
 		gettimeofday(&joinEnd, NULL);
 		joinTime.push_back(timeDiff(joinStart, joinEnd));
 

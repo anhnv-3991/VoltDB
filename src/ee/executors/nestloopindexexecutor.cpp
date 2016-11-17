@@ -371,30 +371,9 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		idx++;
 	}
 
-//	idx = 0;
-//	int col_inner = inner_tuple.sizeInValues();
-//	while (search_it_in.next(inner_tuple)) {
-//		tmp_inner_tuple[idx] = inner_tuple;
-//		for (int i = 0; i < col_inner; i++) {
-//			NValue tmp_value = inner_tuple.getNValue(i);
-//			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
-//		}
-//		idx++;
-//	}
-
-	/* Get column data for end_expression (index keys) &
-	 * post_expression from inner table.
-	 */
-	IndexCursor index_cursor2(index->getTupleSchema());
-
-	bool begin = true;
-
-	index->moveToEnd(begin, index_cursor2);
-
-
 	idx = 0;
 	int col_inner = inner_tuple.sizeInValues();
-	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
+	while (search_it_in.next(inner_tuple)) {
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
@@ -402,6 +381,27 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		}
 		idx++;
 	}
+
+	/* Get column data for end_expression (index keys) &
+	 * post_expression from inner table.
+	 */
+//	IndexCursor index_cursor2(index->getTupleSchema());
+//
+//	bool begin = true;
+//
+//	index->moveToEnd(begin, index_cursor2);
+//
+//
+//	idx = 0;
+//	int col_inner = inner_tuple.sizeInValues();
+//	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
+//		tmp_inner_tuple[idx] = inner_tuple;
+//		for (int i = 0; i < col_inner; i++) {
+//			NValue tmp_value = inner_tuple.getNValue(i);
+//			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
+//		}
+//		idx++;
+//	}
 
 	bool ret = true;
 	RESULT *join_result = NULL;
@@ -412,24 +412,24 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	if (outer_size != 0 && inner_size != 0) {
 
 		gettimeofday(&join_start, NULL);
-		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
-					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
-//		GPUHJ gn(index_data_out,
-//					index_data_in,
-//					outer_size,
-//					col_outer,
-//					inner_size,
-//					col_inner,
-//					gsearchKeyExpressions,
-//					inner_indices,
-//					end_ex_tree,
-//					post_ex_tree,
-//					initial_ex_tree,
-//					skipNull_ex_tree,
-//					prejoin_ex_tree,
-//					where_ex_tree,
-//					lookup_type
-//					);
+//		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
+//					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
+		GPUHJ gn(index_data_out,
+					index_data_in,
+					outer_size,
+					col_outer,
+					inner_size,
+					col_inner,
+					gsearchKeyExpressions,
+					inner_indices,
+					end_ex_tree,
+					post_ex_tree,
+					initial_ex_tree,
+					skipNull_ex_tree,
+					prejoin_ex_tree,
+					where_ex_tree,
+					lookup_type
+					);
 
 		ret = gn.join();
 		gettimeofday(&join_end, NULL);

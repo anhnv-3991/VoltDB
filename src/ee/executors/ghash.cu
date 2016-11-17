@@ -732,6 +732,78 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 	}
 }
 
+
+__global__ void ghashPhysical(GNValue *inputTable, GNValue *outputTable, int colNum, int rowNum, GHashNode hashTable)
+{
+	for (int index = threadIdx.x + blockIdx.x * blockDim.x; index < rowNum; index += blockDim.x * gridDim.x) {
+		for (int i = 0; i < colNum; i++) {
+			outputTable[index * colNum + i] = inputTable[hashTable.hashedIdx[index] * colNum + i];
+		}
+	}
+}
+
+
+__global__ void hashPhysicalJoin(GNValue *outer_table, GNValue *inner_table,
+									int outer_cols, int inner_cols,
+									GTreeNode *end_expression, int end_size,
+									GTreeNode *post_expression,	int post_size,
+									GHashNode outerHash,
+									GHashNode innerHash,
+									int lowerBound,
+									int upperBound,
+									ulong *indexCount,
+									int size,
+							#ifdef FUNC_CALL_
+									GNValue *stack,
+							#else
+									int64_t *val_stack,
+									ValueType *type_stack,
+							#endif
+									RESULT *result)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int bucketIdx = lowerBound + blockIdx.x;
+
+	bool key_check;
+	ulong write_location;
+	int outerIdx, innerIdx;
+	int endOuterIdx, endInnerIdx;
+
+	if (index < size && bucketIdx < upperBound) {
+		write_location = indexCount[index];
+		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
+			for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
+
+				key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
+				GNValue exp_check(VALUE_TYPE_BOOLEAN, key_check);
+#ifdef FUNC_CALL_
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerIdx * inner_cols,
+																	stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerIdx * inner_cols,
+																	stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+#else
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerIdx * inner_cols,
+																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerIdx * inner_cols,
+																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+#endif
+
+				result[write_location].lkey = (exp_check.isTrue()) ? outerHash.hashedIdx[outerIdx] : result[write_location].lkey;
+				result[write_location].rkey = (exp_check.isTrue()) ? innerHash.hashedIdx[innerIdx] : result[write_location].lkey;
+				write_location += (key_check) ? 1 : 0;
+			}
+		}
+	}
+}
+
 void packKeyWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
 					GNValue *index_table,
@@ -791,6 +863,23 @@ void ghashWrapper(int block_x, int block_y,
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (ghash) error: %s\n", cudaGetErrorString(err));
+		exit(1);
+	}
+
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void ghashPhysicalWrapper(int block_x, int block_y, int grid_x, int grid_y,
+							GNValue *inputTable, GNValue *outputTable,
+							int colNum, int rowNum, GHashNode hashTable)
+{
+	dim3 gridSize(grid_x, grid_y, 1);
+	dim3 blockSize(block_x, block_y, 1);
+
+	ghashPhysical<<<gridSize, blockSize>>>(inputTable, outputTable, colNum, rowNum, hashTable);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (ghashPhysical) error: %s\n", cudaGetErrorString(err));
 		exit(1);
 	}
 
@@ -899,12 +988,66 @@ void hashJoinWrapper(int block_x, int block_y,
 										result);
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashIndexCount) error: %s\n", cudaGetErrorString(err));
+		printf("Error: Async kernel (hashJoin) error: %s\n", cudaGetErrorString(err));
 		exit(1);
 	}
 
 	checkCudaErrors(cudaDeviceSynchronize());
 }
+
+
+
+void hashPhysicalJoinWrapper(int block_x, int block_y,
+								int grid_x, int grid_y,
+								GNValue *outer_table,
+								GNValue *inner_table,
+								int outer_cols,
+								int inner_cols,
+								GTreeNode *end_expression,
+								int end_size,
+								GTreeNode *post_expression,
+								int post_size,
+								GHashNode outerHash,
+								GHashNode innerHash,
+								int lowerBound,
+								int upperBound,
+								ulong *indexCount,
+								int size,
+#ifdef FUNC_CALL_
+								GNValue *stack,
+#else
+								int64_t *val_stack,
+								ValueType *type_stack,
+#endif
+								RESULT *result
+								)
+{
+	dim3 gridSize(grid_x, grid_y, 1);
+	dim3 blockSize(block_x, block_y, 1);
+
+	hashPhysicalJoin<<<gridSize, blockSize>>>(outer_table, inner_table,
+												outer_cols, inner_cols,
+												end_expression, end_size,
+												post_expression, post_size,
+												outerHash, innerHash,
+												lowerBound, upperBound,
+												indexCount, size,
+#ifdef FUNC_CALL_
+												stack,
+#else
+												val_stack,
+												type_stack,
+#endif
+												result);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (hashPhysicalJoin) error: %s\n", cudaGetErrorString(err));
+		exit(1);
+	}
+
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
 
 void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum)
 {
