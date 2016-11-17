@@ -278,7 +278,7 @@ bool GPUIJ::join(){
 
 			/* Evaluate prejoin predicate */
 			gettimeofday(&pre_start, NULL);
-			prejoin_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, outer_part_size, prejoin_dev, prejoin_size_, prejoin_res_dev
+			prejoin_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
 					,stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
@@ -292,7 +292,7 @@ bool GPUIJ::join(){
 
 			/* Binary search for index */
 			gettimeofday(&istart, NULL);
-			index_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, inner_dev, index_psum, res_bound, outer_part_size, inner_part_size,
+			index_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, inner_dev, index_psum, res_bound, outer_part_size, outer_cols_, inner_part_size, inner_cols_,
 								search_exp_dev, search_exp_size, search_exp_num_, indices_dev, indices_size_, lookup_type_, prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
 								,stack
@@ -327,7 +327,7 @@ bool GPUIJ::join(){
 
 			gettimeofday(&estart, NULL);
 			exp_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev, inner_dev, jresult_dev, index_psum, exp_psum,
-								outer_part_size, jr_size, end_dev, end_size_, post_dev, post_size_,
+								outer_part_size, outer_cols_, inner_cols_, jr_size, end_dev, end_size_, post_dev, post_size_,
 								where_dev, where_size_, res_bound, outer_idx, inner_idx, prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
 								,stack

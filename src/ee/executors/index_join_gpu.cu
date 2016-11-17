@@ -30,8 +30,7 @@ __device__ GNValue evaluate(GTreeNode *tree_expression,
 							int root,
 							int tree_size,
 							GNValue *outer_tuple,
-							GNValue *inner_tuple,
-							int offset)
+							GNValue *inner_tuple)
 {
 	if (root == 0)
 		return GNValue::getTrue();
@@ -43,17 +42,17 @@ __device__ GNValue evaluate(GTreeNode *tree_expression,
 
 	if (tmp_node.type == EXPRESSION_TYPE_VALUE_TUPLE) {
 		if (tmp_node.tuple_idx == 0) {
-			return outer_tuple[tmp_node.column_idx * offset];
+			return outer_tuple[tmp_node.column_idx];
 		} else if (tmp_node.tuple_idx == 1) {
-			return inner_tuple[tmp_node.column_idx * offset];
+			return inner_tuple[tmp_node.column_idx];
 		}
 	} else if (tmp_node.type == EXPRESSION_TYPE_VALUE_CONSTANT || tmp_node.type == EXPRESSION_TYPE_VALUE_PARAMETER) {
 		return tmp_node.value;
 	}
 
 
-	GNValue left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, offset);
-	GNValue right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, offset);
+	GNValue left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+	GNValue right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
 
 
 	switch (tmp_node.type) {
@@ -112,10 +111,10 @@ __device__ GNValue evaluate2(GTreeNode *tree_expression,
 		switch (tree_expression[i].type) {
 			case EXPRESSION_TYPE_VALUE_TUPLE: {
 				if (tree_expression[i].tuple_idx == 0) {
-					stack[top] = outer_tuple[tree_expression[i].column_idx * offset];
+					stack[top] = outer_tuple[tree_expression[i].column_idx];
 					top += offset;
 				} else if (tree_expression[i].tuple_idx == 1) {
-					stack[top] = inner_tuple[tree_expression[i].column_idx * offset];
+					stack[top] = inner_tuple[tree_expression[i].column_idx];
 					top += offset;
 				}
 				break;
@@ -203,8 +202,7 @@ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 							int root,
 							int tree_size,
 							GNValue *outer_tuple,
-							GNValue *inner_tuple,
-							int offset)
+							GNValue *inner_tuple)
 {
 	if (root == 0)
 		return GNValue::getTrue();
@@ -217,9 +215,9 @@ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 	switch (tmp_node.type) {
 	case EXPRESSION_TYPE_VALUE_TUPLE: {
 		if (tmp_node.tuple_idx == 0) {
-			return outer_tuple[tmp_node.column_idx * offset];
+			return outer_tuple[tmp_node.column_idx];
 		} else if (tmp_node.tuple_idx == 1) {
-			return inner_tuple[tmp_node.column_idx * offset];
+			return inner_tuple[tmp_node.column_idx];
 		} else
 			return GNValue::getNullValue();
 
@@ -231,8 +229,8 @@ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 	}
 
 
-	GNValue left = evaluate3(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple, offset);
-	GNValue right = evaluate3(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple, offset);
+	GNValue left = evaluate3(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+	GNValue right = evaluate3(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
 	int64_t left_i = left.getValue(), right_i = right.getValue(), res_i;
 	ValueType left_t = left.getValueType(), right_t = right.getValueType(), res_t;
 
@@ -394,20 +392,22 @@ __device__ GNValue evaluate4(GTreeNode *tree_expression,
 							int offset)
 {
 	ValueType ltype, rtype;
+	int l_idx, r_idx;
 
 	int top = 0;
 	double left_d, right_d, res_d;
 	int64_t left_i, right_i;
 
 	for (int i = 0; i < tree_size; i++) {
+
 		switch (tree_expression[i].type) {
 			case EXPRESSION_TYPE_VALUE_TUPLE: {
 				if (tree_expression[i].tuple_idx == 0) {
-					stack[top] = outer_tuple[tree_expression[i].column_idx * offset].getValue();
-					gtype[top] = outer_tuple[tree_expression[i].column_idx * offset].getValueType();
+					stack[top] = outer_tuple[tree_expression[i].column_idx].getValue();
+					gtype[top] = outer_tuple[tree_expression[i].column_idx].getValueType();
 				} else if (tree_expression[i].tuple_idx == 1) {
-					stack[top] = inner_tuple[tree_expression[i].column_idx * offset].getValue();
-					gtype[top] = inner_tuple[tree_expression[i].column_idx * offset].getValueType();
+					stack[top] = inner_tuple[tree_expression[i].column_idx].getValue();
+					gtype[top] = inner_tuple[tree_expression[i].column_idx].getValueType();
 
 				}
 
@@ -422,173 +422,246 @@ __device__ GNValue evaluate4(GTreeNode *tree_expression,
 				break;
 			}
 			case EXPRESSION_TYPE_CONJUNCTION_AND: {
-				assert(gtype[top - 2 * offset] == VALUE_TYPE_BOOLEAN && gtype[top - offset] == VALUE_TYPE_BOOLEAN);
-				stack[top - 2 * offset] = (int64_t)((bool)(stack[top - 2 * offset]) && (bool)(stack[top - offset]));
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				if (gtype[l_idx] == VALUE_TYPE_BOOLEAN && gtype[r_idx] == VALUE_TYPE_BOOLEAN) {
+					stack[l_idx] = (int64_t)((bool)(stack[l_idx]) && (bool)(stack[r_idx]));
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] = 0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_CONJUNCTION_OR: {
-				assert(gtype[top - 2 * offset] == VALUE_TYPE_BOOLEAN && gtype[top - offset] == VALUE_TYPE_BOOLEAN);
-				stack[top - 2 * offset] = (int64_t)((bool)(stack[top - 2 * offset]) || (bool)(stack[top - offset]));
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				if (gtype[l_idx] == VALUE_TYPE_BOOLEAN && gtype[r_idx] == VALUE_TYPE_BOOLEAN) {
+					stack[l_idx] = (int64_t)((bool)(stack[l_idx]) || (bool)(stack[r_idx]));
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] = 0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_EQUAL: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2 * offset] =  (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] =  (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2 * offset] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
+					gtype[r_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2 * offset] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i);
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2 * offset] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i);
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2 * offset] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i);
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] = 0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2 * offset] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
-				gtype[top - 2 * offset] = VALUE_TYPE_BOOLEAN;
-				top -= offset;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
 				break;
 			}
 
 			case EXPRESSION_TYPE_OPERATOR_PLUS: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d + right_d;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2 * offset] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2 * offset] = VALUE_TYPE_DOUBLE;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = left_d + right_d;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = VALUE_TYPE_DOUBLE;
+					} else {
+						stack[l_idx] = left_i + right_i;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+					}
 				} else {
-					stack[top - 2 * offset] = left_i + right_i;
-					gtype[top - 2 * offset] = (ltype > rtype) ? ltype : rtype;
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
 				}
-				top -= offset;
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_OPERATOR_MINUS: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d - right_d;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2 * offset] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2 * offset] = VALUE_TYPE_DOUBLE;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = left_d - right_d;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = VALUE_TYPE_DOUBLE;
+					} else {
+						stack[l_idx] = left_i - right_i;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+					}
 				} else {
-					stack[top - 2 * offset] = left_i - right_i;
-					gtype[top - 2 * offset] = (ltype > rtype) ? ltype : rtype;
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
 				}
-				top -= offset;
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d * right_d;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2 * offset] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2 * offset] = VALUE_TYPE_DOUBLE;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = left_d * right_d;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = VALUE_TYPE_DOUBLE;
+					} else {
+						stack[l_idx] = left_i * right_i;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+					}
 				} else {
-					stack[top - 2 * offset] = left_i * right_i;
-					gtype[top - 2 * offset] = (ltype > rtype) ? ltype : rtype;
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
 				}
-				top -= offset;
+				top = r_idx;
 				break;
 			}
 			case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-				ltype = gtype[top - 2 * offset];
-				rtype = gtype[top - offset];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2 * offset];
-				right_i = stack[top - offset];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = (right_d != 0) ? left_d / right_d : 0;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2 * offset] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2 * offset] = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = (right_d != 0) ? left_d / right_d : 0;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
+					} else {
+						stack[l_idx] = (right_i != 0) ? left_i / right_i : 0;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+						gtype[l_idx] = (right_i != 0) ? ltype : VALUE_TYPE_INVALID;
+					}
 				} else {
-					stack[top - 2 * offset] = (right_i != 0) ? left_i / right_i : 0;
-					gtype[top - 2 * offset] = (ltype > rtype) ? ltype : rtype;
-					gtype[top - 2 * offset] = (right_i != 0) ? gtype[top - 2 * offset] : VALUE_TYPE_INVALID;
+					stack[l_idx] =  0;
+					gtype[r_idx] = VALUE_TYPE_INVALID;
 				}
-				top--;
+				top = r_idx;
 				break;
 			}
 			default: {
@@ -606,8 +679,7 @@ __device__ GNValue evaluate4(GTreeNode *tree_expression,
 __device__ GNValue evaluate2_non_coalesce(GTreeNode *tree_expression,
 											int tree_size,
 											GNValue *outer_tuple,
-											GNValue *inner_tuple,
-											int offset)
+											GNValue *inner_tuple)
 {
 	GNValue stack[MAX_STACK_SIZE];
 	int top = 0;
@@ -617,10 +689,10 @@ __device__ GNValue evaluate2_non_coalesce(GTreeNode *tree_expression,
 		switch (tree_expression[i].type) {
 			case EXPRESSION_TYPE_VALUE_TUPLE: {
 				if (tree_expression[i].tuple_idx == 0) {
-					stack[top] = outer_tuple[tree_expression[i].column_idx * offset];
+					stack[top] = outer_tuple[tree_expression[i].column_idx];
 					top ++;
 				} else if (tree_expression[i].tuple_idx == 1) {
-					stack[top] = inner_tuple[tree_expression[i].column_idx * offset];
+					stack[top] = inner_tuple[tree_expression[i].column_idx];
 					top ++;
 				}
 				break;
@@ -707,8 +779,7 @@ __device__ GNValue evaluate2_non_coalesce(GTreeNode *tree_expression,
 __device__ GNValue evaluate4_non_coalesce(GTreeNode *tree_expression,
 											int tree_size,
 											GNValue *outer_tuple,
-											GNValue *inner_tuple,
-											int offset)
+											GNValue *inner_tuple)
 {
 	int64_t stack[MAX_STACK_SIZE];
 	ValueType gtype[MAX_STACK_SIZE];
@@ -722,11 +793,11 @@ __device__ GNValue evaluate4_non_coalesce(GTreeNode *tree_expression,
 		switch (tree_expression[i].type) {
 			case EXPRESSION_TYPE_VALUE_TUPLE: {
 				if (tree_expression[i].tuple_idx == 0) {
-					stack[top] = outer_tuple[tree_expression[i].column_idx * offset].getValue();
-					gtype[top] = outer_tuple[tree_expression[i].column_idx * offset].getValueType();
+					stack[top] = outer_tuple[tree_expression[i].column_idx].getValue();
+					gtype[top] = outer_tuple[tree_expression[i].column_idx].getValueType();
 				} else if (tree_expression[i].tuple_idx == 1) {
-					stack[top] = inner_tuple[tree_expression[i].column_idx * offset].getValue();
-					gtype[top] = inner_tuple[tree_expression[i].column_idx * offset].getValueType();
+					stack[top] = inner_tuple[tree_expression[i].column_idx].getValue();
+					gtype[top] = inner_tuple[tree_expression[i].column_idx].getValueType();
 
 				}
 
@@ -928,6 +999,8 @@ __device__ int lowerBound(GTreeNode * search_exp,
 							int key_index_size,
 							GNValue *outer_table,
 							GNValue *inner_table,
+							int outer_cols,
+							int inner_cols,
 							int left,
 							int right,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
@@ -941,6 +1014,7 @@ __device__ int lowerBound(GTreeNode * search_exp,
 	int middle = -1;
 	int search_ptr;
 	int result = -1;
+	int inner_idx;
 
 #ifndef FUNC_CALL_
 	int key_idx;
@@ -992,8 +1066,9 @@ __device__ int lowerBound(GTreeNode * search_exp,
 		res_d = 0;
 		for (int i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
 			key_idx = key_indices[i];
-			inner_tmp = inner_table[middle + key_idx * offset].getValue();
-			inner_type = inner_table[middle + key_idx * offset].getValueType();
+			inner_idx = middle * inner_cols;
+			inner_tmp = inner_table[inner_idx + key_idx].getValue();
+			inner_type = inner_table[inner_idx + key_idx].getValueType();
 
 			outer_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[i];
 			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
@@ -1006,7 +1081,7 @@ __device__ int lowerBound(GTreeNode * search_exp,
 #else
 		res = 0;
 		for (int i = 0; (res == 0) && (i < search_exp_num); i++) {
-			res = outer_tmp[i].compare_withoutNull(inner_table[middle + key_indices[i] * offset]);
+			res = outer_tmp[i].compare_withoutNull(inner_table[inner_idx + key_indices[i]);
 		}
 #endif
 
@@ -1031,6 +1106,8 @@ __device__ int upperBound(GTreeNode * search_exp,
 							int key_index_size,
 							GNValue *outer_table,
 							GNValue *inner_table,
+							int outer_cols,
+							int inner_cols,
 							int left,
 							int right,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
@@ -1044,6 +1121,7 @@ __device__ int upperBound(GTreeNode * search_exp,
 	int middle = -1;
 	int search_ptr;
 	int result = right;
+	int inner_idx;
 
 #ifndef FUNC_CALL_
 	int key_idx;
@@ -1095,8 +1173,9 @@ __device__ int upperBound(GTreeNode * search_exp,
 		for (int i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
 
 			key_idx = key_indices[i];
-			inner_tmp = inner_table[middle + key_idx * offset].getValue();
-			inner_type = inner_table[middle + key_idx * offset].getValueType();
+			inner_idx = middle * inner_cols;
+			inner_tmp = inner_table[inner_idx + key_idx].getValue();
+			inner_type = inner_table[inner_idx + key_idx].getValueType();
 
 			outer_i = (outer_gtype[i] == VALUE_TYPE_DOUBLE) ? 0 : outer_tmp[i];
 			inner_i = (inner_type == VALUE_TYPE_DOUBLE) ? 0: inner_tmp;
@@ -1109,7 +1188,7 @@ __device__ int upperBound(GTreeNode * search_exp,
 #else
 		res = 0;
 		for (int i = 0; res == 0 && i < search_exp_num; i++) {
-			res = outer_tmp[i].compare_withoutNull(inner_table[middle + key_indices[i]]);
+			res = outer_tmp[i].compare_withoutNull(inner_table[inner_idx + key_indices[i]]);
 		}
 #endif
 
@@ -1131,6 +1210,7 @@ __device__ int upperBound(GTreeNode * search_exp,
 
 __global__ void prejoin_filter(GNValue *outer_dev,
 								uint outer_part_size,
+								uint outer_cols,
 								GTreeNode *prejoin_dev,
 								uint prejoin_size,
 								bool *result
@@ -1158,15 +1238,15 @@ __global__ void prejoin_filter(GNValue *outer_dev,
 #elif	POST_EXP_
 #ifndef FUNC_CALL_
 #ifdef COALESCE_
-		res = (prejoin_size > 1) ? evaluate4(prejoin_dev, prejoin_size, outer_dev + x, NULL, val_stack + x, type_stack + x, offset) : res;
+		res = (prejoin_size > 1) ? evaluate4(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, val_stack + x, type_stack + x, offset) : res;
 #else
-		res = (prejoin_size > 1) ? evaluate4_non_coalesce(prejoin_dev, prejoin_size, outer_dev + x, NULL, offset) : res;
+		res = (prejoin_size > 1) ? evaluate4_non_coalesce(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, offset) : res;
 #endif
 #else
 #ifdef COALESCE_
-		res = (prejoin_size > 1) ? evaluate2(prejoin_dev, prejoin_size, outer_dev + x, NULL, stack + x, offset) : res;
+		res = (prejoin_size > 1) ? evaluate2(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, stack + x, offset) : res;
 #else
-		res = (prejoin_size > 1) ? evaluate2_non_coalesce(prejoin_dev, prejoin_size, outer_dev + x, NULL, offset) : res;
+		res = (prejoin_size > 1) ? evaluate2_non_coalesce(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, offset) : res;
 #endif
 #endif
 #endif
@@ -1180,7 +1260,9 @@ __global__ void index_filterLowerBound(GNValue *outer_dev,
 										  ulong *index_psum,
 										  ResBound *res_bound,
 										  uint outer_part_size,
+										  uint outer_cols,
 										  uint inner_part_size,
+										  uint inner_cols,
 										  GTreeNode *search_exp_dev,
 										  int *search_exp_size,
 										  int search_exp_num,
@@ -1217,8 +1299,10 @@ __global__ void index_filterLowerBound(GNValue *outer_dev,
 												search_exp_num,
 												key_indices,
 												key_index_size,
-												outer_dev + x,
+												outer_dev + x * outer_cols,
 												inner_dev,
+												outer_cols,
+												inner_cols,
 												left_bound,
 												right_bound,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
@@ -1245,7 +1329,9 @@ __global__ void index_filterUpperBound(GNValue *outer_dev,
 										  ulong *index_psum,
 										  ResBound *res_bound,
 										  uint outer_part_size,
+										  uint outer_cols,
 										  uint inner_part_size,
+										  uint inner_cols,
 										  GTreeNode *search_exp_dev,
 										  int *search_exp_size,
 										  int search_exp_num,
@@ -1281,8 +1367,10 @@ __global__ void index_filterUpperBound(GNValue *outer_dev,
 													search_exp_num,
 													key_indices,
 													key_index_size,
-													outer_dev + x,
+													outer_dev + x * outer_cols,
 													inner_dev,
+													outer_cols,
+													inner_cols,
 													left_bound,
 													right_bound,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
@@ -1304,10 +1392,6 @@ __global__ void index_filterUpperBound(GNValue *outer_dev,
 			res_bound[x + k].left = left_bound;
 			break;
 		}
-//		case INDEX_LOOKUP_TYPE_LTE: {
-//			res_bound[x + k].right = upperBound(search_exp_dev, search_exp_size, search_exp_num, key_indices, key_index_size, outer_dev + x * outer_cols, inner_dev, outer_cols, inner_cols, left_bound, right_bound) - 1;
-//			break;
-//		}
 		default:
 			break;
 		}
@@ -1327,6 +1411,8 @@ __global__ void exp_filter(GNValue *outer_dev,
 							ulong *index_psum,
 							ulong *exp_psum,
 							uint outer_part_size,
+							uint outer_cols,
+							uint inner_cols,
 							uint jr_size,
 							GTreeNode *end_dev,
 							int end_size,
@@ -1365,29 +1451,29 @@ __global__ void exp_filter(GNValue *outer_dev,
 		while (res_left >= 0 && res_left <= res_right && writeloc < jr_size) {
 #ifdef	TREE_EVAL_
 #ifdef FUNC_CALL_
-			res = (end_size > 1) ? evaluate(end_dev, 1, end_size, outer_dev + x, inner_dev + res_left, offset) : res;
-			res = (post_size > 1 && res.isTrue()) ? evaluate(post_dev, 1, post_size, outer_dev + x, inner_dev + res_left, offset) : res;
+			res = (end_size > 1) ? evaluate(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (post_size > 1 && res.isTrue()) ? evaluate(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 #else
-			res = (end_size > 1) ? evaluate3(end_dev, 1, end_size, outer_dev + x, inner_dev + res_left, offset) : res;
-			res = (post_size > 1 && res.isTrue()) ? evaluate3(post_dev, 1, post_size, outer_dev + x, inner_dev + res_left, offset) : res;
+			res = (end_size > 1) ? evaluate3(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (post_size > 1 && res.isTrue()) ? evaluate3(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 #endif
 
 #elif	POST_EXP_
 #ifdef 	FUNC_CALL_
 #ifdef COALESCE_
-			res = (end_size > 0) ? evaluate2(end_dev, end_size, outer_dev + x, inner_dev + res_left, stack + x, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate2(post_dev, post_size, outer_dev + x, inner_dev + res_left, stack + x, offset) : res;
+			res = (end_size > 0) ? evaluate2(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack + x, offset) : res;
+			res = (post_size > 0 && res.isTrue()) ? evaluate2(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack + x, offset) : res;
 #else
-			res = (end_size > 0) ? evaluate2_non_coalesce(end_dev, end_size, outer_dev + x, inner_dev + res_left, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate2_non_coalesce(post_dev, post_size, outer_dev + x, inner_dev + res_left, offset) : res;
+			res = (end_size > 0) ? evaluate2_non_coalesce(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
+			res = (post_size > 0 && res.isTrue()) ? evaluate2_non_coalesce(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
 #endif
 #else
 #ifdef COALESCE_
-			res = (end_size > 0) ? evaluate4(end_dev, end_size, outer_dev + x, inner_dev + res_left, val_stack + x, type_stack + x, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate4(post_dev, post_size, outer_dev + x, inner_dev + res_left, val_stack + x, type_stack + x, offset) : res;
+			res = (end_size > 0) ? evaluate4(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
+			res = (post_size > 0 && res.isTrue()) ? evaluate4(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
 #else
-			res = (end_size > 0) ? evaluate4_non_coalesce(end_dev, end_size, outer_dev + x, inner_dev + res_left, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate4_non_coalesce(post_dev, post_size, outer_dev + x, inner_dev + res_left, offset) : res;
+			res = (end_size > 0) ? evaluate4_non_coalesce(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
+			res = (post_size > 0 && res.isTrue()) ? evaluate4_non_coalesce(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
 
 #endif
 #endif
@@ -1440,6 +1526,7 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
 							GNValue *outer_dev,
 							uint outer_part_size,
+							uint outer_cols,
 							GTreeNode *prejoin_dev,
 							uint prejoin_size,
 							bool *result
@@ -1454,7 +1541,7 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	prejoin_filter<<<grid_size, block_size>>>(outer_dev, outer_part_size, prejoin_dev, prejoin_size, result
+	prejoin_filter<<<grid_size, block_size>>>(outer_dev, outer_part_size, outer_cols, prejoin_dev, prejoin_size, result
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
 												,stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
@@ -1476,7 +1563,9 @@ void index_filterWrapper(int grid_x, int grid_y,
 							ulong *index_psum,
 							ResBound *res_bound,
 							uint outer_part_size,
+							uint outer_cols,
 							uint inner_part_size,
+							uint inner_cols,
 							GTreeNode *search_exp_dev,
 							int *search_exp_size,
 							int search_exp_num,
@@ -1497,8 +1586,8 @@ void index_filterWrapper(int grid_x, int grid_y,
 
 	index_filterLowerBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
 														index_psum, res_bound,
-														outer_part_size,
-														inner_part_size,
+														outer_part_size, outer_cols,
+														inner_part_size, inner_cols,
 														search_exp_dev, search_exp_size,
 														search_exp_num, key_indices,
 														key_index_size, lookup_type,
@@ -1518,8 +1607,8 @@ void index_filterWrapper(int grid_x, int grid_y,
 
 	index_filterUpperBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
 														index_psum, res_bound,
-														outer_part_size,
-														inner_part_size,
+														outer_part_size, outer_cols,
+														inner_part_size, inner_cols,
 														search_exp_dev, search_exp_size,
 														search_exp_num, key_indices,
 														key_index_size, lookup_type,
@@ -1547,6 +1636,8 @@ void exp_filterWrapper(int grid_x, int grid_y,
 						ulong *index_psum,
 						ulong *exp_psum,
 						uint outer_part_size,
+						uint outer_cols,
+						uint inner_cols,
 						uint jr_size,
 						GTreeNode *end_dev,
 						int end_size,
@@ -1572,6 +1663,7 @@ void exp_filterWrapper(int grid_x, int grid_y,
 	exp_filter<<<grid_size, block_size>>>(outer_dev, inner_dev,
 											result_dev, index_psum,
 											exp_psum, outer_part_size,
+											outer_cols, inner_cols,
 											jr_size, end_dev,
 											end_size, post_dev,
 											post_size, where_dev,

@@ -298,7 +298,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
         join_tuple = m_tmpOutputTable->tempTuple();
     }
 
-    bool earlyReturned = false;
+    //bool earlyReturned = false;
 
 
 	/************ Build Expression Tree *****************************/
@@ -371,9 +371,30 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		idx++;
 	}
 
+//	idx = 0;
+//	int col_inner = inner_tuple.sizeInValues();
+//	while (search_it_in.next(inner_tuple)) {
+//		tmp_inner_tuple[idx] = inner_tuple;
+//		for (int i = 0; i < col_inner; i++) {
+//			NValue tmp_value = inner_tuple.getNValue(i);
+//			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
+//		}
+//		idx++;
+//	}
+
+	/* Get column data for end_expression (index keys) &
+	 * post_expression from inner table.
+	 */
+	IndexCursor index_cursor2(index->getTupleSchema());
+
+	bool begin = true;
+
+	index->moveToEnd(begin, index_cursor2);
+
+
 	idx = 0;
 	int col_inner = inner_tuple.sizeInValues();
-	while (search_it_in.next(inner_tuple)) {
+	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
@@ -381,29 +402,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		}
 		idx++;
 	}
-
-	/* Get column data for end_expression (index keys) &
-	 * post_expression from inner table.
-	 */
-	//IndexCursor index_cursor2(index->getTupleSchema());
-
-	/* Move to smallest key */
-//	bool begin = true;
-//
-//	index->moveToEnd(begin, index_cursor2);
-//
-//
-//	idx = 0;
-//
-//	tmp_idx = block = 0;
-//
-//	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
-//		tmp_inner_tuple[idx] = inner_tuple;
-//		for (int i = 0; i < col_inner; i++) {
-//			NValue tmp_value = inner_tuple.getNValue(i);
-//			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
-//		}
-//	}
 
 	bool ret = true;
 	RESULT *join_result = NULL;
@@ -414,24 +412,24 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	if (outer_size != 0 && inner_size != 0) {
 
 		gettimeofday(&join_start, NULL);
-//		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
-//					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
-		GPUHJ gn(index_data_out,
-					index_data_in,
-					outer_size,
-					col_outer,
-					inner_size,
-					col_inner,
-					gsearchKeyExpressions,
-					inner_indices,
-					end_ex_tree,
-					post_ex_tree,
-					initial_ex_tree,
-					skipNull_ex_tree,
-					prejoin_ex_tree,
-					where_ex_tree,
-					lookup_type
-					);
+		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
+					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
+//		GPUHJ gn(index_data_out,
+//					index_data_in,
+//					outer_size,
+//					col_outer,
+//					inner_size,
+//					col_inner,
+//					gsearchKeyExpressions,
+//					inner_indices,
+//					end_ex_tree,
+//					post_ex_tree,
+//					initial_ex_tree,
+//					skipNull_ex_tree,
+//					prejoin_ex_tree,
+//					where_ex_tree,
+//					lookup_type
+//					);
 
 		ret = gn.join();
 		gettimeofday(&join_end, NULL);
@@ -454,30 +452,30 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
 					//printf("Index of output outer = %d and inner = %d\n", l, r);
-					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
+					//join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
-						join_tuple.setNValue(col_ctr,
-								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+						//join_tuple.setNValue(col_ctr,
+						//		  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
 					}
 				}
 
-                if (m_aggExec != NULL) {
-                    if (m_aggExec->p_execute_tuple(join_tuple)) {
-                    	// Get enough rows for LIMIT
-
-                        earlyReturned = true;
-                        break;
-                    }
-                } else {
-                    m_tmpOutputTable->insertTempTuple(join_tuple);
-                    pmp.countdownProgress();
-                }
-
-				if (earlyReturned) {
-					break;
-				}
+//                if (m_aggExec != NULL) {
+//                    if (m_aggExec->p_execute_tuple(join_tuple)) {
+//                    	// Get enough rows for LIMIT
+//
+//                        earlyReturned = true;
+//                        break;
+//                    }
+//                } else {
+//                    m_tmpOutputTable->insertTempTuple(join_tuple);
+//                    pmp.countdownProgress();
+//                }
+//
+//				if (earlyReturned) {
+//					break;
+//				}
 			}
 			gettimeofday(&write_end, NULL);
 		}

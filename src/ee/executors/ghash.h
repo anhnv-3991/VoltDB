@@ -41,7 +41,14 @@ void packSearchKeyWrapper(int block_x, int block_y,
 							GNValue *outer_table, int outer_rows, int outer_cols,
 							uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
 							int *searchKeySize, int searchExpNum,
-							int keySize, GNValue *stack);
+							int keySize,
+#ifdef FUNC_CALL_
+							GNValue *stack
+#else
+							int64_t *val_stack,
+							ValueType *type_stack
+#endif
+							);
 
 void indexCountWrapper(int block_x, int block_y,
 						int grid_x, int grid_y,
@@ -69,7 +76,12 @@ void hashJoinWrapper(int block_x, int block_y,
 						int upperBound,
 						ulong *indexCount,
 						int size,
+#ifdef FUNC_CALL_
 						GNValue *stack,
+#else
+						int64_t *val_stack,
+						ValueType *type_stack,
+#endif
 						RESULT *result
 						);
 

@@ -22,9 +22,9 @@ typedef struct _TreeNode {
 } GTreeNode;
 
 typedef struct _HashNode {
-	uint64_t *hashedIdx;
+	int *hashedIdx;
 	uint64_t *hashedKey;
-	uint64_t *bucketLocation;
+	int *bucketLocation;
 	int bucketNum;
 	int keySize;
 	int size;	//number of elements

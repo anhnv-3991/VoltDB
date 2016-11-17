@@ -21,13 +21,14 @@
 #include <thrust/scan.h>
 #include <thrust/fill.h>
 
-using namespace voltdb;
+namespace voltdb {
 
 extern "C" {
 void prejoin_filterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
 							GNValue *outer_dev,
 							uint outer_part_size,
+							uint outer_cols,
 							GTreeNode *prejoin_dev,
 							uint prejoin_size,
 							bool *result
@@ -46,7 +47,9 @@ void index_filterWrapper(int grid_x, int grid_y,
 							ulong *index_psum,
 							ResBound *res_bound,
 							uint outer_part_size,
+							uint outer_cols,
 							uint inner_part_size,
+							uint inner_cols,
 							GTreeNode *search_exp_dev,
 							int *search_exp_size,
 							int search_exp_num,
@@ -70,6 +73,8 @@ void exp_filterWrapper(int grid_x, int grid_y,
 						ulong *index_psum,
 						ulong *exp_psum,
 						uint outer_part_size,
+						uint outer_cols,
+						uint inner_cols,
 						uint jr_size,
 						GTreeNode *end_dev,
 						int end_size,
@@ -101,5 +106,5 @@ void write_outWrapper(int grid_x, int grid_y,
 
 void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum);
 }
-
+}
 #endif

@@ -35,7 +35,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 
 			switch (tmp_val.getValueType()) {
 				case VALUE_TYPE_TINYINT: {
-					for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
+					for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
@@ -46,7 +46,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_SMALLINT: {
-					for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
+					for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
@@ -70,7 +70,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_BIGINT: {
-					for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
+					for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
@@ -82,7 +82,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				default: {
-					printf("Error: no match type. Type = %d\n", tmp_val.getValueType());
+					return;
 				}
 			}
 		}
@@ -94,7 +94,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 
 			switch (tmp_val.getValueType()) {
 				case VALUE_TYPE_TINYINT: {
-					for (int j = sizeof(uint8_t) - 1; j >= 0; j--) {
+					for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
@@ -105,7 +105,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_SMALLINT: {
-					for (int j = sizeof(uint16_t) - 1; j >= 0; j--) {
+					for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
@@ -117,7 +117,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_INTEGER: {
-					for (int j = sizeof(uint32_t) - 1; j >= 0; j--) {
+					for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
@@ -129,7 +129,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 					break;
 				}
 				case VALUE_TYPE_BIGINT: {
-					for (int j = sizeof(uint64_t) - 1; j >= 0; j--) {
+					for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
 						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
 						intraKeyOffset--;
 						if (intraKeyOffset < 0) {
@@ -140,8 +140,9 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 
 					break;
 				}
-				default:
-					printf("Error: cannot detect type at index %d\n", i);
+				default: {
+					return;
+				}
 			}
 
 		}
@@ -163,8 +164,8 @@ __device__ bool equalityChecker(uint64_t *leftKey, uint64_t *rightKey, int keySi
 {
 	bool res = true;
 
-	for (int i = 0; i < keySize; i++) {
-		res &= (leftKey[i] == rightKey[i]);
+	while (--keySize >= 0) {
+		res &= (leftKey[keySize] == rightKey[keySize]);
 	}
 
 	return res;
@@ -178,6 +179,7 @@ __device__ GNValue hashEvaluate(GTreeNode *tree_expression,
 									int offset)
 {
 	int top = 0;
+	memset(&stack[0], 0, sizeof(GNValue));
 
 	for (int i = 0; i < tree_size; i++) {
 
@@ -263,7 +265,6 @@ __device__ GNValue hashEvaluate(GTreeNode *tree_expression,
 				break;
 			}
 			default: {
-				printf("Wrong parameter at i = %d\n", i);
 				return GNValue::getFalse();
 			}
 		}
@@ -272,16 +273,303 @@ __device__ GNValue hashEvaluate(GTreeNode *tree_expression,
 	return stack[0];
 }
 
-__global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *indices, int index_num, uint64_t *packedKey, int keySize)
-{
-	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
-	int stride = blockDim.x * gridDim.x * gridDim.y;
 
-	for (int i = index; i < tuple_num * keySize; i += stride) {
-		packedKey[i] = 0;
+__device__ GNValue hashEvaluate2(GTreeNode *tree_expression,
+									int tree_size,
+									GNValue *outer_tuple,
+									GNValue *inner_tuple,
+									int64_t *stack,
+									ValueType *gtype,
+									int offset)
+{
+	ValueType ltype, rtype;
+	int l_idx, r_idx;
+
+	int top = 0;
+	double left_d, right_d, res_d;
+	int64_t left_i, right_i;
+
+	for (int i = 0; i < tree_size; i++) {
+
+		switch (tree_expression[i].type) {
+			case EXPRESSION_TYPE_VALUE_TUPLE: {
+				if (tree_expression[i].tuple_idx == 0) {
+					stack[top] = outer_tuple[tree_expression[i].column_idx].getValue();
+					gtype[top] = outer_tuple[tree_expression[i].column_idx].getValueType();
+				} else if (tree_expression[i].tuple_idx == 1) {
+					stack[top] = inner_tuple[tree_expression[i].column_idx].getValue();
+					gtype[top] = inner_tuple[tree_expression[i].column_idx].getValueType();
+
+				}
+
+				top += offset;
+				break;
+			}
+			case EXPRESSION_TYPE_VALUE_CONSTANT:
+			case EXPRESSION_TYPE_VALUE_PARAMETER: {
+				stack[top] = (tree_expression[i].value).getValue();
+				gtype[top] = (tree_expression[i].value).getValueType();
+				top += offset;
+				break;
+			}
+			case EXPRESSION_TYPE_CONJUNCTION_AND: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				if (gtype[l_idx] == VALUE_TYPE_BOOLEAN && gtype[r_idx] == VALUE_TYPE_BOOLEAN) {
+					stack[l_idx] = (int64_t)((bool)(stack[l_idx]) && (bool)(stack[r_idx]));
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] = 0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_CONJUNCTION_OR: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				if (gtype[l_idx] == VALUE_TYPE_BOOLEAN && gtype[r_idx] == VALUE_TYPE_BOOLEAN) {
+					stack[l_idx] = (int64_t)((bool)(stack[l_idx]) || (bool)(stack[r_idx]));
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] = 0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_EQUAL: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] =  (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
+					gtype[r_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i);
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] = 0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
+					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+
+			case EXPRESSION_TYPE_OPERATOR_PLUS: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = left_d + right_d;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = VALUE_TYPE_DOUBLE;
+					} else {
+						stack[l_idx] = left_i + right_i;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+					}
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_OPERATOR_MINUS: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = left_d - right_d;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = VALUE_TYPE_DOUBLE;
+					} else {
+						stack[l_idx] = left_i - right_i;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+					}
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = left_d * right_d;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = VALUE_TYPE_DOUBLE;
+					} else {
+						stack[l_idx] = left_i * right_i;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+					}
+				} else {
+					stack[l_idx] =  0;
+					gtype[l_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
+				l_idx = top - 2 * offset;
+				r_idx = top - offset;
+				ltype = gtype[l_idx];
+				rtype = gtype[r_idx];
+				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
+					left_i = stack[l_idx];
+					right_i = stack[r_idx];
+					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+					res_d = (right_d != 0) ? left_d / right_d : 0;
+					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
+						gtype[l_idx] = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
+					} else {
+						stack[l_idx] = (right_i != 0) ? left_i / right_i : 0;
+						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
+						gtype[l_idx] = (right_i != 0) ? ltype : VALUE_TYPE_INVALID;
+					}
+				} else {
+					stack[l_idx] =  0;
+					gtype[r_idx] = VALUE_TYPE_INVALID;
+				}
+				top = r_idx;
+				break;
+			}
+			default: {
+				return GNValue::getFalse();
+			}
+		}
 	}
 
-	__syncthreads();
+	GNValue retval(gtype[0], stack[0]);
+
+	return retval;
+}
+
+__global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *indices, int index_num, uint64_t *packedKey, int keySize)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int stride = blockDim.x * gridDim.x;
 
 	for (int i = index; i < tuple_num; i += stride) {
 		keyGenerate(index_table + i * col_num, indices, index_num, packedKey + i * keySize);
@@ -292,24 +580,28 @@ __global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *i
 __global__ void packSearchKey(GNValue *outer_table, int outer_rows, int outer_cols,
 								uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
 								int *searchKeySize, int searchExpNum,
-								int keySize, GNValue *stack)
+								int keySize,
+#ifdef FUNC_CALL_
+								GNValue *stack
+#else
+								int64_t *val_stack,
+								ValueType *type_stack
+#endif
+								)
 {
-	int index = threadIdx.x + blockIdx.x *blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
-	int stride = blockDim.x * gridDim.x * gridDim.y;
+	int index = threadIdx.x + blockIdx.x *blockDim.x;
+	int stride = blockDim.x * gridDim.x;
 	GNValue tmp_outer[4];
 	int search_ptr = 0;
-
-	for (int i = index; i < outer_rows * keySize; i += stride) {
-		searchPackedKey[i] = 0;
-	}
-
-	__syncthreads();
 
 	for (int i = index; i < outer_rows; i += stride) {
 		search_ptr = 0;
 		for (int j = 0; j < searchExpNum; search_ptr += searchKeySize[j], j++) {
+#ifdef FUNC_CALL_
 			tmp_outer[j] = hashEvaluate(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, stack + index, stride);
-			//tmp_outer[j].debug();
+#else
+			tmp_outer[j] = hashEvaluate2(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, val_stack + index, type_stack + index, stride);
+#endif
 		}
 
 		keyGenerate(tmp_outer, NULL, searchExpNum, searchPackedKey + i * keySize);
@@ -319,17 +611,10 @@ __global__ void packSearchKey(GNValue *outer_table, int outer_rows, int outer_co
 
 __global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, ulong *hashCount, uint64_t maxNumberOfBuckets)
 {
-	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
-	int stride = blockDim.x * gridDim.x * gridDim.y;
-	int i;
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int stride = blockDim.x * gridDim.x;
 
-	for (i = index; i <= maxNumberOfBuckets * blockDim.x; i += stride) {
-		hashCount[i] = 0;
-	}
-
-	__syncthreads();
-
-	for (i = index; i < tupleNum; i += stride) {
+	for (int i = index; i < tupleNum; i += stride) {
 		uint64_t hash = hasher(packedKey + i * keySize, keySize);
 		uint64_t bucketOffset = hash % maxNumberOfBuckets;
 		hashCount[bucketOffset * stride + index]++;
@@ -339,8 +624,8 @@ __global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, ulong
 
 __global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable)
 {
-	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
-	int stride = blockDim.x * gridDim.x * gridDim.y;
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int stride = blockDim.x * gridDim.x;
 	int i;
 	int keySize = hashTable.keySize;
 	int maxNumberOfBuckets = hashTable.bucketNum;
@@ -363,39 +648,22 @@ __global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable
 		}
 
 		hashCount[bucketOffset * stride + index]++;
-
-		//printf("index %d at bucket %d\n", i, (int)bucketOffset);
 	}
 }
 
 
 __global__ void hashIndexCount(GHashNode outerHash, GHashNode innerHash, int lowerBound, int upperBound, ulong *indexCount, int size)
 {
-	int bucketIdx;
-	int endOuterIdx, endInnerIdx;
 	int outerIdx, innerIdx;
 	ulong count_res = 0;
-	int threadGlobalIndex = threadIdx.x + blockIdx.x * blockDim.x + blockDim.x * gridDim.x * blockIdx.y;
-	int stride = gridDim.x * gridDim.y;
+	int threadGlobalIndex = threadIdx.x + blockIdx.x * blockDim.x;
+	int bucketIdx = lowerBound + blockIdx.x;
 	int keySize = outerHash.keySize;
-	//bool res_check;
 
-	for (int i = threadGlobalIndex; i <= size; i += stride * blockDim.x) {
-		indexCount[threadGlobalIndex] = 0;
-	}
-
-	__syncthreads();
-
-	if (threadGlobalIndex < size) {
-
-		for (bucketIdx = lowerBound + blockIdx.x + gridDim.x * blockIdx.y; bucketIdx < upperBound; bucketIdx += stride) {
-			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-				for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-					count_res += (equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize)) ? 1 : 0;
-				}
-			}
-		}
-
+	if (threadGlobalIndex < size && bucketIdx < upperBound) {
+		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx]; outerIdx < outerHash.bucketLocation[bucketIdx + 1]; outerIdx += blockDim.x)
+			for (innerIdx = innerHash.bucketLocation[bucketIdx]; innerIdx < innerHash.bucketLocation[bucketIdx + 1]; innerIdx++)
+				count_res += (equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize)) ? 1 : 0;
 		indexCount[threadGlobalIndex] = count_res;
 	}
 }
@@ -410,49 +678,55 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 							int upperBound,
 							ulong *indexCount,
 							int size,
+#ifdef FUNC_CALL_
 							GNValue *stack,
+#else
+							int64_t *val_stack,
+							ValueType *type_stack,
+#endif
 							RESULT *result)
 {
-	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
-	int stride = gridDim.x * gridDim.y;
-	int globalStride = gridDim.x * gridDim.y * blockDim.x;
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int bucketIdx = lowerBound + blockIdx.x;
 
 	bool key_check;
-	GNValue exp_check;
 	ulong write_location;
-	int bucketIdx;
-	int endOuterIdx, endInnerIdx;
 	int outerIdx, innerIdx;
-	int keySize = outerHash.keySize;
 	int outerTupleIdx, innerTupleIdx;
-	bool writeLocChanged = false;
+	int endOuterIdx, endInnerIdx;
 
-	if (index < size) {
+	if (index < size && bucketIdx < upperBound) {
 		write_location = indexCount[index];
+		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
+			for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
+				outerTupleIdx = outerHash.hashedIdx[outerIdx];
+				innerTupleIdx = innerHash.hashedIdx[innerIdx];
 
-		for (bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x; bucketIdx < upperBound; bucketIdx += stride) {
-			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-				for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-					outerTupleIdx = outerHash.hashedIdx[outerIdx];
-					innerTupleIdx = innerHash.hashedIdx[innerIdx];
+				key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
+				GNValue exp_check(VALUE_TYPE_BOOLEAN, key_check);
+#ifdef FUNC_CALL_
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
+																					outer_table + outerTupleIdx * outer_cols,
+																					inner_table + innerTupleIdx * inner_cols,
+																					stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
+																					outer_table + outerTupleIdx * outer_cols,
+																					inner_table + innerTupleIdx * inner_cols,
+																					stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+#else
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	inner_table + innerTupleIdx * inner_cols,
+																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	inner_table + innerTupleIdx * inner_cols,
+																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+#endif
 
-					key_check = equalityChecker(&outerHash.hashedKey[outerIdx * keySize], &innerHash.hashedKey[innerIdx * keySize], keySize);
-					exp_check = (key_check) ? GNValue::getTrue() : GNValue::getFalse();
-					exp_check = (exp_check.isTrue() && end_size > 0) ? hashEvaluate(end_expression, end_size,
-																						outer_table + outerTupleIdx * outer_cols,
-																						inner_table + innerTupleIdx * inner_cols,
-																						stack + index, globalStride) : exp_check;
-					exp_check = (exp_check.isTrue() && post_size > 0) ? hashEvaluate(post_expression, post_size,
-																						outer_table + outerTupleIdx * outer_cols,
-																						inner_table + innerTupleIdx * inner_cols,
-																						stack + index, globalStride) : exp_check;
-
-					result[write_location].lkey = (exp_check.isTrue()) ? outerTupleIdx : ((!writeLocChanged) ? result[write_location].lkey : (-1));
-					result[write_location].rkey = (exp_check.isTrue()) ? innerTupleIdx : ((!writeLocChanged) ? result[write_location].lkey : (-1));
-					write_location += (key_check) ? 1 : 0;
-					writeLocChanged = (key_check) ? true : false;
-
-				}
+				result[write_location].lkey = (exp_check.isTrue()) ? outerTupleIdx : result[write_location].lkey;
+				result[write_location].rkey = (exp_check.isTrue()) ? innerTupleIdx : result[write_location].lkey;
+				write_location += (key_check) ? 1 : 0;
 			}
 		}
 	}
@@ -528,12 +802,26 @@ void packSearchKeyWrapper(int block_x, int block_y,
 							GNValue *outer_table, int outer_rows, int outer_cols,
 							uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
 							int *searchKeySize, int searchExpNum,
-							int keySize, GNValue *stack)
+							int keySize,
+#ifdef FUNC_CALL_
+							GNValue *stack
+#else
+							int64_t *val_stack,
+							ValueType *type_stack
+#endif
+							)
 {
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
-	packSearchKey<<<gridSize, blockSize>>>(outer_table, outer_rows, outer_cols, searchPackedKey, searchKeyExp, searchKeySize, searchExpNum, keySize, stack);
+	packSearchKey<<<gridSize, blockSize>>>(outer_table, outer_rows, outer_cols, searchPackedKey, searchKeyExp, searchKeySize, searchExpNum, keySize,
+#ifdef FUNC_CALL_
+											stack
+#else
+											val_stack,
+											type_stack
+#endif
+											);
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (ghash) error: %s\n", cudaGetErrorString(err));
@@ -583,7 +871,12 @@ void hashJoinWrapper(int block_x, int block_y,
 						int upperBound,
 						ulong *indexCount,
 						int size,
+#ifdef FUNC_CALL_
 						GNValue *stack,
+#else
+						int64_t *val_stack,
+						ValueType *type_stack,
+#endif
 						RESULT *result
 						)
 {
@@ -597,7 +890,13 @@ void hashJoinWrapper(int block_x, int block_y,
 										outerHash, innerHash,
 										lowerBound, upperBound,
 										indexCount, size,
-										stack, result);
+#ifdef FUNC_CALL_
+										stack,
+#else
+										val_stack,
+										type_stack,
+#endif
+										result);
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (hashIndexCount) error: %s\n", cudaGetErrorString(err));
