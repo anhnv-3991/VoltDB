@@ -114,6 +114,22 @@ void hashPhysicalJoinWrapper(int block_x, int block_y,
 								RESULT *result
 								);
 
+void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
+						GNValue *outer_table, GNValue *inner_table,
+						int outer_cols, int inner_cols,
+						GTreeNode *end_expression, int end_size,
+						GTreeNode *post_expression, int post_size,
+						GHashNode outerHash, GHashNode innerHash,
+						int baseOuterIdx, int baseInnerIdx,
+						ulong *indexCount, int partitionSize,
+#ifdef FUNC_CALL_
+						GNValue *stack,
+#else
+						int64_t *val_stack,
+						ValueType *type_stack,
+#endif
+						RESULT *result);
+
 void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum);
 }
 

@@ -29,7 +29,8 @@ public:
 			TreeExpression skipNullExpr,
 			TreeExpression prejoin_expression,
 			TreeExpression where_expression,
-			IndexLookupType lookup_type);
+			IndexLookupType lookup_type,
+			int mSizeIndex);
 
 	~GPUHJ();
 
@@ -52,6 +53,7 @@ private:
 	IndexLookupType lookup_type_;
 	uint64_t maxNumberOfBuckets_;
 	int keySize_;
+	int m_sizeIndex_;
 
 	GTreeNode *search_exp_;
 	GTreeNode *end_expression_;

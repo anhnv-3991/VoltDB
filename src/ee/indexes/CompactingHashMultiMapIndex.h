@@ -68,6 +68,8 @@ class CompactingHashMultiMapIndex : public TableIndex
 
     ~CompactingHashMultiMapIndex() {};
 
+    int getMSizeIndex() const { return m_entries.getMSizeIndex(); }
+
     static MapIterator& castToIter(IndexCursor& cursor) {
         return *reinterpret_cast<MapIterator*> (cursor.m_keyIter);
     }

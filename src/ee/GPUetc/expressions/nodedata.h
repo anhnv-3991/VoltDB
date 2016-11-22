@@ -32,9 +32,10 @@ typedef struct _HashNode {
 
 //#define TREE_EVAL_ 1
 #define POST_EXP_ 1
-//#define FUNC_CALL_ 1
+#define FUNC_CALL_ 1
 #define COALESCE_ 1
-#define PHYSICAL_HASH_ 1
+//#define PHYSICAL_HASH_ 1
+//#define METHOD_1_ 1
 
 }
 

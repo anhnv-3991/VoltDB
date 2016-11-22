@@ -1081,7 +1081,7 @@ __device__ int lowerBound(GTreeNode * search_exp,
 #else
 		res = 0;
 		for (int i = 0; (res == 0) && (i < search_exp_num); i++) {
-			res = outer_tmp[i].compare_withoutNull(inner_table[inner_idx + key_indices[i]);
+			res = outer_tmp[i].compare_withoutNull(inner_table[inner_idx + key_indices[i]]);
 		}
 #endif
 

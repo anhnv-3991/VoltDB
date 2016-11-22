@@ -207,6 +207,15 @@ public:
     virtual ~TableIndex();
 
     /**
+     * For Hash multimap index only
+     * Get m_sizeIndex of hash table to determine the number of buckets
+     */
+    virtual int getMSizeIndex() const {
+        throwFatalException("Invoked TableIndex virtual method getMSizeIndex which has no implementation");
+    }
+
+
+    /**
      * adds passed value as an index entry linked to given tuple
      */
     virtual bool addEntry(const TableTuple *tuple) = 0;

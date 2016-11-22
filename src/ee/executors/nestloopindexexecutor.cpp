@@ -382,6 +382,9 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 		idx++;
 	}
 
+	int m_sizeIndex = index->getMSizeIndex() - 2;
+	printf("m_sizeIndex = %d\n", m_sizeIndex);
+
 	/* Get column data for end_expression (index keys) &
 	 * post_expression from inner table.
 	 */
@@ -428,7 +431,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 					skipNull_ex_tree,
 					prejoin_ex_tree,
 					where_ex_tree,
-					lookup_type
+					lookup_type,
+					m_sizeIndex
 					);
 
 		ret = gn.join();
