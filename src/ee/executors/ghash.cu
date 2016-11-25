@@ -692,6 +692,13 @@ __global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, ulong
 	}
 }
 
+__global__ void getBucketLocation(ulong *hashCount, uint64_t maxNumberOfBuckets, int stride, GHashNode hashTable)
+{
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x; i <= maxNumberOfBuckets; i += blockDim.x * gridDim.x) {
+		hashTable.bucketLocation[i] = hashCount[i * stride];
+	}
+}
+
 
 __global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable)
 {
@@ -700,12 +707,12 @@ __global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable
 	int i;
 	int keySize = hashTable.keySize;
 	int maxNumberOfBuckets = hashTable.bucketNum;
-
-	for (i = index; i <= maxNumberOfBuckets; i += stride) {
-		hashTable.bucketLocation[i] = hashCount[i * stride];
-	}
-
-	__syncthreads();
+//
+//	for (i = index; i <= maxNumberOfBuckets; i += stride) {
+//		hashTable.bucketLocation[i] = hashCount[i * stride];
+//	}
+//
+//	__syncthreads();
 
 	for (i = index; i < hashTable.size; i += stride) {
 		uint64_t hash = hasher(packedKey + i * keySize, keySize);
@@ -802,7 +809,6 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 		}
 	}
 }
-
 
 __global__ void ghashPhysical(GNValue *inputTable, GNValue *outputTable, int colNum, int rowNum, GHashNode hashTable)
 {
@@ -934,6 +940,148 @@ __global__ void hashJoin2(GNValue *outer_table, GNValue *inner_table,
 		}
 	}
 }
+
+__global__ void hashJoinShared(GNValue *outer_table, GNValue *inner_table,
+							int outer_cols, int inner_cols,
+							GTreeNode *end_expression, int end_size,
+							GTreeNode *post_expression,	int post_size,
+							GHashNode outerHash, GHashNode innerHash,
+							int baseOuterIdx, int baseInnerIdx,
+							ulong *indexCount, int size,
+#ifdef FUNC_CALL_
+							GNValue *stack,
+#else
+							int64_t *val_stack,
+							ValueType *type_stack,
+#endif
+							RESULT *result)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+
+	ulong write_location;
+	int outerIdx, innerIdx;
+	int outerTupleIdx, innerTupleIdx;
+	int endOuterIdx, endInnerIdx;
+	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	__shared__ GNValue tmpInner[8];
+
+	if (index < size && blockIdx.x < outerHash.bucketNum) {
+		write_location = indexCount[index];
+		for (innerIdx = innerHash.bucketLocation[blockIdx.x], endInnerIdx = innerHash.bucketLocation[blockIdx.x + 1]; innerIdx < endInnerIdx; innerIdx++) {
+			innerTupleIdx = innerHash.hashedIdx[innerIdx];
+			if (threadIdx.x < inner_cols)
+				tmpInner[threadIdx.x] = inner_table[innerTupleIdx * inner_cols + threadIdx.x];
+			__syncthreads();
+
+			for (outerIdx = threadIdx.x + outerHash.bucketLocation[blockIdx.x], endOuterIdx = outerHash.bucketLocation[blockIdx.x + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
+				outerTupleIdx = outerHash.hashedIdx[outerIdx];
+
+
+				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
+
+#ifdef FUNC_CALL_
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner,
+																	stack + index, gridDim.x * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner,
+																	stack + index, gridDim.x * blockDim.x) : exp_check;
+#else
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner,
+																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner,
+																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
+#endif
+
+				result[write_location].lkey = (exp_check.isTrue()) ? (outerTupleIdx + baseOuterIdx) : result[write_location].lkey;
+				result[write_location].rkey = (exp_check.isTrue()) ? (innerTupleIdx + baseInnerIdx) : result[write_location].rkey;
+				write_location += (exp_check.isTrue()) ? 1 : 0;
+			}
+		}
+	}
+}
+
+
+__global__ void hashIndexCountLegacy(uint64_t *outer_key, int outer_rows, GHashNode innerHash, ulong *indexCount, int size)
+{
+	int outerIdx, innerIdx;
+	ulong count_res = 0;
+	int keySize = innerHash.keySize;
+	int maxNumberOfBuckets = innerHash.bucketNum;
+
+	for (outerIdx = threadIdx.x + blockIdx.x * blockDim.x; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
+		uint64_t hashVal = hasher(outer_key + outerIdx * keySize, keySize);
+		uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
+
+		for (innerIdx = innerHash.bucketLocation[bucketOffset]; innerIdx < innerHash.bucketLocation[bucketOffset + 1]; innerIdx++) {
+			count_res += (equalityChecker(outer_key + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize)) ? 1 : 0;
+		}
+		indexCount[outerIdx] = count_res;
+	}
+}
+
+__global__ void hashJoinLegacy(GNValue *outer_table, GNValue *inner_table,
+								int outer_cols, int inner_cols,
+								int outer_rows,
+								uint64_t *outerKey,
+								GTreeNode *end_expression, int end_size,
+								GTreeNode *post_expression,	int post_size,
+								GHashNode innerHash,
+								int baseOuterIdx, int baseInnerIdx,
+								ulong *indexCount, int size,
+#ifdef FUNC_CALL_
+								GNValue *stack,
+#else
+								int64_t *val_stack,
+								ValueType *type_stack,
+#endif
+								RESULT *result)
+{
+	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	int keySize = innerHash.keySize;
+	int maxNumberOfBuckets = innerHash.bucketNum;
+
+
+	for (int outerIdx = threadIdx.x + blockDim.x * blockIdx.x; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
+		ulong write_location = indexCount[outerIdx];
+		uint64_t hashVal = hasher(outerKey + outerIdx * keySize, keySize);
+		uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
+
+		for (int bucketIdx = innerHash.bucketLocation[bucketOffset], endBucketIdx = innerHash.bucketLocation[bucketOffset + 1]; bucketIdx < endBucketIdx; bucketIdx++) {
+			int innerIdx = innerHash.hashedIdx[bucketIdx];
+#ifdef FUNC_CALL_
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerIdx * inner_cols,
+																	stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerTupleIdx * inner_cols,
+																	stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
+#else
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerIdx * inner_cols,
+																	val_stack + outerIdx, type_stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
+																	outer_table + outerIdx * outer_cols,
+																	inner_table + innerIdx * inner_cols,
+																	val_stack + outerIdx, type_stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
+#endif
+
+				result[write_location].lkey = (exp_check.isTrue()) ? (outerIdx + baseOuterIdx) : result[write_location].lkey;
+				result[write_location].rkey = (exp_check.isTrue()) ? (innerIdx + baseInnerIdx) : result[write_location].rkey;
+				write_location += (exp_check.isTrue()) ? 1 : 0;
+		}
+	}
+}
+
 
 void packKeyWrapper(int block_x, int block_y,
 					int grid_x, int grid_y,
@@ -1198,6 +1346,7 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
+#ifndef SHARED_
 	hashJoin2<<<gridSize, blockSize>>>(outer_table, inner_table,
 												outer_cols, inner_cols,
 												end_expression, end_size,
@@ -1212,6 +1361,22 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 												type_stack,
 #endif
 												result);
+#else
+	hashJoinShared<<<gridSize, blockSize>>>(outer_table, inner_table,
+													outer_cols, inner_cols,
+													end_expression, end_size,
+													post_expression, post_size,
+													outerHash, innerHash,
+													baseOuterIdx, baseInnerIdx,
+													indexCount, size,
+	#ifdef FUNC_CALL_
+													stack,
+	#else
+													val_stack,
+													type_stack,
+	#endif
+													result);
+#endif
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (hashPhysicalJoin) error: %s\n", cudaGetErrorString(err));
@@ -1220,6 +1385,88 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 
 	checkCudaErrors(cudaDeviceSynchronize());
 }
+
+void indexCountLegacyWrapper(int block_x, int block_y,
+								int grid_x, int grid_y,
+								uint64_t *outerKey,
+								int outer_rows,
+								GHashNode innerHash,
+								ulong *indexCount,
+								int size)
+{
+	dim3 blockSize(block_x, block_y, 1);
+	dim3 gridSize(grid_x, grid_y, 1);
+
+	hashIndexCountLegacy<<<gridSize, blockSize>>>(outerKey, outer_rows, innerHash, indexCount, size);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (hashIndexCountLegacy) error: %s\n", cudaGetErrorString(err));
+		exit(1);
+	}
+
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void hashJoinLegacyWrapper(int block_x, int block_y, int grid_x, int grid_y,
+							GNValue *outer_table, GNValue *inner_table,
+							int outer_cols, int inner_cols,
+							int outer_rows,
+							uint64_t *outerKey,
+							GTreeNode *end_expression, int end_size,
+							GTreeNode *post_expression,	int post_size,
+							GHashNode innerHash,
+							int baseOuterIdx, int baseInnerIdx,
+							ulong *indexCount, int size,
+#ifdef FUNC_CALL_
+							GNValue *stack,
+#else
+							int64_t *val_stack,
+							ValueType *type_stack,
+#endif
+							RESULT *result)
+{
+	dim3 blockSize(block_x, block_y, 1);
+	dim3 gridSize(grid_x, grid_y, 1);
+
+	hashJoinLegacy<<<gridSize, blockSize>>>(outer_table, inner_table,
+												outer_cols, inner_cols,
+												outer_rows, outerKey,
+												end_expression, end_size,
+												post_expression, post_size,
+												innerHash,
+												baseOuterIdx, baseInnerIdx,
+												indexCount, size,
+#ifdef FUNC_CALL_
+												stack,
+#else
+												val_stack,
+												type_stack,
+#endif
+												result);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (hashJoinLegacy) error: %s\n", cudaGetErrorString(err));
+		exit(1);
+	}
+
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void getBucketLocationWrapper(int block_x, int block_y, int grid_x, int grid_y, ulong *hashCount, uint64_t maxNumberOfBuckets, int stride, GHashNode hashTable)
+{
+	dim3 blockSize(block_x, block_y, 1);
+	dim3 gridSize(grid_x, grid_y, 1);
+
+	getBucketLocation<<<gridSize, blockSize>>>(hashCount, maxNumberOfBuckets, stride, hashTable);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (getBucketLocation) error: %s\n", cudaGetErrorString(err));
+		exit(1);
+	}
+
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
 
 void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum)
 {

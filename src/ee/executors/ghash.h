@@ -130,6 +130,36 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 #endif
 						RESULT *result);
 
+void indexCountLegacyWrapper(int block_x, int block_y,
+								int grid_x, int grid_y,
+								uint64_t *outerKey,
+								int outer_rows,
+								GHashNode innerHash,
+								ulong *indexCount,
+								int size);
+
+void hashJoinLegacyWrapper(int block_x, int block_y, int grid_x, int grid_y,
+							GNValue *outer_table, GNValue *inner_table,
+							int outer_cols, int inner_cols,
+							int outer_rows,
+							uint64_t *outerKey,
+							GTreeNode *end_expression, int end_size,
+							GTreeNode *post_expression,	int post_size,
+							GHashNode innerHash,
+							int baseOuterIdx, int baseInnerIdx,
+							ulong *indexCount, int size,
+#ifdef FUNC_CALL_
+							GNValue *stack,
+#else
+							int64_t *val_stack,
+							ValueType *type_stack,
+#endif
+							RESULT *result);
+
+void getBucketLocationWrapper(int block_x, int block_y, int grid_x, int grid_y, ulong *hashCount, uint64_t maxNumberOfBuckets, int stride, GHashNode hashTable);
+
+
+
 void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum);
 }
 

@@ -706,6 +706,7 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&(innerHash.bucketLocation), sizeof(int) * (maxNumberOfBuckets_ + 1)));
 
 	gettimeofday(&innerHashStart, NULL);
+	getBucketLocationWrapper(block_x, 1, grid_x, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, innerHash);
 	ghashWrapper(block_x, 1, 1, 1, innerKey, hashCount, innerHash);
 	gettimeofday(&innerHashEnd, NULL);
 	innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
@@ -783,6 +784,7 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&(outerHash.bucketLocation), sizeof(int) * (maxNumberOfBuckets_ + 1)));
 
 	gettimeofday(&outerHashStart, NULL);
+	getBucketLocationWrapper(block_x, 1, grid_x, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, outerHash);
 	ghashWrapper(block_x, 1, grid_x, grid_y, outerKey, hashCount, outerHash);
 	gettimeofday(&outerHashEnd, NULL);
 	printf("End hashing inner table\n");
@@ -949,35 +951,24 @@ bool GPUHJ::join()
 		result_size_ += jr_size;
 		jr_size = 0;
 	}
-#else
+#elif defined(METHOD_2_)
 	partitionSize = getPartitionSize();
-	GHashNode *outerHashHost, *innerHashHost;
+	GHashNode *innerHashHost;
 	GHashNode outerHashDev, innerHashDev;
-	bool *outerHashed, *innerHashed;
+	bool *innerHashed;
 	int realPartSize;
 	int partNumOuter, partNumInner;
 
 	partNumOuter = (outer_rows_ - 1)/partitionSize + 1;
 	partNumInner = (inner_rows_ - 1)/partitionSize + 1;
-	tmp = partNumInner;
-	m_sizeIndex_ -= (int)log2(tmp);
-
-	maxNumberOfBuckets_ = MAX_BUCKETS[m_sizeIndex_];
+//	tmp = partNumInner;
+//	m_sizeIndex_ -= (int)log2(tmp);
+//
+//	maxNumberOfBuckets_ = MAX_BUCKETS[m_sizeIndex_];
 	printf("New m_sizeIndex = %d\n", m_sizeIndex_);
-	outerHashHost = (GHashNode *)malloc(sizeof(GHashNode) * partNumOuter);
 	innerHashHost = (GHashNode *)malloc(sizeof(GHashNode) * partNumInner);
-	outerHashed = (bool*)malloc(sizeof(bool) * partNumOuter);
 	innerHashed = (bool*)malloc(sizeof(bool) * partNumInner);
 
-	for (int i = 0; i < partNumOuter; i++) {
-		outerHashed[i] = false;
-		outerHashHost[i].bucketNum = maxNumberOfBuckets_;
-		outerHashHost[i].keySize = keySize_;
-		outerHashHost[i].size = partitionSize;
-		outerHashHost[i].bucketLocation = (int*)malloc(sizeof(int) * (maxNumberOfBuckets_ + 1));
-		outerHashHost[i].hashedIdx = (int*)malloc(sizeof(int) * partitionSize);
-		outerHashHost[i].hashedKey = (uint64_t*)malloc(sizeof(uint64_t) * partitionSize * keySize_);
-	}
 
 	outerHashDev.bucketNum = maxNumberOfBuckets_;
 	outerHashDev.keySize = keySize_;
@@ -1015,7 +1006,9 @@ bool GPUHJ::join()
 	sizeOfBuckets = (int)pow(2, (int)(log2(tmp)));
 
 	block_x2 = (sizeOfBuckets < BLOCK_SIZE_X) ? sizeOfBuckets : BLOCK_SIZE_X;
-	grid_x2 = (partitionSize - 1) / block_x2 + 1;
+	bucketStride = tmp = (partitionSize - 1) / block_x2 + 1;
+	grid_x2 = (int)pow(2, (int)(log2(tmp)));
+
 
 	printf("block_x2 = %d, grid_x2 = %d\n", block_x2, grid_x2);
 #ifdef FUNC_CALL_
@@ -1036,54 +1029,39 @@ bool GPUHJ::join()
 
 		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + baseOuterIdx * outer_cols_, sizeof(GNValue) * realPartSize * outer_cols_, cudaMemcpyHostToDevice));
 
-		if (!outerHashed[i]) {
-			outerHashed[i] = true;
-
-			gettimeofday(&outerPackStart, NULL);
-			checkCudaErrors(cudaMemset(outerKey, 0, sizeof(uint64_t) * partitionSize * keySize_));
-			checkCudaErrors(cudaMemset(hashCount, 0, sizeof(ulong) * (block_x * grid_x * maxNumberOfBuckets_ + 1)));
-			checkCudaErrors(cudaDeviceSynchronize());
-			packSearchKeyWrapper(block_x, 1, grid_x, 1, outer_dev, realPartSize, outer_cols_,
-									outerKey, search_exp_dev, search_exp_size, search_exp_num_,
-									keySize_,
+		gettimeofday(&outerPackStart, NULL);
+		checkCudaErrors(cudaMemset(outerKey, 0, sizeof(uint64_t) * partitionSize * keySize_));
+		checkCudaErrors(cudaMemset(hashCount, 0, sizeof(ulong) * (block_x * grid_x * maxNumberOfBuckets_ + 1)));
+		checkCudaErrors(cudaDeviceSynchronize());
+		packSearchKeyWrapper(block_x, 1, grid_x, 1, outer_dev, realPartSize, outer_cols_,
+								outerKey, search_exp_dev, search_exp_size, search_exp_num_,
+								keySize_,
 #ifdef FUNC_CALL_
-									stack
+								stack
 #else
-									val_stack,
-									type_stack
+								val_stack,
+								type_stack
 #endif
-								);
-			gettimeofday(&outerPackEnd, NULL);
-			outerPack.push_back(timeDiff(outerPackStart, outerPackEnd));
+							);
+		gettimeofday(&outerPackEnd, NULL);
+		outerPack.push_back(timeDiff(outerPackStart, outerPackEnd));
 
-			gettimeofday(&outerHashCountStart, NULL);
-			ghashCountWrapper(block_x, 1, grid_x, 1, outerKey, realPartSize, keySize_, hashCount, maxNumberOfBuckets_);
-			gettimeofday(&outerHashCountEnd, NULL);
-			outerHashCount.push_back(timeDiff(outerHashCountStart, outerHashCountEnd));
+		gettimeofday(&outerHashCountStart, NULL);
+		ghashCountWrapper(block_x, 1, grid_x, 1, outerKey, realPartSize, keySize_, hashCount, maxNumberOfBuckets_);
+		gettimeofday(&outerHashCountEnd, NULL);
+		outerHashCount.push_back(timeDiff(outerHashCountStart, outerHashCountEnd));
 
-			gettimeofday(&outerPrefixStart, NULL);
-			hprefixSumWrapper(hashCount, block_x * grid_x * maxNumberOfBuckets_ + 1, &sum);
-			gettimeofday(&outerPrefixEnd, NULL);
-			outerPrefix.push_back(timeDiff(outerPrefixStart, outerPrefixEnd));
+		gettimeofday(&outerPrefixStart, NULL);
+		hprefixSumWrapper(hashCount, block_x * grid_x * maxNumberOfBuckets_ + 1, &sum);
+		gettimeofday(&outerPrefixEnd, NULL);
+		outerPrefix.push_back(timeDiff(outerPrefixStart, outerPrefixEnd));
 
-			gettimeofday(&outerHashStart, NULL);
-			outerHashDev.size = realPartSize;
-			ghashWrapper(block_x, 1, grid_x, 1, outerKey, hashCount, outerHashDev);
-			gettimeofday(&outerHashEnd, NULL);
-			outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
-
-//			checkCudaErrors(cudaMemcpy(outerHashHost[i].bucketLocation, outerHashDev.bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
-//			checkCudaErrors(cudaMemcpy(outerHashHost[i].hashedIdx, outerHashDev.hashedIdx, sizeof(int) * realPartSize, cudaMemcpyDeviceToHost));
-//			checkCudaErrors(cudaMemcpy(outerHashHost[i].hashedKey, outerHashDev.hashedKey, sizeof(uint64_t) * realPartSize * keySize_, cudaMemcpyDeviceToHost));
-//			outerHashHost[i].size = outerHashDev.size;
-		}
-//		} else {
-//			checkCudaErrors(cudaMemcpy(outerHashDev.bucketLocation, outerHashHost[i].bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyHostToDevice));
-//			checkCudaErrors(cudaMemcpy(outerHashDev.hashedIdx, outerHashHost[i].hashedIdx, sizeof(int) * realPartSize, cudaMemcpyHostToDevice));
-//			checkCudaErrors(cudaMemcpy(outerHashDev.hashedKey, outerHashHost[i].hashedKey, sizeof(uint64_t) * realPartSize * keySize_, cudaMemcpyHostToDevice));
-//			outerHashDev.size = outerHashHost[i].size;
-//			printf("End copying hashed outer table\n");
-//		}
+		gettimeofday(&outerHashStart, NULL);
+		outerHashDev.size = realPartSize;
+		getBucketLocationWrapper(block_x2, 1, grid_x2, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, outerHashDev);
+		ghashWrapper(block_x, 1, grid_x, 1, outerKey, hashCount, outerHashDev);
+		gettimeofday(&outerHashEnd, NULL);
+		outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
 
 		for (int baseInnerIdx = 0, j = 0; baseInnerIdx < inner_rows_; baseInnerIdx += partitionSize, j++) {
 			realPartSize = (baseInnerIdx + partitionSize < inner_rows_) ? partitionSize : (inner_rows_ - baseInnerIdx);
@@ -1113,7 +1091,7 @@ bool GPUHJ::join()
 
 				gettimeofday(&innerHashStart, NULL);
 				innerHashDev.size = realPartSize;
-
+				getBucketLocationWrapper(block_x2, 1, grid_x2, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, innerHashDev);
 				ghashWrapper(block_x, 1, grid_x, 1, innerKey, hashCount, innerHashDev);
 				gettimeofday(&innerHashEnd, NULL);
 				innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
@@ -1187,6 +1165,190 @@ bool GPUHJ::join()
 		}
 	}
 
+#else
+	partitionSize = getPartitionSize();
+	GHashNode *innerHashHost;
+	GHashNode innerHashDev;
+	bool *innerHashed;
+	int realPartSize;
+	int partNumOuter, partNumInner;
+
+	partNumInner = (inner_rows_ - 1)/partitionSize + 1;
+	tmp = partNumInner;
+//	m_sizeIndex_ -= (int)log2(tmp);
+//
+//	maxNumberOfBuckets_ = MAX_BUCKETS[m_sizeIndex_];
+//	printf("New m_sizeIndex = %d\n", m_sizeIndex_);
+	innerHashHost = (GHashNode *)malloc(sizeof(GHashNode) * partNumInner);
+	innerHashed = (bool*)malloc(sizeof(bool) * partNumInner);
+
+	for (int i = 0; i < partNumInner; i++) {
+		innerHashed[i] = false;
+		innerHashHost[i].bucketNum = maxNumberOfBuckets_;
+		innerHashHost[i].keySize = keySize_;
+		innerHashHost[i].size = partitionSize;
+		innerHashHost[i].bucketLocation = (int*)malloc(sizeof(int) * (maxNumberOfBuckets_ + 1));
+		innerHashHost[i].hashedIdx = (int*)malloc(sizeof(int) * partitionSize);
+		innerHashHost[i].hashedKey = (uint64_t*)malloc(sizeof(uint64_t) * partitionSize * keySize_);
+	}
+
+	innerHashDev.bucketNum = maxNumberOfBuckets_;
+	innerHashDev.keySize = keySize_;
+
+	checkCudaErrors(cudaMalloc(&outerKey, sizeof(uint64_t) * partitionSize * keySize_));
+
+	checkCudaErrors(cudaMalloc(&innerKey, sizeof(uint64_t) * partitionSize * keySize_));
+	checkCudaErrors(cudaMalloc(&(innerHashDev.hashedIdx), sizeof(int) * partitionSize));
+	checkCudaErrors(cudaMalloc(&(innerHashDev.hashedKey), sizeof(uint64_t) * partitionSize * keySize_));
+	checkCudaErrors(cudaMalloc(&(innerHashDev.bucketLocation), sizeof(int) * (maxNumberOfBuckets_ + 1)));
+
+	block_x = (partitionSize < BLOCK_SIZE_X) ? partitionSize : BLOCK_SIZE_X;
+	grid_x = 1;
+	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * grid_x * maxNumberOfBuckets_ + 1)));
+
+	int block_x2, grid_x2;
+	block_x2 = (partitionSize < BLOCK_SIZE_X) ? partitionSize : BLOCK_SIZE_X;
+	grid_x2 = (partitionSize - 1)/block_x2 + 1;
+
+	printf("block_x2 = %d, grid_x2 = %d\n", block_x2, grid_x2);
+#ifdef FUNC_CALL_
+	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x2 * grid_x2));
+#else
+	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * MAX_STACK_SIZE * block_x2 * grid_x2));
+	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * MAX_STACK_SIZE * block_x2 * grid_x2));
+#endif
+
+	checkCudaErrors(cudaMalloc(&indexCount, sizeof(ulong) * (partitionSize + 1)));
+	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * partitionSize * outer_cols_));
+	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * partitionSize * inner_cols_));
+
+	printf("Start Joining\n");
+	for (int baseOuterIdx = 0; baseOuterIdx < outer_rows_; baseOuterIdx += partitionSize) {
+		/*** Hash the outer partition ***/
+		realPartSize = (baseOuterIdx + partitionSize < outer_rows_) ? partitionSize : (outer_rows_ - baseOuterIdx);
+
+		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + baseOuterIdx * outer_cols_, sizeof(GNValue) * realPartSize * outer_cols_, cudaMemcpyHostToDevice));
+
+
+		gettimeofday(&outerPackStart, NULL);
+		checkCudaErrors(cudaMemset(outerKey, 0, sizeof(uint64_t) * partitionSize * keySize_));
+		checkCudaErrors(cudaMemset(hashCount, 0, sizeof(ulong) * (block_x * grid_x * maxNumberOfBuckets_ + 1)));
+		checkCudaErrors(cudaDeviceSynchronize());
+		printf("block_x = %d grid_x = %d realPartSize = %d\n", block_x, grid_x, realPartSize);
+		packSearchKeyWrapper(block_x, 1, grid_x, 1, outer_dev, realPartSize, outer_cols_,
+								outerKey, search_exp_dev, search_exp_size, search_exp_num_,
+								keySize_,
+#ifdef FUNC_CALL_
+								stack
+#else
+								val_stack,
+								type_stack
+#endif
+							);
+		printf("End of generating key search\n");
+		gettimeofday(&outerPackEnd, NULL);
+		outerPack.push_back(timeDiff(outerPackStart, outerPackEnd));
+
+		for (int baseInnerIdx = 0, j = 0; baseInnerIdx < inner_rows_; baseInnerIdx += partitionSize, j++) {
+			realPartSize = (baseInnerIdx + partitionSize < inner_rows_) ? partitionSize : (inner_rows_ - baseInnerIdx);
+
+			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + baseInnerIdx * inner_cols_, sizeof(GNValue) * realPartSize * inner_cols_, cudaMemcpyHostToDevice));
+
+			if (!innerHashed[j]) {
+				innerHashed[j] = true;
+
+				gettimeofday(&innerPackStart, NULL);
+				checkCudaErrors(cudaMemset(innerKey, 0, sizeof(uint64_t) * partitionSize * keySize_));
+				checkCudaErrors(cudaMemset(hashCount, 0, sizeof(ulong) * (block_x * grid_x * maxNumberOfBuckets_ + 1)));
+				checkCudaErrors(cudaDeviceSynchronize());
+				packKeyWrapper(block_x, 1, grid_x, 1, inner_dev, realPartSize, inner_cols_, indices_dev, indices_size_, innerKey, keySize_);
+				gettimeofday(&innerPackEnd, NULL);
+				innerPack.push_back(timeDiff(innerPackStart, innerPackEnd));
+
+				gettimeofday(&innerHashCountStart, NULL);
+				ghashCountWrapper(block_x, 1, grid_x, 1, innerKey, realPartSize, keySize_, hashCount, maxNumberOfBuckets_);
+				gettimeofday(&innerHashCountEnd, NULL);
+				innerHashCount.push_back(timeDiff(innerHashCountStart, innerHashCountEnd));
+
+				gettimeofday(&innerPrefixStart, NULL);
+				hprefixSumWrapper(hashCount, block_x * grid_x * maxNumberOfBuckets_ + 1, &sum);
+				gettimeofday(&innerPrefixEnd, NULL);
+				innerPrefix.push_back(timeDiff(innerPrefixStart, innerPrefixEnd));
+
+				gettimeofday(&innerHashStart, NULL);
+				innerHashDev.size = realPartSize;
+				getBucketLocationWrapper(block_x2, 1, grid_x2, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, innerHashDev);
+				ghashWrapper(block_x, 1, grid_x, 1, innerKey, hashCount, innerHashDev);
+				gettimeofday(&innerHashEnd, NULL);
+				innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
+
+				checkCudaErrors(cudaMemcpy(innerHashHost[j].bucketLocation, innerHashDev.bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
+				checkCudaErrors(cudaMemcpy(innerHashHost[j].hashedIdx, innerHashDev.hashedIdx, sizeof(int) * realPartSize, cudaMemcpyDeviceToHost));
+				checkCudaErrors(cudaMemcpy(innerHashHost[j].hashedKey, innerHashDev.hashedKey, sizeof(uint64_t) * realPartSize * keySize_, cudaMemcpyDeviceToHost));
+				innerHashHost[j].size = realPartSize;
+			} else {
+				checkCudaErrors(cudaMemcpy(innerHashDev.bucketLocation, innerHashHost[j].bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyHostToDevice));
+				checkCudaErrors(cudaMemcpy(innerHashDev.hashedIdx, innerHashHost[j].hashedIdx, sizeof(int) * realPartSize, cudaMemcpyHostToDevice));
+				checkCudaErrors(cudaMemcpy(innerHashDev.hashedKey, innerHashHost[j].hashedKey, sizeof(uint64_t) * realPartSize * keySize_, cudaMemcpyHostToDevice));
+				innerHashDev.size = innerHashHost[j].size;
+
+			}
+
+			realPartSize = (baseOuterIdx + partitionSize < outer_rows_) ? partitionSize : (outer_rows_ - baseOuterIdx);
+
+			gettimeofday(&indexCountStart, NULL);
+			checkCudaErrors(cudaMemset(indexCount, 0, sizeof(ulong) * (realPartSize + 1)));
+			checkCudaErrors(cudaDeviceSynchronize());
+			indexCountLegacyWrapper(block_x2, 1, grid_x2, 1, outerKey, partitionSize, innerHashDev,
+										indexCount, realPartSize);
+			gettimeofday(&indexCountEnd, NULL);
+
+			indexHCount.push_back(timeDiff(indexCountStart, indexCountEnd));
+
+			gettimeofday(&prefixStart, NULL);
+			hprefixSumWrapper(indexCount, realPartSize + 1, &jr_size);
+			gettimeofday(&prefixEnd, NULL);
+
+			prefixSum.push_back(timeDiff(prefixStart, prefixEnd));
+
+			if (jr_size < 0) {
+				printf("Scanning failed\n");
+				return false;
+			}
+
+			if (jr_size == 0) {
+				continue;
+			}
+
+			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
+
+			gettimeofday(&joinStart, NULL);
+			hashJoinLegacyWrapper(block_x2, 1, grid_x2, 1,
+									outer_dev, inner_dev,
+									outer_cols_, inner_cols_,
+									realPartSize, outerKey,
+									end_dev, end_size_,
+									post_dev, post_size_, innerHashDev,
+									baseOuterIdx, baseInnerIdx,
+									indexCount, realPartSize,
+	#ifdef FUNC_CALL_
+									stack,
+	#else
+									val_stack,
+									type_stack,
+	#endif
+									jresult_dev);
+			gettimeofday(&joinEnd, NULL);
+			joinTime.push_back(timeDiff(joinStart, joinEnd));
+
+			join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size) * sizeof(RESULT));
+
+			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size * sizeof(RESULT), cudaMemcpyDeviceToHost));
+			checkCudaErrors(cudaFree(jresult_dev));
+			result_size_ += jr_size;
+			jr_size = 0;
+		}
+	}
 
 #endif
 
@@ -1260,11 +1422,22 @@ bool GPUHJ::join()
 	dataCopy = total - innerHashTotal - outerHashTotal - joinTotal;
 
 	printf("\n*** Execution time *****************************\n"
-			"Inner hash: %lu\n"
-			"Outer hash: %lu\n"
+			"Inner Pack: %lu\n"
+			"Inner Hash Count: %lu\n"
+			"Inner Prefix: %lu\n"
+			"Inner Hash: %lu\n"
+			"Outer Pack: %lu\n"
+			"Outer Hash Count: %lu\n"
+			"Outer Prefix: %lu\n"
+			"Outer Hash: %lu\n"
+			"*************************************************\n"
+			"Inner hash Total: %lu\n"
+			"Outer hash Total: %lu\n"
 			"Join: %lu\n"
 			"Data copy: %lu\n"
-			"Total time: %lu\n", innerHashTotal, outerHashTotal, joinTotal, dataCopy, total);
+			"Join time only: %lu\n"
+			"Total time: %lu\n", innerPackFinal, innerHashCountFinal, innerPrefixFinal, innerHashFinal,
+								outerPackFinal, outerHashCountFinal, outerPrefixFinal, outerHashFinal, innerHashTotal, outerHashTotal, joinTotal, dataCopy, total - dataCopy, total);
 
 
 	checkCudaErrors(cudaFree(outer_dev));
@@ -1299,8 +1472,10 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(outerHash.bucketLocation));
 	checkCudaErrors(cudaFree(outerHash.hashedIdx));
 	checkCudaErrors(cudaFree(outerHash.hashedKey));
-#else
+#elif defined(METHOD_2_)
 	checkCudaErrors(cudaFree(hashCount));
+	checkCudaErrors(cudaFree(outerKey));
+	checkCudaErrors(cudaFree(innerKey));
 	checkCudaErrors(cudaFree(outerHashDev.bucketLocation));
 	checkCudaErrors(cudaFree(outerHashDev.hashedIdx));
 	checkCudaErrors(cudaFree(outerHashDev.hashedKey));
@@ -1308,23 +1483,29 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(innerHashDev.hashedIdx));
 	checkCudaErrors(cudaFree(innerHashDev.hashedKey));
 
-	for (int i = 0; i < partNumOuter; i++) {
-		free(outerHashHost[i].bucketLocation);
-		free(outerHashHost[i].hashedIdx);
-		free(outerHashHost[i].hashedKey);
-	}
-
 	for (int i = 0; i < partNumInner; i++) {
 		free(innerHashHost[i].bucketLocation);
 		free(innerHashHost[i].hashedIdx);
 		free(innerHashHost[i].hashedKey);
 	}
 
-	free(outerHashHost);
 	free(innerHashHost);
-
-	free(outerHashed);
 	free(innerHashed);
+#else
+	checkCudaErrors(cudaFree(outerKey));
+	checkCudaErrors(cudaFree(innerHashDev.bucketLocation));
+	checkCudaErrors(cudaFree(innerHashDev.hashedIdx));
+	checkCudaErrors(cudaFree(innerHashDev.hashedKey));
+
+
+	for (int i = 0; i < partNumInner; i++) {
+		free(innerHashHost[i].bucketLocation);
+		free(innerHashHost[i].hashedIdx);
+		free(innerHashHost[i].hashedKey);
+	}
+	free(innerHashHost);
+	free(innerHashed);
+
 #endif
 
 	checkCudaErrors(cudaProfilerStop());
