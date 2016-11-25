@@ -1006,8 +1006,7 @@ bool GPUHJ::join()
 	sizeOfBuckets = (int)pow(2, (int)(log2(tmp)));
 
 	block_x2 = (sizeOfBuckets < BLOCK_SIZE_X) ? sizeOfBuckets : BLOCK_SIZE_X;
-	bucketStride = tmp = (partitionSize - 1) / block_x2 + 1;
-	grid_x2 = (int)pow(2, (int)(log2(tmp)));
+	grid_x2 = (partitionSize - 1) / block_x2 + 1;
 
 
 	printf("block_x2 = %d, grid_x2 = %d\n", block_x2, grid_x2);
@@ -1425,11 +1424,16 @@ bool GPUHJ::join()
 			"Inner Pack: %lu\n"
 			"Inner Hash Count: %lu\n"
 			"Inner Prefix: %lu\n"
-			"Inner Hash: %lu\n"
+			"Inner Hash: %lu\n\n"
+
 			"Outer Pack: %lu\n"
 			"Outer Hash Count: %lu\n"
 			"Outer Prefix: %lu\n"
-			"Outer Hash: %lu\n"
+			"Outer Hash: %lu\n\n"
+
+			"index Count: %lu\n"
+			"prefixSum: %lu\n"
+			"Join: %lu\n"
 			"*************************************************\n"
 			"Inner hash Total: %lu\n"
 			"Outer hash Total: %lu\n"
@@ -1437,7 +1441,9 @@ bool GPUHJ::join()
 			"Data copy: %lu\n"
 			"Join time only: %lu\n"
 			"Total time: %lu\n", innerPackFinal, innerHashCountFinal, innerPrefixFinal, innerHashFinal,
-								outerPackFinal, outerHashCountFinal, outerPrefixFinal, outerHashFinal, innerHashTotal, outerHashTotal, joinTotal, dataCopy, total - dataCopy, total);
+								outerPackFinal, outerHashCountFinal, outerPrefixFinal, outerHashFinal,
+								indexCountFinal, prefixSumFinal, joinFinal,
+								innerHashTotal, outerHashTotal, joinTotal, dataCopy, total - dataCopy, total);
 
 
 	checkCudaErrors(cudaFree(outer_dev));
