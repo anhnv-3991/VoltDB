@@ -175,10 +175,6 @@ void hashJoinLegacyWrapper(int block_x, int block_y, int grid_x, int grid_y,
 #endif
 							RESULT *result);
 
-void getBucketLocationWrapper(int block_x, int block_y, int grid_x, int grid_y, ulong *hashCount, uint64_t maxNumberOfBuckets, int stride, GHashNode hashTable);
-
-
-
 void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum);
 }
 

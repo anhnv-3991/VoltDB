@@ -706,7 +706,6 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&(innerHash.bucketLocation), sizeof(int) * (maxNumberOfBuckets_ + 1)));
 
 	gettimeofday(&innerHashStart, NULL);
-	getBucketLocationWrapper(block_x, 1, grid_x, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, innerHash);
 	ghashWrapper(block_x, 1, 1, 1, innerKey, hashCount, innerHash);
 	gettimeofday(&innerHashEnd, NULL);
 	innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
@@ -784,7 +783,6 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&(outerHash.bucketLocation), sizeof(int) * (maxNumberOfBuckets_ + 1)));
 
 	gettimeofday(&outerHashStart, NULL);
-	getBucketLocationWrapper(block_x, 1, grid_x, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, outerHash);
 	ghashWrapper(block_x, 1, grid_x, grid_y, outerKey, hashCount, outerHash);
 	gettimeofday(&outerHashEnd, NULL);
 	printf("End hashing inner table\n");
@@ -957,9 +955,8 @@ bool GPUHJ::join()
 	GHashNode outerHashDev, innerHashDev;
 	bool *innerHashed;
 	int realPartSize;
-	int partNumOuter, partNumInner;
+	int partNumInner;
 
-	partNumOuter = (outer_rows_ - 1)/partitionSize + 1;
 	partNumInner = (inner_rows_ - 1)/partitionSize + 1;
 //	tmp = partNumInner;
 //	m_sizeIndex_ -= (int)log2(tmp);
@@ -1001,23 +998,28 @@ bool GPUHJ::join()
 	grid_x = 1;
 	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * grid_x * maxNumberOfBuckets_ + 1)));
 
-	int block_x2, grid_x2;
-	tmp = (partitionSize - 1)/maxNumberOfBuckets_ + 1;
+	int block_x2, grid_x2, grid_y2;
+	//tmp = (partitionSize - 1)/maxNumberOfBuckets_ + 1;
+	tmp = (outer_rows_ - 1)/maxNumberOfBuckets_ + 1;
 	sizeOfBuckets = (int)pow(2, (int)(log2(tmp)));
 
 	block_x2 = (sizeOfBuckets < BLOCK_SIZE_X) ? sizeOfBuckets : BLOCK_SIZE_X;
-	grid_x2 = (partitionSize - 1) / block_x2 + 1;
+	//grid_x2 = (partitionSize - 1) / block_x2 + 1;
+	grid_x2 = (maxNumberOfBuckets_ < GRID_SIZE_X) ? maxNumberOfBuckets_ : GRID_SIZE_X;
+	grid_y2 = (maxNumberOfBuckets_ - 1)/grid_x2 + 1;
+	//grid_y2 = 1;
 
 
-	printf("block_x2 = %d, grid_x2 = %d\n", block_x2, grid_x2);
+	printf("block_x2 = %d, grid_x2 = %d, grid_y2 = %d, numberOfBuckets = %d\n", block_x2, grid_x2, grid_y2, maxNumberOfBuckets_);
 #ifdef FUNC_CALL_
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x2 * grid_x2));
 #else
-	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * MAX_STACK_SIZE * block_x2 * grid_x2));
-	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * MAX_STACK_SIZE * block_x2 * grid_x2));
+	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * MAX_STACK_SIZE * block_x2 * grid_x2 * grid_y2));
+	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * MAX_STACK_SIZE * block_x2 * grid_x2 * grid_y2));
 #endif
 
-	checkCudaErrors(cudaMalloc(&indexCount, sizeof(ulong) * (partitionSize + 1)));
+	//checkCudaErrors(cudaMalloc(&indexCount, sizeof(ulong) * (partitionSize + 1)));
+	checkCudaErrors(cudaMalloc(&indexCount, sizeof(ulong) * (block_x2 * grid_x2 * grid_y2 + 1)));
 	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * partitionSize * outer_cols_));
 	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * partitionSize * inner_cols_));
 
@@ -1057,7 +1059,6 @@ bool GPUHJ::join()
 
 		gettimeofday(&outerHashStart, NULL);
 		outerHashDev.size = realPartSize;
-		getBucketLocationWrapper(block_x2, 1, grid_x2, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, outerHashDev);
 		ghashWrapper(block_x, 1, grid_x, 1, outerKey, hashCount, outerHashDev);
 		gettimeofday(&outerHashEnd, NULL);
 		outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
@@ -1090,7 +1091,6 @@ bool GPUHJ::join()
 
 				gettimeofday(&innerHashStart, NULL);
 				innerHashDev.size = realPartSize;
-				getBucketLocationWrapper(block_x2, 1, grid_x2, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, innerHashDev);
 				ghashWrapper(block_x, 1, grid_x, 1, innerKey, hashCount, innerHashDev);
 				gettimeofday(&innerHashEnd, NULL);
 				innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
@@ -1107,11 +1107,12 @@ bool GPUHJ::join()
 
 			}
 
-			realPartSize = (baseOuterIdx + partitionSize < outer_rows_) ? partitionSize : (outer_rows_ - baseOuterIdx);
+			//realPartSize = (baseOuterIdx + partitionSize < outer_rows_) ? partitionSize : (outer_rows_ - baseOuterIdx);
+			realPartSize = block_x2 * grid_x2 * grid_y2 + 1;
 			gettimeofday(&indexCountStart, NULL);
-			checkCudaErrors(cudaMemset(indexCount, 0, sizeof(ulong) * (realPartSize + 1)));
+			checkCudaErrors(cudaMemset(indexCount, 0, sizeof(ulong) * (block_x2 * grid_x2 * grid_y2 + 1)));
 			checkCudaErrors(cudaDeviceSynchronize());
-			indexCountWrapper(block_x2, 1, grid_x2, 1,
+			indexCountWrapper(block_x2, 1, grid_x2, grid_y2,
 								outerHashDev, innerHashDev,
 								0, maxNumberOfBuckets_,
 								indexCount, realPartSize);
@@ -1120,7 +1121,7 @@ bool GPUHJ::join()
 			indexHCount.push_back(timeDiff(indexCountStart, indexCountEnd));
 
 			gettimeofday(&prefixStart, NULL);
-			hprefixSumWrapper(indexCount, realPartSize + 1, &jr_size);
+			hprefixSumWrapper(indexCount, block_x2 * grid_x2 * grid_y2 + 1, &jr_size);
 			gettimeofday(&prefixEnd, NULL);
 
 			prefixSum.push_back(timeDiff(prefixStart, prefixEnd));
@@ -1137,7 +1138,7 @@ bool GPUHJ::join()
 			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 
 			gettimeofday(&joinStart, NULL);
-			hashJoinWrapper2(block_x2, 1, grid_x2, 1,
+			hashJoinWrapper2(block_x2, 1, grid_x2, grid_y2,
 								outer_dev, inner_dev,
 								outer_cols_, inner_cols_,
 								end_dev, end_size_,
@@ -1276,7 +1277,6 @@ bool GPUHJ::join()
 
 				gettimeofday(&innerHashStart, NULL);
 				innerHashDev.size = realPartSize;
-				getBucketLocationWrapper(block_x2, 1, grid_x2, 1, hashCount, maxNumberOfBuckets_, block_x * grid_x, innerHashDev);
 				ghashWrapper(block_x, 1, grid_x, 1, innerKey, hashCount, innerHashDev);
 				gettimeofday(&innerHashEnd, NULL);
 				innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
@@ -1398,6 +1398,7 @@ bool GPUHJ::join()
 
 	indexCountFinal = 0;
 	for (int i = 0; i < indexHCount.size(); i++) {
+		printf("Index count at %d is %lu\n", i, indexHCount[i]);
 		indexCountFinal += indexHCount[i];
 	}
 
