@@ -37,7 +37,7 @@ typedef struct _HashNode {
 //#define PHYSICAL_HASH_ 1
 //#define METHOD_1_ 1
 #define METHOD_2_ 2
-//#define SHARED_ 1
+#define SHARED_ 1
 
 
 }

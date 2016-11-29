@@ -34,8 +34,7 @@ namespace voltdb{
 #define MAX_STACK_SIZE 8
 #define MAX_SHARED_MEM 16
 #define MAX_BUFFER_SIZE (1024 * 1024)
-#define SHARED_MEM 1024
-
+#define SHARED_MEM 16
 /*
 typedef struct _TUPLE {
     int key;

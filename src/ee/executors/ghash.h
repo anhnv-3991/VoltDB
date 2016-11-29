@@ -175,6 +175,7 @@ void hashJoinLegacyWrapper(int block_x, int block_y, int grid_x, int grid_y,
 #endif
 							RESULT *result);
 
+
 void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum);
 }
 

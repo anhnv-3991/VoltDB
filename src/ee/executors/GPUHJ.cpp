@@ -1398,7 +1398,6 @@ bool GPUHJ::join()
 
 	indexCountFinal = 0;
 	for (int i = 0; i < indexHCount.size(); i++) {
-		printf("Index count at %d is %lu\n", i, indexHCount[i]);
 		indexCountFinal += indexHCount[i];
 	}
 
@@ -1409,7 +1408,6 @@ bool GPUHJ::join()
 
 	joinFinal = 0;
 	for (int i = 0; i < joinTime.size(); i++) {
-		printf("Join time at %d is %lu\n", i, joinTime[i]);
 		joinFinal += joinTime[i];
 	}
 
