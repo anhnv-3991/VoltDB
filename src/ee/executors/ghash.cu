@@ -828,6 +828,76 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 	}
 }
 
+__global__ void hashJoinShared(GNValue *outer_table, GNValue *inner_table,
+								int outer_cols, int inner_cols,
+								GTreeNode *end_expression, int end_size,
+								GTreeNode *post_expression,	int post_size,
+								GHashNode outerHash, GHashNode innerHash,
+								int lowerBound, int upperBound,
+								ulong *indexCount, int size,
+#ifdef FUNC_CALL_
+								GNValue *stack,
+#else
+								int64_t *val_stack,
+								ValueType *type_stack,
+#endif
+								RESULT *result)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * gridDim.x * blockDim.x;
+	int bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x;
+
+	ulong write_location;
+	int outerIdx, innerIdx;
+	int outerTupleIdx, innerTupleIdx;
+	int endOuterIdx, endInnerIdx;
+	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	__shared__ GNValue tmpInner[SHARED_MEM];
+	int realSize = 0;
+	int sharedSize = SHARED_MEM;
+
+	if (index < size && bucketIdx < upperBound) {
+		write_location = indexCount[index];
+		for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx += (sharedSize / inner_cols)) {
+			innerTupleIdx = innerHash.hashedIdx[innerIdx];
+			realSize = ((innerIdx + (sharedSize/inner_cols)) < endInnerIdx) ? ((sharedSize/inner_cols) * inner_cols) : ((endInnerIdx - innerIdx) * inner_cols);
+			for (int i = threadIdx.x; i < realSize; i += blockDim.x) {
+				tmpInner[i] = inner_table[innerTupleIdx * inner_cols + i];
+			}
+			__syncthreads();
+
+			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
+				for (int tmpInnerIdx = 0; tmpInnerIdx < realSize/inner_cols; tmpInnerIdx++) {
+#ifdef FUNC_CALL_
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner + tmpInnerIdx * inner_cols,
+																	stack + index, gridDim.x * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner + tmpInnerIdx * inner_cols,
+																	stack + index, gridDim.x * blockDim.x) : exp_check;
+#else
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner + tmpInnerIdx * inner_cols,
+																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
+				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	tmpInner + tmpInnerIdx * inner_cols,
+																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
+#endif
+
+				result[write_location].lkey = (exp_check.isTrue()) ? (outerTupleIdx) : result[write_location].lkey;
+				result[write_location].rkey = (exp_check.isTrue()) ? (innerTupleIdx) : result[write_location].rkey;
+				write_location += (exp_check.isTrue()) ? 1 : 0;
+				}
+			}
+			__syncthreads();
+		}
+
+	}
+}
+
 __global__ void ghashPhysical(GNValue *inputTable, GNValue *outputTable, int colNum, int rowNum, GHashNode hashTable)
 {
 	for (int index = threadIdx.x + blockIdx.x * blockDim.x; index < rowNum; index += blockDim.x * gridDim.x) {
@@ -1024,7 +1094,9 @@ __global__ void hashJoin3(GNValue *outer_table, GNValue *inner_table,
 	}
 }
 
-__global__ void hashJoinShared(GNValue *outer_table, GNValue *inner_table,
+
+
+__global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
 								int outer_cols, int inner_cols,
 								GTreeNode *end_expression, int end_size,
 								GTreeNode *post_expression,	int post_size,
@@ -1341,6 +1413,7 @@ void hashJoinWrapper(int block_x, int block_y,
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
+#ifndef SHARED_
 	hashJoin<<<gridSize, blockSize>>>(outer_table, inner_table,
 										outer_cols, inner_cols,
 										end_expression, end_size,
@@ -1355,6 +1428,22 @@ void hashJoinWrapper(int block_x, int block_y,
 										type_stack,
 #endif
 										result);
+#else
+	hashJoinShared<<<gridSize, blockSize>>>(outer_table, inner_table,
+													outer_cols, inner_cols,
+													end_expression, end_size,
+													post_expression, post_size,
+													outerHash, innerHash,
+													lowerBound, upperBound,
+													indexCount, size,
+#ifdef FUNC_CALL_
+													stack,
+#else
+													val_stack,
+													type_stack,
+#endif
+													result);
+#endif
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (hashJoin) error: %s\n", cudaGetErrorString(err));
@@ -1452,7 +1541,7 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 #endif
 												result);
 #else
-	hashJoinShared<<<gridSize, blockSize>>>(outer_table, inner_table,
+	hashJoinShared2<<<gridSize, blockSize>>>(outer_table, inner_table,
 													outer_cols, inner_cols,
 													end_expression, end_size,
 													post_expression, post_size,
