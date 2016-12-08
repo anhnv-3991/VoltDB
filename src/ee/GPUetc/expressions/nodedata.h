@@ -24,7 +24,7 @@ typedef struct _TreeNode {
 typedef struct _HashNode {
 	int *hashedIdx;
 	uint64_t *hashedKey;
-	uint *bucketLocation;
+	int *bucketLocation;
 	int bucketNum;
 	int keySize;
 	int size;	//number of elements
