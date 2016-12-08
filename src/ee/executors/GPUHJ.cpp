@@ -123,8 +123,9 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 	m_sizeIndex_ = mSizeIndex;
 
 	if (m_sizeIndex_ >= 17)
-		m_sizeIndex_ = 17;
-	m_sizeIndex_ = 15;
+		m_sizeIndex_ = 16;
+	if (m_sizeIndex_ == 15)
+		m_sizeIndex_ = 14;
 	maxNumberOfBuckets_ = MAX_BUCKETS[m_sizeIndex_];
 
 
@@ -1065,7 +1066,7 @@ bool GPUHJ::join()
 		ghashWrapper(block_x, 1, grid_x, 1, outerKey, hashCount, outerHashDev);
 		gettimeofday(&outerHashEnd, NULL);
 		outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
-		printf("SIZE OF SIZE T IS %d\n", (int)sizeof(size_t));
+		//printf("SIZE OF SIZE T IS %d\n", (int)sizeof(size_t));
 //
 //		int *test0 = (int*)malloc(sizeof(int) * (maxNumberOfBuckets_ + 1));
 //		int max = 0, maxId = 0;
@@ -1086,7 +1087,7 @@ bool GPUHJ::join()
 			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + baseInnerIdx * inner_cols_, sizeof(GNValue) * realPartSize * inner_cols_, cudaMemcpyHostToDevice));
 
 			if (!innerHashed[j]) {
-				printf("realPartSize of inner = %d, block_x = %d, grid_x = %d\n", realPartSize, block_x, grid_x);
+				//printf("realPartSize of inner = %d, block_x = %d, grid_x = %d\n", realPartSize, block_x, grid_x);
 				innerHashed[j] = true;
 				gettimeofday(&innerPackStart, NULL);
 				checkCudaErrors(cudaMemset(innerKey, 0, sizeof(uint64_t) * partitionSize * keySize_));
@@ -1112,18 +1113,11 @@ bool GPUHJ::join()
 				hprefixSumWrapper(hashCount, block_x * grid_x * maxNumberOfBuckets_ + 1, &sum);
 				gettimeofday(&innerPrefixEnd, NULL);
 				innerPrefix.push_back(timeDiff(innerPrefixStart, innerPrefixEnd));
-
-
-
-
-
 				gettimeofday(&innerHashStart, NULL);
 				innerHashDev.size = realPartSize;
 				ghashWrapper(block_x, 1, grid_x, 1, innerKey, hashCount, innerHashDev);
 				gettimeofday(&innerHashEnd, NULL);
 				innerHasher.push_back(timeDiff(innerHashStart, innerHashEnd));
-
-
 
 				checkCudaErrors(cudaMemcpy(innerHashHost[j].bucketLocation, innerHashDev.bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
 				checkCudaErrors(cudaMemcpy(innerHashHost[j].hashedIdx, innerHashDev.hashedIdx, sizeof(int) * realPartSize, cudaMemcpyDeviceToHost));
@@ -1167,7 +1161,7 @@ bool GPUHJ::join()
 				continue;
 			}
 
-			printf("jr_size = %lu\n", jr_size);
+			//printf("jr_size = %lu\n", jr_size);
 			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 
 			gettimeofday(&joinStart, NULL);
