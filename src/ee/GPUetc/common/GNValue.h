@@ -83,14 +83,14 @@ class GNValue {
 
   public:
     /* Create a default NValue */
-	inline CUDAH GNValue();
-    inline CUDAH GNValue(const ValueType type) {
+	__forceinline__ CUDAH GNValue();
+    __forceinline__ CUDAH GNValue(const ValueType type) {
 		m_data = 0;
 		m_valueType = type;
 //		m_sourceInlined = false;
     }
 
-	inline CUDAH GNValue(const ValueType type, int64_t mdata) {
+	__forceinline__ CUDAH GNValue(const ValueType type, int64_t mdata) {
 		m_data = mdata;
 		m_valueType = type;
 //		m_sourceInlined = false;
@@ -98,42 +98,42 @@ class GNValue {
 
 
     /* Check if the value represents SQL NULL */
-    CUDAH bool isNull() const;
+    __forceinline__ CUDAH bool isNull() const;
 
-    inline CUDAH void setNull();
+    __forceinline__ CUDAH void setNull();
 
 //    CUDAH bool getSourceInlined() const {
 //    	return m_sourceInlined;
 //    }
 
-    CUDAH int64_t getMdata() const {
+    __forceinline__ CUDAH int64_t getMdata() const {
     	return m_data;
     }
 
-    inline CUDAH int compare_withoutNull(const GNValue rhs) const;
+    __forceinline__ CUDAH int compare_withoutNull(const GNValue rhs) const;
 
     /* Boolean operations */
-    inline CUDAH GNValue op_negate(void) const;
-    inline CUDAH GNValue op_and(const GNValue rhs) const;
-    inline CUDAH GNValue op_or(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_negate(void) const;
+    __forceinline__ CUDAH GNValue op_and(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_or(const GNValue rhs) const;
     /* Return a boolean NValue with the comparison result */
 
-    inline CUDAH GNValue op_equal(const GNValue rhs) const;
-    inline CUDAH GNValue op_notEqual(const GNValue rhs) const;
-    inline CUDAH GNValue op_lessThan(const GNValue rhs) const;
-    inline CUDAH GNValue op_lessThanOrEqual(const GNValue rhs) const;
-    inline CUDAH GNValue op_greaterThan(const GNValue rhs) const;
-    inline CUDAH GNValue op_greaterThanOrEqual(const GNValue rhs) const;
-    inline CUDAH GNValue op_add(const GNValue rhs) const;
-    inline CUDAH GNValue op_multiply(const GNValue rhs) const;
-    inline CUDAH GNValue op_subtract(const GNValue rhs) const;
-    inline CUDAH GNValue op_divide(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_equal(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_notEqual(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_lessThan(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_lessThanOrEqual(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_greaterThan(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_greaterThanOrEqual(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_add(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_multiply(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_subtract(const GNValue rhs) const;
+    __forceinline__ CUDAH GNValue op_divide(const GNValue rhs) const;
 
 
 /**
  * Retrieve a boolean NValue that is true
  */
-    inline CUDAH static GNValue getTrue() {
+    __forceinline__ CUDAH static GNValue getTrue() {
     	int64_t tmp = true;
         GNValue retval(VALUE_TYPE_BOOLEAN, tmp);
         return retval;
@@ -142,13 +142,13 @@ class GNValue {
 /**
  * Retrieve a boolean NValue that is false
  */
-    inline CUDAH static GNValue getFalse() {
+    __forceinline__ CUDAH static GNValue getFalse() {
     	int64_t tmp = false;
         GNValue retval(VALUE_TYPE_BOOLEAN, tmp);
         return retval;
     }
 
-    inline CUDAH static GNValue getInvalid() {
+    __forceinline__ CUDAH static GNValue getInvalid() {
     	GNValue retval(VALUE_TYPE_INVALID);
     	return retval;
     }
@@ -157,7 +157,7 @@ class GNValue {
  * Returns C++ true if this NValue is a boolean and is true
  * If it is NULL, return false.
  */
-    inline CUDAH bool isTrue() const {
+    __forceinline__ CUDAH bool isTrue() const {
         return (bool)getValue();
     }
 
@@ -165,31 +165,31 @@ class GNValue {
  * Returns C++ false if this NValue is a boolean and is true
  * If it is NULL, return false.
  */
-    inline CUDAH bool isFalse() const {
+    __forceinline__ CUDAH bool isFalse() const {
     	return !((bool)getValue());
     }
 
 
-    inline CUDAH static void getNullValueByPointer(GNValue *retval,ValueType type) {
+    __forceinline__ CUDAH static void getNullValueByPointer(GNValue *retval,ValueType type) {
         retval->setValueType(type);
         retval->setNull();
     }
 
-    inline CUDAH static GNValue getNullValue(){
+    __forceinline__ CUDAH static GNValue getNullValue(){
         GNValue retval(VALUE_TYPE_NULL);
         //retval.tagAsNull();
         retval.setNull();
         return retval;
     }
 
-    inline CUDAH static GNValue getNullValue(ValueType type) {
+    __forceinline__ CUDAH static GNValue getNullValue(ValueType type) {
         GNValue retval(type);
         retval.setNull();
         return retval;
     }
 
 
-    inline CUDAH void setMdata(ValueType type, const char *input){
+    __forceinline__ CUDAH void setMdata(ValueType type, const char *input){
 
     	switch (type) {
     	case VALUE_TYPE_BOOLEAN:
@@ -217,7 +217,7 @@ class GNValue {
     	}
     }
 
-//    inline CUDAH void setSourceInlined(bool sourceInlined)
+//    __forceinline__ CUDAH void setSourceInlined(bool sourceInlined)
 //    {
 //        m_sourceInlined = sourceInlined;
 //    }
@@ -227,7 +227,7 @@ class GNValue {
      * The last of the 16 bytes of storage allocated in an NValue
      * is used to store the type
      */
-    inline CUDAH void setValueType(ValueType type) {
+    __forceinline__ CUDAH void setValueType(ValueType type) {
         m_valueType = type;
     }
 
@@ -235,12 +235,12 @@ class GNValue {
      * Get the type of the value. This information is private
      * to prevent code outside of NValue from branching based on the type of a value.
      */
-    inline CUDAH ValueType getValueType() const {
+    __forceinline__ CUDAH ValueType getValueType() const {
         return m_valueType;
     }
 
 
-    inline CUDAH void debug() const {
+    __forceinline__ CUDAH void debug() const {
     	switch (m_valueType) {
 			case VALUE_TYPE_INVALID: {
 				printf("VALUE TYPE INVALID");
@@ -310,7 +310,7 @@ class GNValue {
     	}
     }
 
-    inline CUDAH int64_t getValue() const {
+    __forceinline__ CUDAH int64_t getValue() const {
     	return m_data;
     }
   private:
@@ -324,7 +324,7 @@ class GNValue {
      */
 
     template<typename T>
-    inline CUDAH int compareValue (const T lhsValue, const T rhsValue) const {
+    __forceinline__ CUDAH int compareValue (const T lhsValue, const T rhsValue) const {
 		if (lhsValue == rhsValue)
 			return VALUE_COMPARE_EQUAL;
 
@@ -334,7 +334,7 @@ class GNValue {
 		return VALUE_COMPARE_LESSTHAN;
     }
 
-    inline CUDAH int compareDoubleValue (const double lhsValue, const double rhsValue) const {
+    __forceinline__ CUDAH int compareDoubleValue (const double lhsValue, const double rhsValue) const {
 		if (lhsValue == rhsValue)
 			return VALUE_COMPARE_EQUAL;
 
@@ -350,7 +350,7 @@ class GNValue {
  * Public constructor that initializes to an NValue that is unusable
  * with other NValues.  Useful for declaring storage for an NValue.
  */
-inline CUDAH GNValue::GNValue() {
+__forceinline__ CUDAH GNValue::GNValue() {
     m_data = 0;
     m_valueType = VALUE_TYPE_INVALID;
 //    m_sourceInlined = false;
@@ -361,7 +361,7 @@ inline CUDAH GNValue::GNValue() {
 /**
  * Set this NValue to null.
  */
-//inline CUDAH void GNValue::setNull() {
+//__forceinline__ CUDAH void GNValue::setNull() {
 //    tagAsNull(); // This gets overwritten for DECIMAL -- but that's OK.
 //    switch (getValueType())
 //    {
@@ -400,12 +400,12 @@ inline CUDAH GNValue::GNValue() {
 //    }
 //}
 
-inline CUDAH void GNValue::setNull() {
+__forceinline__ CUDAH void GNValue::setNull() {
 	m_valueType = VALUE_TYPE_NULL;
 }
 
 
-inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
+__forceinline__ CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
     ValueType ltype = getValueType(), rtype = rhs.getValueType();
 
     if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
@@ -424,7 +424,7 @@ inline CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
 }
 
 
-inline CUDAH bool GNValue::isNull() const {
+__forceinline__ CUDAH bool GNValue::isNull() const {
 
     //assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
 /*
@@ -438,7 +438,7 @@ inline CUDAH bool GNValue::isNull() const {
 	return m_valueType == VALUE_TYPE_NULL;
 }
 
-inline CUDAH GNValue GNValue::op_negate(void) const {
+__forceinline__ CUDAH GNValue GNValue::op_negate(void) const {
 	if (getValueType() == VALUE_TYPE_BOOLEAN) {
 		bool tmp = (bool)(getValue());
 		return (tmp) ? getFalse() : getTrue();
@@ -447,16 +447,16 @@ inline CUDAH GNValue GNValue::op_negate(void) const {
 	return getInvalid();
 }
 
-inline CUDAH GNValue GNValue::op_and(const GNValue rhs) const {
-	if (getValueType() == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
+__forceinline__ CUDAH GNValue GNValue::op_and(const GNValue rhs) const {
+//	if (getValueType() == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
 		bool left = (bool)(getValue()), right = (bool)(rhs.getValue());
 		return (left && right) ? getTrue() : getFalse();
-	}
+//	}
 
-	return getInvalid();
+//	return getInvalid();
 }
 
-inline CUDAH GNValue GNValue::op_or(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_or(const GNValue rhs) const {
 	if (getValueType() == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
 		bool left = (bool)(getValue()), right = (bool)(rhs.getValue());
 		return (left || right) ? getTrue() : getFalse();
@@ -465,37 +465,37 @@ inline CUDAH GNValue GNValue::op_or(const GNValue rhs) const {
 	return getInvalid();
 }
 
-inline CUDAH GNValue GNValue::op_equal(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_equal(const GNValue rhs) const {
 	int res = compare_withoutNull(rhs);
 	return (res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
-inline CUDAH GNValue GNValue::op_notEqual(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_notEqual(const GNValue rhs) const {
 	int res = compare_withoutNull(rhs);
 	return (res != VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
-inline CUDAH GNValue GNValue::op_lessThan(const GNValue rhs) const{
+__forceinline__ CUDAH GNValue GNValue::op_lessThan(const GNValue rhs) const{
 	int res = compare_withoutNull(rhs);
 	return (res == VALUE_COMPARE_LESSTHAN) ? getTrue() : getFalse();
 }
 
-inline CUDAH GNValue GNValue::op_lessThanOrEqual(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_lessThanOrEqual(const GNValue rhs) const {
 	int res = compare_withoutNull(rhs);
 	return (res == VALUE_COMPARE_LESSTHAN || res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
-inline CUDAH GNValue GNValue::op_greaterThan(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_greaterThan(const GNValue rhs) const {
 	int res = compare_withoutNull(rhs);
 	return (res == VALUE_COMPARE_GREATERTHAN) ? getTrue() : getFalse();
 }
 
-inline CUDAH GNValue GNValue::op_greaterThanOrEqual(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_greaterThanOrEqual(const GNValue rhs) const {
 	int res = compare_withoutNull(rhs);
 	return (res == VALUE_COMPARE_GREATERTHAN || res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
 }
 
-inline CUDAH GNValue GNValue::op_add(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_add(const GNValue rhs) const {
 	ValueType ltype = getValueType(), rtype = rhs.getValueType();
 
 	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
@@ -523,7 +523,7 @@ inline CUDAH GNValue GNValue::op_add(const GNValue rhs) const {
 	return getInvalid();
 }
 
-inline CUDAH GNValue GNValue::op_multiply(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_multiply(const GNValue rhs) const {
 	ValueType ltype = getValueType(), rtype = rhs.getValueType();
 
 	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
@@ -551,7 +551,7 @@ inline CUDAH GNValue GNValue::op_multiply(const GNValue rhs) const {
 	return getInvalid();
 }
 
-inline CUDAH GNValue GNValue::op_divide(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_divide(const GNValue rhs) const {
 	ValueType ltype = getValueType(), rtype = rhs.getValueType();
 
 	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
@@ -580,7 +580,7 @@ inline CUDAH GNValue GNValue::op_divide(const GNValue rhs) const {
 	return getInvalid();
 }
 
-inline CUDAH GNValue GNValue::op_subtract(const GNValue rhs) const {
+__forceinline__ CUDAH GNValue GNValue::op_subtract(const GNValue rhs) const {
 	ValueType ltype = getValueType(), rtype = rhs.getValueType();
 
 	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {

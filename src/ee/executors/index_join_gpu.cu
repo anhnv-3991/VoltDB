@@ -26,7 +26,7 @@ finally join() store match tuple to result array .
 
 extern "C" {
 
-__device__ GNValue evaluate(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue evaluate(GTreeNode *tree_expression,
 							int root,
 							int tree_size,
 							GNValue *outer_tuple,
@@ -97,7 +97,7 @@ __device__ GNValue evaluate(GTreeNode *tree_expression,
 	}
 }
 
-__device__ GNValue evaluate2(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue evaluate2(GTreeNode *tree_expression,
 							int tree_size,
 							GNValue *outer_tuple,
 							GNValue *inner_tuple,
@@ -198,7 +198,7 @@ __device__ GNValue evaluate2(GTreeNode *tree_expression,
 	return stack[0];
 }
 
-__device__ GNValue evaluate3(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 							int root,
 							int tree_size,
 							GNValue *outer_tuple,
@@ -383,7 +383,7 @@ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 	}
 }
 
-__device__ GNValue evaluate4(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue evaluate4(GTreeNode *tree_expression,
 							int tree_size,
 							GNValue *outer_tuple,
 							GNValue *inner_tuple,
@@ -676,7 +676,7 @@ __device__ GNValue evaluate4(GTreeNode *tree_expression,
 }
 
 
-__device__ GNValue evaluate2_non_coalesce(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue evaluate2_non_coalesce(GTreeNode *tree_expression,
 											int tree_size,
 											GNValue *outer_tuple,
 											GNValue *inner_tuple)
@@ -776,7 +776,7 @@ __device__ GNValue evaluate2_non_coalesce(GTreeNode *tree_expression,
 	return stack[0];
 }
 
-__device__ GNValue evaluate4_non_coalesce(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue evaluate4_non_coalesce(GTreeNode *tree_expression,
 											int tree_size,
 											GNValue *outer_tuple,
 											GNValue *inner_tuple)
@@ -992,7 +992,7 @@ __device__ GNValue evaluate4_non_coalesce(GTreeNode *tree_expression,
 	return retval;
 }
 
-__device__ int lowerBound(GTreeNode * search_exp,
+__forceinline__ __device__ int lowerBound(GTreeNode * search_exp,
 							int *search_exp_size,
 							int search_exp_num,
 							int * key_indices,
@@ -1035,13 +1035,9 @@ __device__ int lowerBound(GTreeNode * search_exp,
 	for (int i = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
 #ifndef FUNC_CALL_
 #ifdef POST_EXP_
-#ifdef COALESCE_
 		tmp = evaluate4(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, val_stack, type_stack, offset);
 #else
-		tmp = evaluate4_non_coalesce(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, offset);
-#endif
-#else
-		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL, offset);
+		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 		outer_tmp[i] = tmp.getValue();
 		outer_gtype[i] = tmp.getValueType();
@@ -1053,20 +1049,21 @@ __device__ int lowerBound(GTreeNode * search_exp,
 		outer_tmp[i] = evaluate2_non_coalesce(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, offset);
 #endif
 #else
-		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL, offset);
+		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 #endif
 	}
 
 	while (left <= right) {
 		middle = (left + right) >> 1;
+		inner_idx = middle * inner_cols;
 
 #ifndef FUNC_CALL_
 		res_i = 0;
 		res_d = 0;
 		for (int i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
 			key_idx = key_indices[i];
-			inner_idx = middle * inner_cols;
+
 			inner_tmp = inner_table[inner_idx + key_idx].getValue();
 			inner_type = inner_table[inner_idx + key_idx].getValueType();
 
@@ -1099,7 +1096,7 @@ __device__ int lowerBound(GTreeNode * search_exp,
 	return result;
 }
 
-__device__ int upperBound(GTreeNode * search_exp,
+__forceinline__ __device__ int upperBound(GTreeNode * search_exp,
 							int *search_exp_size,
 							int search_exp_num,
 							int * key_indices,
@@ -1147,7 +1144,7 @@ __device__ int upperBound(GTreeNode * search_exp,
 		tmp = evaluate4_non_coalesce(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, offset);
 #endif
 #else
-		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL, offset);
+		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 		outer_tmp[i] = tmp.getValue();
 		outer_gtype[i] = tmp.getValueType();
@@ -1159,13 +1156,14 @@ __device__ int upperBound(GTreeNode * search_exp,
 		outer_tmp[i] = evaluate2_non_coalesce(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, offset);
 #endif
 #else
-		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL, offset);
+		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 #endif
 	}
 
 	while (left <= right) {
 		middle = (left + right) >> 1;
+		inner_idx = middle * inner_cols;
 
 #ifndef FUNC_CALL_
 		res_i = 0;
@@ -1173,7 +1171,6 @@ __device__ int upperBound(GTreeNode * search_exp,
 		for (int i = 0; (res_i == 0) && (res_d == 0) && (i < search_exp_num); i++) {
 
 			key_idx = key_indices[i];
-			inner_idx = middle * inner_cols;
 			inner_tmp = inner_table[inner_idx + key_idx].getValue();
 			inner_type = inner_table[inner_idx + key_idx].getValueType();
 
@@ -1223,19 +1220,19 @@ __global__ void prejoin_filter(GNValue *outer_dev,
 								)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
-	int offset = blockDim.x * gridDim.x;
-
 
 	if (x < outer_part_size) {
 		GNValue res = GNValue::getTrue();
 
 #ifdef 	TREE_EVAL_
 #ifdef FUNC_CALL_
-		res = (prejoin_size > 1) ? evaluate(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL, offset) : res;
+		res = (prejoin_size > 1) ? evaluate(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL) : res;
 #else
-		res = (prejoin_size > 1) ? evaluate3(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL, offset) : res;
+		res = (prejoin_size > 1) ? evaluate3(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL) : res;
 #endif
 #elif	POST_EXP_
+		int offset = blockDim.x * gridDim.x;
+
 #ifndef FUNC_CALL_
 #ifdef COALESCE_
 		res = (prejoin_size > 1) ? evaluate4(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, val_stack + x, type_stack + x, offset) : res;
@@ -1435,7 +1432,6 @@ __global__ void exp_filter(GNValue *outer_dev,
 
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
-	int offset = blockDim.x * gridDim.x;
 
 	exp_psum[x + k] = 0;
 
@@ -1459,6 +1455,8 @@ __global__ void exp_filter(GNValue *outer_dev,
 #endif
 
 #elif	POST_EXP_
+			int offset = blockDim.x * gridDim.x;
+
 #ifdef 	FUNC_CALL_
 #ifdef COALESCE_
 			res = (end_size > 0) ? evaluate2(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack + x, offset) : res;
@@ -1468,14 +1466,8 @@ __global__ void exp_filter(GNValue *outer_dev,
 			res = (post_size > 0 && res.isTrue()) ? evaluate2_non_coalesce(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
 #endif
 #else
-#ifdef COALESCE_
 			res = (end_size > 0) ? evaluate4(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
 			res = (post_size > 0 && res.isTrue()) ? evaluate4(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
-#else
-			res = (end_size > 0) ? evaluate4_non_coalesce(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate4_non_coalesce(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
-
-#endif
 #endif
 #endif
 			result_dev[writeloc].lkey = (res.isTrue()) ? (x + outer_base_idx) : (-1);
@@ -1512,6 +1504,7 @@ __global__ void write_out(RESULT *out,
 		while (i < num) {
 			lkey = (readloc_in + i < (ulong)in_size) ? in[readloc_in + i].lkey : (-1);
 			rkey = (readloc_in + i < (ulong)in_size) ? in[readloc_in + i].rkey : (-1);
+
 			if (lkey != -1 && rkey != -1) {
 				out[writeloc_out].lkey = lkey;
 				out[writeloc_out].rkey = rkey;

@@ -21,7 +21,7 @@ extern "C" {
 #define MASK_BITS 0x9e3779b9
 
 
-__device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint64_t *packedKey)
+__forceinline__ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint64_t *packedKey)
 {
 	int keyOffset = 0;
 	int intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
@@ -166,7 +166,7 @@ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint6
 	}
 }
 
-__device__ uint64_t hasher(uint64_t *packedKey, int keySize)
+__forceinline__ __device__ uint64_t hasher(uint64_t *packedKey, int keySize)
 {
 	uint64_t seed = 0;
 
@@ -177,7 +177,7 @@ __device__ uint64_t hasher(uint64_t *packedKey, int keySize)
 	return seed;
 }
 
-__device__ bool equalityChecker(uint64_t *leftKey, uint64_t *rightKey, int keySize)
+__forceinline__ __device__ bool equalityChecker(uint64_t *leftKey, uint64_t *rightKey, int keySize)
 {
 	bool res = true;
 
@@ -188,15 +188,15 @@ __device__ bool equalityChecker(uint64_t *leftKey, uint64_t *rightKey, int keySi
 	return res;
 }
 
-__device__ GNValue hashEvaluate(GTreeNode *tree_expression,
-									int tree_size,
-									GNValue *outer_tuple,
-									GNValue *inner_tuple,
-									GNValue *stack,
-									int offset)
+__forceinline__ __device__ GNValue hashEvaluate_itr_func(GTreeNode *tree_expression,
+															int tree_size,
+															GNValue *outer_tuple,
+															GNValue *inner_tuple,
+															GNValue *stack,
+															int offset)
 {
 	int top = 0;
-	memset(&stack[0], 0, sizeof(GNValue));
+	stack[0] = GNValue::getNullValue();
 
 	for (int i = 0; i < tree_size; i++) {
 
@@ -291,13 +291,13 @@ __device__ GNValue hashEvaluate(GTreeNode *tree_expression,
 }
 
 
-__device__ GNValue hashEvaluate2(GTreeNode *tree_expression,
-									int tree_size,
-									GNValue *outer_tuple,
-									GNValue *inner_tuple,
-									int64_t *stack,
-									ValueType *gtype,
-									int offset)
+__forceinline__ __device__ GNValue hashEvaluate_itr_nonfunc(GTreeNode *tree_expression,
+																int tree_size,
+																GNValue *outer_tuple,
+																GNValue *inner_tuple,
+																int64_t *stack,
+																ValueType *gtype,
+																int offset)
 {
 	ValueType ltype, rtype;
 	int l_idx, r_idx;
@@ -403,7 +403,7 @@ __device__ GNValue hashEvaluate2(GTreeNode *tree_expression,
 					right_i = stack[r_idx];
 					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
 					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i);
+					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i));
 					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
 				} else {
 					stack[l_idx] =  0;
@@ -423,7 +423,7 @@ __device__ GNValue hashEvaluate2(GTreeNode *tree_expression,
 					right_i = stack[r_idx];
 					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
 					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i);
+					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i));
 					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
 				} else {
 					stack[l_idx] =  0;
@@ -433,6 +433,7 @@ __device__ GNValue hashEvaluate2(GTreeNode *tree_expression,
 				break;
 			}
 			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+
 				l_idx = top - 2 * offset;
 				r_idx = top - offset;
 				ltype = gtype[l_idx];
@@ -442,7 +443,7 @@ __device__ GNValue hashEvaluate2(GTreeNode *tree_expression,
 					right_i = stack[r_idx];
 					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
 					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i);
+					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i));
 					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
 				} else {
 					stack[l_idx] = 0;
@@ -583,11 +584,11 @@ __device__ GNValue hashEvaluate2(GTreeNode *tree_expression,
 	return retval;
 }
 
-__device__ GNValue hashEvaluate3(GTreeNode *tree_expression,
-									int root,
-									int tree_size,
-									GNValue *outer_tuple,
-									GNValue *inner_tuple)
+__forceinline__ __device__ GNValue hashEvaluate_recv_func(GTreeNode *tree_expression,
+															int root,
+															int tree_size,
+															GNValue *outer_tuple,
+															GNValue *inner_tuple)
 {
 	if (root == 0)
 		return GNValue::getTrue();
@@ -608,9 +609,8 @@ __device__ GNValue hashEvaluate3(GTreeNode *tree_expression,
 	}
 
 
-	GNValue left = hashEvaluate3(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
-	GNValue right = hashEvaluate3(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
-
+	GNValue left = hashEvaluate_recv_func(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+	GNValue right = hashEvaluate_recv_func(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
 
 	switch (tmp_node.type) {
 	case EXPRESSION_TYPE_CONJUNCTION_AND: {
@@ -654,6 +654,215 @@ __device__ GNValue hashEvaluate3(GTreeNode *tree_expression,
 	}
 }
 
+__forceinline__ __device__ GNValue hashEvaluate_recv_nonfunc(GTreeNode *tree_expression,
+																int root,
+																int tree_size,
+																GNValue *outer_tuple,
+																GNValue *inner_tuple)
+{
+	if (root == 0)
+		return GNValue::getTrue();
+
+	if (root >= tree_size)
+		return GNValue::getNullValue();
+
+	GTreeNode tmp_node = tree_expression[root];
+
+	if (tmp_node.type == EXPRESSION_TYPE_VALUE_TUPLE) {
+		if (tmp_node.tuple_idx == 0) {
+			return outer_tuple[tmp_node.column_idx];
+		} else if (tmp_node.tuple_idx == 1) {
+			return inner_tuple[tmp_node.column_idx];
+		}
+	} else if (tmp_node.type == EXPRESSION_TYPE_VALUE_CONSTANT || tmp_node.type == EXPRESSION_TYPE_VALUE_PARAMETER) {
+		return tmp_node.value;
+	}
+
+
+	GNValue left = hashEvaluate_recv_nonfunc(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+	GNValue right = hashEvaluate_recv_nonfunc(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
+	int64_t left_i = left.getValue(), right_i = right.getValue(), res_i;
+	ValueType left_t = left.getValueType(), right_t = right.getValueType(), res_t;
+
+	switch (tmp_node.type) {
+		case EXPRESSION_TYPE_CONJUNCTION_AND: {
+			if (left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN) {
+				res_i = (int64_t)((bool)(left_i) && (bool)(right_i));
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_CONJUNCTION_OR: {
+			if (left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN) {
+				res_i = (int64_t)((bool)(left_i) || (bool)(right_i));
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_COMPARE_EQUAL: {
+			double left_d, right_d;
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i =  (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
+
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
+			double left_d, right_d;
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
+
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
+			double left_d, right_d;
+
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i));
+
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
+			double left_d, right_d;
+
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i));
+
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+			double left_d, right_d;
+
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i));
+
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
+			double left_d, right_d;
+
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
+
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+
+		case EXPRESSION_TYPE_OPERATOR_PLUS: {
+			double left_d, right_d, res_d;
+
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = left_d + right_d;
+				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = VALUE_TYPE_DOUBLE;
+				} else {
+					res_i = left_i + right_i;
+					res_t = (left_t > right_t) ? left_t : right_t;
+				}
+
+				return GNValue(res_t, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_OPERATOR_MINUS: {
+			double left_d, right_d, res_d;
+
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = left_d - right_d;
+				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = VALUE_TYPE_DOUBLE;
+				} else {
+					res_i = left_i - right_i;
+					res_t = (left_t > right_t) ? left_t : right_t;
+				}
+
+				return GNValue(res_t, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
+			double left_d, right_d, res_d;
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = left_d * right_d;
+				if (left_d == VALUE_TYPE_DOUBLE || right_d == VALUE_TYPE_DOUBLE) {
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = VALUE_TYPE_DOUBLE;
+				} else {
+					res_i = left_i * right_i;
+					res_t = (left_t > right_t) ? left_t : right_t;
+				}
+
+				return GNValue(res_t, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
+			double left_d, right_d, res_d;
+
+			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_d = (right_d != 0) ? left_d / right_d : 0;
+				if (left_d == VALUE_TYPE_DOUBLE || right_d == VALUE_TYPE_DOUBLE) {
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
+				} else {
+					res_i = (right_i != 0) ? left_i / right_i : 0;
+					res_t = (left_t > right_t) ? left_t : right_t;
+					res_t = (right_i != 0) ? left_t : VALUE_TYPE_INVALID;
+				}
+
+				return GNValue(res_t, res_i);
+			}
+
+			return GNValue(VALUE_TYPE_INVALID, 0);
+		}
+		default: {
+			return GNValue::getNullValue();
+		}
+	}
+}
+
 __global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *indices, int index_num, uint64_t *packedKey, int keySize)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -668,11 +877,11 @@ __global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *i
 __global__ void packSearchKey(GNValue *outer_table, int outer_rows, int outer_cols,
 								uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
 								int *searchKeySize, int searchExpNum,
-								int keySize,
-#ifdef FUNC_CALL_
-								GNValue *stack
-#else
-								int64_t *val_stack,
+								int keySize
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+								,GNValue *stack
+#elif defined(POST_EXP_)
+								,int64_t *val_stack,
 								ValueType *type_stack
 #endif
 								)
@@ -685,10 +894,18 @@ __global__ void packSearchKey(GNValue *outer_table, int outer_rows, int outer_co
 	for (int i = index; i < outer_rows; i += stride) {
 		search_ptr = 0;
 		for (int j = 0; j < searchExpNum; search_ptr += searchKeySize[j], j++) {
+#ifdef POST_EXP_
 #ifdef FUNC_CALL_
-			tmp_outer[j] = hashEvaluate(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, stack + index, stride);
+			tmp_outer[j] = hashEvaluate_itr_func(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, stack + index, stride);
 #else
-			tmp_outer[j] = hashEvaluate2(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, val_stack + index, type_stack + index, stride);
+			tmp_outer[j] = hashEvaluate_itr_nonfunc(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, val_stack + index, type_stack + index, stride);
+#endif
+#else
+#ifdef FUNC_CALL_
+			tmp_outer[j] = hashEvaluate_recv_func(searchKeyExp + search_ptr, 1, searchKeySize[j], outer_table + i * outer_cols, NULL);
+#else
+			tmp_outer[j] = hashEvaluate_recv_nonfunc(searchKeyExp + search_ptr, 1, searchKeySize[j], outer_table + i * outer_cols, NULL);
+#endif
 #endif
 		}
 
@@ -702,6 +919,10 @@ __global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, ulong
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x;
 
+	for (int i = index; i < maxNumberOfBuckets * stride; i += stride) {
+		if (hashCount[i] != 0)
+			printf("Error at i = %d\n");
+	}
 
 	for (int i = index; i < tupleNum; i += stride) {
 		uint64_t hash = hasher(packedKey + i * keySize, keySize);
@@ -744,16 +965,18 @@ __global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable
 
 __global__ void hashIndexCount(GHashNode outerHash, GHashNode innerHash, int lowerBound, int upperBound, ulong *indexCount, int size)
 {
-	int outerIdx, innerIdx;
+	int outerIdx;
+	//int innerIdx;
 	ulong count_res = 0;
 	int threadGlobalIndex = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * gridDim.x * blockDim.x;
 	int bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x;
-	int keySize = outerHash.keySize;
+//	int keySize = outerHash.keySize;
 
 	if (threadGlobalIndex < size && bucketIdx < upperBound) {
 		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx]; outerIdx < outerHash.bucketLocation[bucketIdx + 1]; outerIdx += blockDim.x)
-			for (innerIdx = innerHash.bucketLocation[bucketIdx]; innerIdx < innerHash.bucketLocation[bucketIdx + 1]; innerIdx++)
-				count_res += equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize) ? 1 : 0;
+			count_res += innerHash.bucketLocation[bucketIdx + 1] - innerHash.bucketLocation[bucketIdx];
+//			for (innerIdx = innerHash.bucketLocation[bucketIdx]; innerIdx < innerHash.bucketLocation[bucketIdx + 1]; innerIdx++)
+//				count_res += equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize) ? 1 : 0;
 		indexCount[threadGlobalIndex] = count_res;
 	}
 }
@@ -782,7 +1005,7 @@ __global__ void hashIndexCountShared(GHashNode outerHash, GHashNode innerHash, i
 				for (int tmpInnerIdx = 0; tmpInnerIdx < realSize/keySize; tmpInnerIdx++)
 					count_res += equalityChecker(outerHash.hashedKey + outerIdx * keySize, tmpInnerKey + tmpInnerIdx * keySize, keySize) ? 1 : 0;
 			}
-			//__syncthreads();
+			__syncthreads();
 		}
 		indexCount[threadGlobalIndex] = count_res;
 	}
@@ -798,9 +1021,9 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 							int upperBound,
 							ulong *indexCount,
 							int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 							GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 							int64_t *val_stack,
 							ValueType *type_stack,
 #endif
@@ -813,7 +1036,7 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 	int outerIdx, innerIdx;
 	int outerTupleIdx, innerTupleIdx;
 	int endOuterIdx, endInnerIdx;
-	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	GNValue end_check;
 
 	if (index < size && bucketIdx < upperBound) {
 		write_location = indexCount[index];
@@ -823,30 +1046,48 @@ __global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
 				innerTupleIdx = innerHash.hashedIdx[innerIdx];
 
 				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
-
+#ifdef POST_EXP_
 #ifdef FUNC_CALL_
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
-																					outer_table + outerTupleIdx * outer_cols,
-																					inner_table + innerTupleIdx * inner_cols,
-																					stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
-																					outer_table + outerTupleIdx * outer_cols,
-																					inner_table + innerTupleIdx * inner_cols,
-																					stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				end_check = (end_size > 0) ? (hashEvaluate_itr_func(end_expression, end_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	inner_table + innerTupleIdx * inner_cols,
+																	stack + index, gridDim.x * gridDim.y * blockDim.x)) : GNValue::getTrue();
+				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_func(post_expression, post_size,
+																				outer_table + outerTupleIdx * outer_cols,
+																				inner_table + innerTupleIdx * inner_cols,
+																				stack + index, gridDim.x * gridDim.y * blockDim.x)) : end_check;
 #else
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				end_check = (end_size > 0) ? (hashEvaluate_itr_nonfunc(end_expression, end_size,
+																		outer_table + outerTupleIdx * outer_cols,
+																		inner_table + innerTupleIdx * inner_cols,
+																		val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x)) : GNValue::getTrue();
+				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_nonfunc(post_expression, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								inner_table + innerTupleIdx * inner_cols,
+																								val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x)) : end_check;
+#endif
+#else
+#ifdef FUNC_CALL_
+				end_check = (end_size > 0) ? (hashEvaluate_recv_func(end_expression, 1, end_size,
+																		outer_table + outerTupleIdx * outer_cols,
+																		inner_table + innerTupleIdx * inner_cols)) : GNValue::getTrue();
+				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_func(post_expression, 1, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								inner_table + innerTupleIdx * inner_cols)) : end_check;
+#else
+				end_check = (end_size > 0) ? (hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
+																		outer_table + outerTupleIdx * outer_cols,
+																		inner_table + innerTupleIdx * inner_cols)) : GNValue::getTrue();
+				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								inner_table + innerTupleIdx * inner_cols)) : end_check;
 #endif
 
-				result[write_location].lkey = (exp_check.isTrue()) ? outerTupleIdx : result[write_location].lkey;
-				result[write_location].rkey = (exp_check.isTrue()) ? innerTupleIdx : result[write_location].rkey;
-				write_location += (exp_check.isTrue()) ? 1 : 0;
+#endif
+
+				result[write_location].lkey = (end_check.isTrue()) ? (outerTupleIdx) : (-1);
+				result[write_location].rkey = (end_check.isTrue()) ? (innerTupleIdx) : (-1);
+				write_location++;
 			}
 		}
 	}
@@ -859,9 +1100,9 @@ __global__ void hashJoinShared(GNValue *outer_table, GNValue *inner_table,
 								GHashNode outerHash, GHashNode innerHash,
 								int lowerBound, int upperBound,
 								ulong *indexCount, int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 								GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 								int64_t *val_stack,
 								ValueType *type_stack,
 #endif
@@ -874,7 +1115,7 @@ __global__ void hashJoinShared(GNValue *outer_table, GNValue *inner_table,
 	int outerIdx, innerIdx;
 	int outerTupleIdx, innerTupleIdx;
 	int endOuterIdx, endInnerIdx;
-	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	bool end_check;
 	__shared__ GNValue tmpInner[SHARED_MEM];
 	int realSize = 0;
 	int sharedSize = SHARED_MEM;
@@ -892,29 +1133,47 @@ __global__ void hashJoinShared(GNValue *outer_table, GNValue *inner_table,
 				outerTupleIdx = outerHash.hashedIdx[outerIdx];
 				for (int tmpInnerIdx = 0; tmpInnerIdx < realSize/inner_cols; tmpInnerIdx++) {
 					innerTupleIdx = innerHash.hashedIdx[tmpInnerIdx + innerIdx];
+#ifdef POST_EXP_
 #ifdef FUNC_CALL_
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x) : exp_check;
+					end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
+																				outer_table + outerTupleIdx * outer_cols,
+																				tmpInner + tmpInnerIdx * inner_cols,
+																				stack + index, gridDim.x * blockDim.x).getValue()) : true;
+					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								tmpInner + tmpInnerIdx * inner_cols,
+																								stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
 #else
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
+					end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
+																					outer_table + outerTupleIdx * outer_cols,
+																					tmpInner + tmpInnerIdx * inner_cols,
+																					val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : true;
+					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								tmpInner + tmpInnerIdx * inner_cols,
+																								val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
+#endif
+#else
+#ifdef FUNC_CALL_
+					end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
+																				outer_table + outerTupleIdx * outer_cols,
+																				tmpInner + tmpInnerIdx * inner_cols).getValue()) : true;
+					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								tmpInner + tmpInnerIdx * inner_cols).getValue()) : end_check;
+#else
+					end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
+																									outer_table + outerTupleIdx * outer_cols,
+																									tmpInner + tmpInnerIdx * inner_cols).getValue()) : true;
+					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								tmpInner + tmpInnerIdx * inner_cols).getValue()) : end_check;
+#endif
 #endif
 
-				result[write_location].lkey = (exp_check.isTrue()) ? (outerTupleIdx) : result[write_location].lkey;
-				result[write_location].rkey = (exp_check.isTrue()) ? (innerTupleIdx) : result[write_location].rkey;
-				write_location += (exp_check.isTrue()) ? 1 : 0;
+					result[write_location].lkey = (end_check) ? (outerTupleIdx) : (-1);
+					result[write_location].rkey = (end_check) ? (innerTupleIdx) : (-1);
+					write_location++;
 				}
 			}
 			__syncthreads();
@@ -943,12 +1202,12 @@ __global__ void hashPhysicalJoin(GNValue *outer_table, GNValue *inner_table,
 									int upperBound,
 									ulong *indexCount,
 									int size,
-							#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 									GNValue *stack,
-							#else
+#elif defined(POST_EXP_)
 									int64_t *val_stack,
 									ValueType *type_stack,
-							#endif
+#endif
 									RESULT *result)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -957,7 +1216,7 @@ __global__ void hashPhysicalJoin(GNValue *outer_table, GNValue *inner_table,
 	ulong write_location;
 	int outerIdx, innerIdx;
 	int endOuterIdx, endInnerIdx;
-	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	bool end_check;
 
 	if (index < size && bucketIdx < upperBound) {
 		write_location = indexCount[index];
@@ -966,29 +1225,29 @@ __global__ void hashPhysicalJoin(GNValue *outer_table, GNValue *inner_table,
 
 				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
 				//GNValue exp_check(VALUE_TYPE_BOOLEAN, key_check);
-#ifdef FUNC_CALL_
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
 																	outer_table + outerIdx * outer_cols,
 																	inner_table + innerIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
+																	stack + index, gridDim.x * blockDim.x).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
+																				outer_table + outerIdx * outer_cols,
+																				inner_table + innerIdx * inner_cols,
+																				stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
+#elif defined(POST_EXP_)
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
 																	outer_table + outerIdx * outer_cols,
 																	inner_table + innerIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x) : exp_check;
-#else
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
+																	val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
+																				outer_table + outerIdx * outer_cols,
+																				inner_table + innerIdx * inner_cols,
+																				val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
 #endif
 
-				result[write_location].lkey = (exp_check.isTrue()) ? outerHash.hashedIdx[outerIdx] : result[write_location].lkey;
-				result[write_location].rkey = (exp_check.isTrue()) ? innerHash.hashedIdx[innerIdx] : result[write_location].rkey;
-				write_location += (exp_check.isTrue()) ? 1 : 0;
+				result[write_location].lkey = (end_check) ? outerHash.hashedIdx[outerIdx] : (-1);
+				result[write_location].rkey = (end_check) ? innerHash.hashedIdx[innerIdx] : (-1);
+				write_location++;
 			}
 		}
 	}
@@ -1001,9 +1260,9 @@ __global__ void hashJoin2(GNValue *outer_table, GNValue *inner_table,
 							GHashNode outerHash, GHashNode innerHash,
 							int baseOuterIdx, int baseInnerIdx,
 							ulong *indexCount, int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 							GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 							int64_t *val_stack,
 							ValueType *type_stack,
 #endif
@@ -1016,7 +1275,7 @@ __global__ void hashJoin2(GNValue *outer_table, GNValue *inner_table,
 	int outerIdx, innerIdx;
 	int outerTupleIdx, innerTupleIdx;
 	int endOuterIdx, endInnerIdx;
-	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	bool end_check;
 
 	if (index < size && bucketIdx < outerHash.bucketNum) {
 		write_location = indexCount[index];
@@ -1026,30 +1285,48 @@ __global__ void hashJoin2(GNValue *outer_table, GNValue *inner_table,
 				innerTupleIdx = innerHash.hashedIdx[innerIdx];
 
 				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
-
+#ifdef POST_EXP_
 #ifdef FUNC_CALL_
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x * gridDim.y) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x * gridDim.y) : exp_check;
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
+																			outer_table + outerTupleIdx * outer_cols,
+																			inner_table + innerTupleIdx * inner_cols,
+																			stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
+																							outer_table + outerTupleIdx * outer_cols,
+																							inner_table + innerTupleIdx * inner_cols,
+																							stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : end_check;
 #else
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y) : exp_check;
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
+																				outer_table + outerTupleIdx * outer_cols,
+																				inner_table + innerTupleIdx * inner_cols,
+																				val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
+																							outer_table + outerTupleIdx * outer_cols,
+																							inner_table + innerTupleIdx * inner_cols,
+																							val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : end_check;
 #endif
 
-				result[write_location].lkey = (exp_check.isTrue()) ? (outerTupleIdx + baseOuterIdx) : result[write_location].lkey;
-				result[write_location].rkey = (exp_check.isTrue()) ? (innerTupleIdx + baseInnerIdx) : result[write_location].rkey;
-				write_location += (exp_check.isTrue()) ? 1 : 0;
+#else
+#ifdef FUNC_CALL_
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
+																			outer_table + outerIdx * outer_cols,
+																			inner_table + innerIdx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
+																							outer_table + outerIdx * outer_cols,
+																							inner_table + innerIdx * inner_cols).getValue()) : end_check;
+#else
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
+																							outer_table + outerIdx * outer_cols,
+																							inner_table + innerIdx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
+																							outer_table + outerIdx * outer_cols,
+																							inner_table + innerIdx * inner_cols).getValue()) : end_check;
+#endif
+#endif
+
+				result[write_location].lkey = (end_check) ? (outerTupleIdx + baseOuterIdx) : (-1);
+				result[write_location].rkey = (end_check) ? (innerTupleIdx + baseInnerIdx) : (-1);
+				write_location++;
 			}
 		}
 	}
@@ -1065,9 +1342,9 @@ __global__ void hashJoin3(GNValue *outer_table, GNValue *inner_table,
 							int baseOuterIdx, int baseInnerIdx,
 							ulong *indexCount,
 							int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 							GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 							int64_t *val_stack,
 							ValueType *type_stack,
 #endif
@@ -1080,7 +1357,7 @@ __global__ void hashJoin3(GNValue *outer_table, GNValue *inner_table,
 	int outerIdx, innerIdx;
 	int outerTupleIdx, innerTupleIdx;
 	int endOuterIdx, endInnerIdx;
-	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	bool end_check;
 
 	if (index < size && bucketIdx < upperBound) {
 		write_location = indexCount[index];
@@ -1090,30 +1367,47 @@ __global__ void hashJoin3(GNValue *outer_table, GNValue *inner_table,
 				innerTupleIdx = innerHash.hashedIdx[innerIdx];
 
 				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
-
+#ifdef POST_EXP_
 #ifdef FUNC_CALL_
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
-																					outer_table + outerTupleIdx * outer_cols,
-																					inner_table + innerTupleIdx * inner_cols,
-																					stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
-																					outer_table + outerTupleIdx * outer_cols,
-																					inner_table + innerTupleIdx * inner_cols,
-																					stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
+																	outer_table + outerTupleIdx * outer_cols,
+																	inner_table + innerTupleIdx * inner_cols,
+																	stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
+																				outer_table + outerTupleIdx * outer_cols,
+																				inner_table + innerTupleIdx * inner_cols,
+																				stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : end_check;
 #else
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x) : exp_check;
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
+																				outer_table + outerTupleIdx * outer_cols,
+																				inner_table + innerTupleIdx * inner_cols,
+																				val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
+																							outer_table + outerTupleIdx * outer_cols,
+																							inner_table + innerTupleIdx * inner_cols,
+																							val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : end_check;
+#endif
+#else
+#ifdef FUNC_CALL_
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
+																			outer_table + outerTupleIdx * outer_cols,
+																			inner_table + innerTupleIdx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
+																							outer_table + outerTupleIdx * outer_cols,
+																							inner_table + innerTupleIdx * inner_cols).getValue()) : end_check;
+#else
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
+																				outer_table + outerTupleIdx * outer_cols,
+																				inner_table + innerTupleIdx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								inner_table + innerTupleIdx * inner_cols).getValue()) : end_check;
+#endif
 #endif
 
-				result[write_location].lkey = (exp_check.isTrue()) ? (outerTupleIdx + baseOuterIdx) : result[write_location].lkey;
-				result[write_location].rkey = (exp_check.isTrue()) ? (innerTupleIdx + baseInnerIdx) : result[write_location].rkey;
-				write_location += (exp_check.isTrue()) ? 1 : 0;
+				result[write_location].lkey = (end_check) ? (outerTupleIdx + baseOuterIdx) : (-1);
+				result[write_location].rkey = (end_check) ? (innerTupleIdx + baseInnerIdx) : (-1);
+				write_location++;
 			}
 		}
 	}
@@ -1128,9 +1422,9 @@ __global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
 								GHashNode outerHash, GHashNode innerHash,
 								int baseOuterIdx, int baseInnerIdx,
 								ulong *indexCount, int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 								GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 								int64_t *val_stack,
 								ValueType *type_stack,
 #endif
@@ -1142,7 +1436,7 @@ __global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
 	int outerIdx, innerIdx;
 	int outerTupleIdx, innerTupleIdx;
 	int endOuterIdx, endInnerIdx;
-	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	GNValue end_check;
 	__shared__ GNValue tmpInner[SHARED_MEM];
 	int realSize = 0;
 	int sharedSize = SHARED_MEM;
@@ -1163,29 +1457,47 @@ __global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
 				outerTupleIdx = outerHash.hashedIdx[outerIdx];
 				for (int tmpInnerIdx = 0; tmpInnerIdx < realSize/inner_cols; tmpInnerIdx++) {
 					innerTupleIdx = innerHash.hashedIdx[innerIdx + tmpInnerIdx];
+#ifdef POST_EXP_
 #ifdef FUNC_CALL_
-					exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x) : exp_check;
-					exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x) : exp_check;
+					end_check = (end_size > 0) ? (hashEvaluate_itr_func(end_expression, end_size,
+																		outer_table + outerTupleIdx * outer_cols,
+																		tmpInner + tmpInnerIdx * inner_cols,
+																		stack + index, gridDim.x * blockDim.x)) : GNValue::getTrue();
+					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_func(post_expression, post_size,
+																								outer_table + outerTupleIdx * outer_cols,
+																								tmpInner + tmpInnerIdx * inner_cols,
+																								stack + index, gridDim.x * blockDim.x)) : end_check;
 #else
-					exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
-					exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	tmpInner + tmpInnerIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : exp_check;
+					end_check = (end_size > 0) ? hashEvaluate_itr_nonfunc(end_expression, end_size,
+																			outer_table + outerTupleIdx * outer_cols,
+																			tmpInner + tmpInnerIdx * inner_cols,
+																			val_stack + index, type_stack + index, gridDim.x * blockDim.x) : GNValue::getTrue();
+					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_nonfunc(post_expression, post_size,
+																									outer_table + outerTupleIdx * outer_cols,
+																									tmpInner + tmpInnerIdx * inner_cols,
+																									val_stack + index, type_stack + index, gridDim.x * blockDim.x)) : end_check;
+#endif
+#else
+#ifdef FUNC_CALL_
+					end_check = (end_size > 0) ? (hashEvaluate_recv_func(end_expression, 1, end_size,
+																			outer_table + outerTupleIdx * outer_cols,
+																			tmpInner + tmpInnerIdx * inner_cols)) : GNValue::getTrue();
+					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_func(post_expression, 1, post_size,
+																									outer_table + outerTupleIdx * outer_cols,
+																									tmpInner + tmpInnerIdx * inner_cols)) : end_check;
+#else
+					end_check = (end_size > 0) ? (hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
+																			outer_table + outerTupleIdx * outer_cols,
+																			tmpInner + tmpInnerIdx * inner_cols)) : GNValue::getTrue();
+					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
+																									outer_table + outerTupleIdx * outer_cols,
+																									tmpInner + tmpInnerIdx * inner_cols)) : end_check;
+#endif
 #endif
 
-					result[write_location].lkey = (exp_check.isTrue()) ? (outerTupleIdx + baseOuterIdx) : result[write_location].lkey;
-					result[write_location].rkey = (exp_check.isTrue()) ? (innerTupleIdx + baseInnerIdx) : result[write_location].rkey;
-					write_location += (exp_check.isTrue()) ? 1 : 0;
+					result[write_location].lkey = (end_check.isTrue()) ? (outerTupleIdx + baseOuterIdx) : (-1);
+					result[write_location].rkey = (end_check.isTrue()) ? (innerTupleIdx + baseInnerIdx) : (-1);
+					write_location++;
 				}
 			}
 			__syncthreads();
@@ -1197,19 +1509,21 @@ __global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
 
 __global__ void hashIndexCountLegacy(uint64_t *outer_key, int outer_rows, GHashNode innerHash, ulong *indexCount, int size)
 {
-	int outerIdx, innerIdx;
+	int outerIdx;
+	//int innerIdx;
 	ulong count_res = 0;
 	int keySize = innerHash.keySize;
 	int maxNumberOfBuckets = innerHash.bucketNum;
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
-	for (outerIdx = threadIdx.x + blockIdx.x * blockDim.x; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
-		uint64_t hashVal = hasher(outer_key + outerIdx * keySize, keySize);
-		uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
+	if (index < outer_rows) {
+		for (outerIdx = threadIdx.x + blockIdx.x * blockDim.x; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
+			uint64_t hashVal = hasher(outer_key + outerIdx * keySize, keySize);
+			uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
 
-		for (innerIdx = innerHash.bucketLocation[bucketOffset]; innerIdx < innerHash.bucketLocation[bucketOffset + 1]; innerIdx++) {
-			count_res += (equalityChecker(outer_key + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize)) ? 1 : 0;
+			count_res += innerHash.bucketLocation[bucketOffset + 1] - innerHash.bucketLocation[bucketOffset];
 		}
-		indexCount[outerIdx] = count_res;
+		indexCount[index] = count_res;
 	}
 }
 
@@ -1222,49 +1536,74 @@ __global__ void hashJoinLegacy(GNValue *outer_table, GNValue *inner_table,
 								GHashNode innerHash,
 								int baseOuterIdx, int baseInnerIdx,
 								ulong *indexCount, int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 								GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 								int64_t *val_stack,
 								ValueType *type_stack,
 #endif
 								RESULT *result)
 {
-	GNValue exp_check(VALUE_TYPE_BOOLEAN, true);
+	bool end_check;
+
 	int keySize = innerHash.keySize;
 	int maxNumberOfBuckets = innerHash.bucketNum;
+	int stackIdx = threadIdx.x + blockDim.x * blockIdx.x;
+	int index = threadIdx.x + blockDim.x * blockIdx.x;
+	int innerIdx;
 
+	if (index < outer_rows) {
+		ulong write_location = indexCount[index];
 
-	for (int outerIdx = threadIdx.x + blockDim.x * blockIdx.x; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
-		ulong write_location = indexCount[outerIdx];
-		uint64_t hashVal = hasher(outerKey + outerIdx * keySize, keySize);
-		uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
+		for (int outerIdx = index; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
+			uint64_t hashVal = hasher(outerKey + outerIdx * keySize, keySize);
+			uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
 
-		for (int bucketIdx = innerHash.bucketLocation[bucketOffset], endBucketIdx = innerHash.bucketLocation[bucketOffset + 1]; bucketIdx < endBucketIdx; bucketIdx++) {
-			int innerIdx = innerHash.hashedIdx[bucketIdx];
+			for (int bucketIdx = innerHash.bucketLocation[bucketOffset], endBucketIdx = innerHash.bucketLocation[bucketOffset + 1]; bucketIdx < endBucketIdx; bucketIdx++) {
+				innerIdx = innerHash.hashedIdx[bucketIdx];
+#ifdef POST_EXP_
 #ifdef FUNC_CALL_
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(end_expression, end_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerIdx * inner_cols,
-																	stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate(post_expression, post_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
+																			outer_table + outerIdx * outer_cols,
+																			inner_table + innerIdx * inner_cols,
+																			stack + stackIdx, gridDim.x * blockDim.x).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
+																							outer_table + outerIdx * outer_cols,
+																							inner_table + innerIdx * inner_cols,
+																							stack + stackIdx, gridDim.x * blockDim.x).getValue()) : end_check;
 #else
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(end_expression, end_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerIdx * inner_cols,
-																	val_stack + outerIdx, type_stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
-				exp_check = (exp_check.isTrue()) ? hashEvaluate2(post_expression, post_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerIdx * inner_cols,
-																	val_stack + outerIdx, type_stack + outerIdx, gridDim.x * blockDim.x) : exp_check;
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
+																				outer_table + outerIdx * outer_cols,
+																				inner_table + innerIdx * inner_cols,
+																				val_stack + stackIdx, type_stack + stackIdx, gridDim.x * blockDim.x).getValue()) : true;
+
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
+																							outer_table + outerIdx * outer_cols,
+																							inner_table + innerIdx * inner_cols,
+																							val_stack + stackIdx, type_stack + stackIdx, gridDim.x * blockDim.x).getValue()) : end_check;
+#endif
+#else
+#ifdef FUNC_CALL_
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
+																			outer_table + outerIdx * outer_cols,
+																			inner_table + innerIdx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
+																							outer_table + outerIdx * outer_cols,
+																							inner_table + innerIdx * inner_cols).getValue()) : end_check;
+#else
+				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
+																				outer_table + outerIdx * outer_cols,
+																				inner_table + innerIdx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
+																								outer_table + outerIdx * outer_cols,
+																								inner_table + innerIdx * inner_cols).getValue()) : end_check;
+#endif
 #endif
 
-				result[write_location].lkey = (exp_check.isTrue()) ? (outerIdx + baseOuterIdx) : result[write_location].lkey;
-				result[write_location].rkey = (exp_check.isTrue()) ? (innerIdx + baseInnerIdx) : result[write_location].rkey;
-				write_location += (exp_check.isTrue()) ? 1 : 0;
+				result[write_location].lkey = (end_check) ? (outerIdx + baseOuterIdx) : (-1);
+				result[write_location].rkey = (end_check) ? (innerIdx + baseInnerIdx) : (-1);
+				write_location++;
+			}
 		}
 	}
 }
@@ -1357,11 +1696,11 @@ void packSearchKeyWrapper(int block_x, int block_y,
 							GNValue *outer_table, int outer_rows, int outer_cols,
 							uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
 							int *searchKeySize, int searchExpNum,
-							int keySize,
-#ifdef FUNC_CALL_
-							GNValue *stack
-#else
-							int64_t *val_stack,
+							int keySize
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+							,GNValue *stack
+#elif defined(POST_EXP_)
+							,int64_t *val_stack,
 							ValueType *type_stack
 #endif
 							)
@@ -1369,11 +1708,11 @@ void packSearchKeyWrapper(int block_x, int block_y,
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
-	packSearchKey<<<gridSize, blockSize>>>(outer_table, outer_rows, outer_cols, searchPackedKey, searchKeyExp, searchKeySize, searchExpNum, keySize,
-#ifdef FUNC_CALL_
-											stack
-#else
-											val_stack,
+	packSearchKey<<<gridSize, blockSize>>>(outer_table, outer_rows, outer_cols, searchPackedKey, searchKeyExp, searchKeySize, searchExpNum, keySize
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+											,stack
+#elif defined(POST_EXP_)
+											,val_stack,
 											type_stack
 #endif
 											);
@@ -1400,11 +1739,11 @@ void indexCountWrapper(int block_x, int block_y,
 	dim3 gridSize(grid_x, grid_y, 1);
 	dim3 blockSize(block_x, block_y, 1);
 
-#ifndef SHARED_
+//#ifndef SHARED_
 	hashIndexCount<<<gridSize, blockSize>>>(outerHash, innerHash, lowerBound, upperBound, indexCount, size);
-#else
-	hashIndexCountShared<<<gridSize, blockSize>>>(outerHash, innerHash, lowerBound, upperBound, indexCount, size);
-#endif
+//#else
+//	hashIndexCountShared<<<gridSize, blockSize>>>(outerHash, innerHash, lowerBound, upperBound, indexCount, size);
+//#endif
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess) {
 		printf("Error: Async kernel (hashIndexCount) error: %s\n", cudaGetErrorString(err));
@@ -1430,9 +1769,9 @@ void hashJoinWrapper(int block_x, int block_y,
 						int upperBound,
 						ulong *indexCount,
 						int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 						GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 						int64_t *val_stack,
 						ValueType *type_stack,
 #endif
@@ -1450,9 +1789,9 @@ void hashJoinWrapper(int block_x, int block_y,
 										outerHash, innerHash,
 										lowerBound, upperBound,
 										indexCount, size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 										stack,
-#else
+#elif defined(POST_EXP_)
 										val_stack,
 										type_stack,
 #endif
@@ -1465,9 +1804,9 @@ void hashJoinWrapper(int block_x, int block_y,
 													outerHash, innerHash,
 													lowerBound, upperBound,
 													indexCount, size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 													stack,
-#else
+#elif defined(POST_EXP_)
 													val_stack,
 													type_stack,
 #endif
@@ -1500,9 +1839,9 @@ void hashPhysicalJoinWrapper(int block_x, int block_y,
 								int upperBound,
 								ulong *indexCount,
 								int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 								GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 								int64_t *val_stack,
 								ValueType *type_stack,
 #endif
@@ -1519,9 +1858,9 @@ void hashPhysicalJoinWrapper(int block_x, int block_y,
 												outerHash, innerHash,
 												lowerBound, upperBound,
 												indexCount, size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 												stack,
-#else
+#elif defined(POST_EXP_)
 												val_stack,
 												type_stack,
 #endif
@@ -1543,9 +1882,9 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 						GHashNode outerHash, GHashNode innerHash,
 						int baseOuterIdx, int baseInnerIdx,
 						ulong *indexCount, int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 						GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 						int64_t *val_stack,
 						ValueType *type_stack,
 #endif
@@ -1562,9 +1901,9 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 												outerHash, innerHash,
 												baseOuterIdx, baseInnerIdx,
 												indexCount, size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 												stack,
-#else
+#elif defined(POST_EXP_)
 												val_stack,
 												type_stack,
 #endif
@@ -1577,9 +1916,9 @@ void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
 													outerHash, innerHash,
 													baseOuterIdx, baseInnerIdx,
 													indexCount, size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 													stack,
-#else
+#elif defined(POST_EXP_)
 													val_stack,
 													type_stack,
 #endif
@@ -1625,9 +1964,9 @@ void hashJoinLegacyWrapper(int block_x, int block_y, int grid_x, int grid_y,
 							GHashNode innerHash,
 							int baseOuterIdx, int baseInnerIdx,
 							ulong *indexCount, int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 							GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 							int64_t *val_stack,
 							ValueType *type_stack,
 #endif
@@ -1644,9 +1983,9 @@ void hashJoinLegacyWrapper(int block_x, int block_y, int grid_x, int grid_y,
 												innerHash,
 												baseOuterIdx, baseInnerIdx,
 												indexCount, size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 												stack,
-#else
+#elif defined(POST_EXP_)
 												val_stack,
 												type_stack,
 #endif
@@ -1671,9 +2010,9 @@ void hashJoinWrapper3(int block_x, int block_y,
 						int lowerBound, int upperBound,
 						int outerBaseIdx, int innerBaseIdx,
 						ulong *indexCount, int size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 						GNValue *stack,
-#else
+#elif defined(POST_EXP_)
 						int64_t *val_stack,
 						ValueType *type_stack,
 #endif
@@ -1691,9 +2030,9 @@ void hashJoinWrapper3(int block_x, int block_y,
 										lowerBound, upperBound,
 										outerBaseIdx, innerBaseIdx,
 										indexCount, size,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 										stack,
-#else
+#elif defined(POST_EXP_)
 										val_stack,
 										type_stack,
 #endif

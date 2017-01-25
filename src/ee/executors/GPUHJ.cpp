@@ -23,28 +23,28 @@ namespace voltdb {
 
 
 const uint64_t GPUHJ::MAX_BUCKETS[] = {
-	        3,
-	        7,
-	        13,
-	        31,
-	        61,
-	        127,
-	        251,
-	        509,
-	        1021,
-	        2039,
-	        4093,
-	        8191,
-	        16381,
-	        32749,
-	        65521,
-	        131071,
-	        262139,
-	        524287,
-	        1048573,
-	        2097143,
-	        4194301,
-	        8388593,
+	        3,				//0
+	        7,				//1
+	        13,				//2
+	        31,				//3
+	        61,				//4
+	        127,			//5
+	        251,			//6
+	        509,			//7
+	        1021,			//8
+	        2039,			//9
+	        4093,			//10
+	        8191,			//11
+	        16381,			//12
+	        32749,			//13
+	        65521,			//14
+	        131071,			//15
+	        262139,			//16
+	        524287,			//17
+	        1048573,		//18
+	        2097143,		//19
+	        4194301,		//20
+	        8388593,		//21
 	        16777213,
 	        33554393,
 	        67108859,
@@ -122,12 +122,20 @@ GPUHJ::GPUHJ(GNValue *outer_table,
 	lookup_type_ = lookup_type;
 	m_sizeIndex_ = mSizeIndex;
 
-	if (m_sizeIndex_ >= 17)
-		m_sizeIndex_ = 16;
-	if (m_sizeIndex_ == 15)
-		m_sizeIndex_ = 14;
+	//Fix the size of bucket at 16
+	if (inner_rows_ >= 256)
+		m_sizeIndex_ = (int)(log2((float)(inner_rows_/16))) - 2;
+	else
+		m_sizeIndex_ = 0;
+	if (m_sizeIndex_ == 15) {
+		printf("Changed to 17\n");
+		m_sizeIndex_ = 17;
+	}
+	//m_sizeIndex_ = 10;
+	//m_sizeIndex_ = 18;
 	maxNumberOfBuckets_ = MAX_BUCKETS[m_sizeIndex_];
 
+	printf("New M_SIZE_INDEX = %d\n", m_sizeIndex_);
 
 	bool ret = true;
 	int tmp_size = 0;
@@ -608,9 +616,9 @@ bool GPUHJ::join()
 	RESULT *jresult_dev;
 	int block_x, grid_x, grid_y;
 	struct timeval start_all, end_all;
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 	GNValue *stack;
-#else
+#elif defined(POST_EXP_)
 	int64_t *val_stack;
 	ValueType *type_stack;
 #endif
@@ -703,7 +711,9 @@ bool GPUHJ::join()
 	hprefixSumWrapper(hashCount, block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1, &sum);
 	gettimeofday(&innerPrefixEnd, NULL);
 	innerPrefix.push_back(timeDiff(innerPrefixStart, innerPrefixEnd));
-
+	if (sum != inner_rows_) {
+		printf("WRONG!!!!!!!!!!!!!!!!!!!!!!!!!!!22222222222\n");
+	}
 
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedIdx), sizeof(int) * inner_rows_));
 	checkCudaErrors(cudaMalloc(&(innerHash.hashedKey), sizeof(uint64_t) * inner_rows_ * keySize_));
@@ -728,6 +738,7 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(innerKey));
 #endif
 
+	printf("End of hashing inner table\n");
 	/******* Hash the outer table *******/
 	uint64_t *outerKey;
 	GHashNode outerHash;
@@ -747,9 +758,9 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&outerKey, sizeof(uint64_t) * outer_rows_ * keySize_));
 	checkCudaErrors(cudaMalloc(&hashCount, sizeof(ulong) * (block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1)));
 
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x * grid_x * grid_y));
-#else
+#elif defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * MAX_STACK_SIZE * block_x * grid_x * grid_y));
 	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * MAX_STACK_SIZE * block_x * grid_x * grid_y));
 #endif
@@ -760,11 +771,11 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaDeviceSynchronize());
 	packSearchKeyWrapper(block_x, 1, grid_x, grid_y, outer_dev, outer_rows_, outer_cols_,
 							outerKey, search_exp_dev, search_exp_size, search_exp_num_,
-							keySize_,
-#ifdef FUNC_CALL_
-							stack
-#else
-							val_stack,
+							keySize_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+							,stack
+#elif defined(POST_EXP_)
+							,val_stack
 							type_stack
 #endif
 							);
@@ -780,6 +791,17 @@ bool GPUHJ::join()
 	hprefixSumWrapper(hashCount, block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1, &sum);
 	gettimeofday(&outerPrefixEnd, NULL);
 	outerPrefix.push_back(timeDiff(outerPrefixStart, outerPrefixEnd));
+//	if (sum != outer_rows_) {
+//		printf("WRONG!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+//	}
+//
+//	ulong *test = (ulong *)malloc(sizeof(ulong) * (block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1));
+//	checkCudaErrors(cudaMemcpy(test, hashCount, sizeof(ulong) * (block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
+//	for (int i = 0; i < (block_x * grid_x * grid_y * maxNumberOfBuckets_ + 1); i++) {
+//		if (test[i] > outer_rows_)
+//		printf("Test at %d is %lu\n", i, test[i]);
+//	}
+//	free(test);
 
 
 	checkCudaErrors(cudaMalloc(&(outerHash.hashedIdx), sizeof(int) * outer_rows_));
@@ -787,15 +809,15 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaMalloc(&(outerHash.bucketLocation), sizeof(int) * (maxNumberOfBuckets_ + 1)));
 
 	gettimeofday(&outerHashStart, NULL);
-	ghashWrapper(block_x, 1, grid_x, grid_y, outerKey, hashCount, outerHash);
+	ghashWrapper(block_x, 1, 1, 1, outerKey, hashCount, outerHash);
 	gettimeofday(&outerHashEnd, NULL);
-	printf("End hashing inner table\n");
+	printf("End of hashing outer table\n");
 	outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
 
 
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 	checkCudaErrors(cudaFree(stack));
-#else
+#elif defined(POST_EXP_)
 	checkCudaErrors(cudaFree(val_stack));
 	checkCudaErrors(cudaFree(type_stack));
 #endif
@@ -819,17 +841,25 @@ bool GPUHJ::join()
 //	bucketLocation = (int*)malloc(sizeof(int) * (maxNumberOfBuckets_ + 1));
 //	checkCudaErrors(cudaMemcpy(bucketLocation, innerHash.bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
 //	printf("Debug inner hash table ****************************************\n");
+//	int max = 0;
 //	for (int i = 0; i < maxNumberOfBuckets_; i++) {
-//			printf("size of bucket %d is %d\n", i, bucketLocation[i + 1] - bucketLocation[i]);
+//			if (max < bucketLocation[i + 1] - bucketLocation[i]) {
+//				max = bucketLocation[i + 1] - bucketLocation[i];
+//			}
 //	}
+//	printf("Max size of bucket is %d\n", max);
 //
 //	printf("Debug outer hash table ***************************************\n");
-//
+
 //	checkCudaErrors(cudaMemcpy(bucketLocation, outerHash.bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
 //
+//	max = 0;
 //	for (int i = 0; i < maxNumberOfBuckets_; i++) {
-//			printf("Size of bucket %d is %d\n ", i, bucketLocation[i + 1] - bucketLocation[i]);
+//		if (max < bucketLocation[i + 1] - bucketLocation[i]) {
+//			max = bucketLocation[i + 1] - bucketLocation[i];
+//		}
 //	}
+//	printf("Max size of bucket of outer is %d\n", max);
 
 	/**** Allocate table memory for join ****/
 #ifdef METHOD_1_
@@ -839,9 +869,9 @@ bool GPUHJ::join()
 	sizeOfBuckets = (int)pow(2, (int)(log2(tmp)));
 
 	printf("Max number of buckets is %d\n", maxNumberOfBuckets_);
+	printf("m_sizeIndex = %d\n", m_sizeIndex_);
 	printf("Size of Buckets = %d\n", sizeOfBuckets);
 	tmp = bucketStride = (partitionSize - 1)/sizeOfBuckets + 1;
-//	double tmp = (partitionSize - 1)/sizeOfBuckets + 1;
 	bucketStride = (int)pow(2, (int)(log2(tmp)));
 
 	printf("bucketStride = %d\n", bucketStride);
@@ -867,9 +897,9 @@ bool GPUHJ::join()
 	grid_y = (bucketStride - 1)/GRID_SIZE_X + 1;
 	partitionSize = grid_x * grid_y * block_x;
 
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * partitionSize));
-#else
+#elif defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * MAX_STACK_SIZE * partitionSize));
 	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * MAX_STACK_SIZE * partitionSize));
 #endif
@@ -881,7 +911,6 @@ bool GPUHJ::join()
 	/* Iterate over chunks of buckets */
 	for (int bucketIdx = 0; bucketIdx < maxNumberOfBuckets_; bucketIdx += bucketStride) {
 		realBucketStride = (bucketIdx + bucketStride < maxNumberOfBuckets_) ? bucketStride : (maxNumberOfBuckets_ - bucketIdx);
-		printf("Real bucket stride = %d\n", realBucketStride);
 		gettimeofday(&indexCountStart, NULL);
 		checkCudaErrors(cudaMemset(indexCount, 0, sizeof(ulong) * (partitionSize + 1)));
 		checkCudaErrors(cudaDeviceSynchronize());
@@ -894,7 +923,6 @@ bool GPUHJ::join()
 
 		gettimeofday(&prefixStart, NULL);
 		hprefixSumWrapper(indexCount, partitionSize + 1, &jr_size);
-		//printf("JR SIZE = %lu current size = %d\n", jr_size, result_size_);
 		gettimeofday(&prefixEnd, NULL);
 		prefixSum.push_back(timeDiff(prefixStart, prefixEnd));
 
@@ -919,9 +947,9 @@ bool GPUHJ::join()
 							outerHash, innerHash,
 							bucketIdx, bucketIdx + realBucketStride,
 							indexCount, partitionSize,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 							stack,
-#else
+#elif defined(POST_EXP_)
 							val_stack,
 							type_stack,
 #endif
@@ -935,9 +963,9 @@ bool GPUHJ::join()
 								outerHash, innerHash,
 								bucketIdx, bucketIdx + realBucketStride,
 								indexCount, partitionSize,
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 								stack,
-#else
+#elif defined(POST_EXP_)
 								val_stack,
 								type_stack,
 #endif
@@ -1015,9 +1043,9 @@ bool GPUHJ::join()
 
 
 	printf("block_x2 = %d, grid_x2 = %d, grid_y2 = %d, numberOfBuckets = %d\n", block_x2, grid_x2, grid_y2, maxNumberOfBuckets_);
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x2 * grid_x2));
-#else
+#elif defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * MAX_STACK_SIZE * block_x2 * grid_x2 * grid_y2));
 	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * MAX_STACK_SIZE * block_x2 * grid_x2 * grid_y2));
 #endif
@@ -1040,11 +1068,11 @@ bool GPUHJ::join()
 		checkCudaErrors(cudaDeviceSynchronize());
 		packSearchKeyWrapper(block_x, 1, grid_x, 1, outer_dev, realPartSize, outer_cols_,
 								outerKey, search_exp_dev, search_exp_size, search_exp_num_,
-								keySize_,
-#ifdef FUNC_CALL_
-								stack
-#else
-								val_stack,
+								keySize_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+								,stack
+#elif defined(POST_EXP_)
+								,val_stack,
 								type_stack
 #endif
 							);
@@ -1067,19 +1095,7 @@ bool GPUHJ::join()
 		gettimeofday(&outerHashEnd, NULL);
 		outerHasher.push_back(timeDiff(outerHashStart, outerHashEnd));
 		//printf("SIZE OF SIZE T IS %d\n", (int)sizeof(size_t));
-//
-//		int *test0 = (int*)malloc(sizeof(int) * (maxNumberOfBuckets_ + 1));
-//		int max = 0, maxId = 0;
-//		checkCudaErrors(cudaMemcpy(test0, outerHashDev.bucketLocation, sizeof(int) * (maxNumberOfBuckets_ + 1), cudaMemcpyDeviceToHost));
-//		for (int k = 0; k < maxNumberOfBuckets_; k++) {
-//			printf("Bucket Location at %d is %d\n", k, test0[k]);
-//			if (test0[k + 1] - test0[k] > max) {
-//				max = test0[k + 1] - test0[k];
-//				maxId = k;
-//			}
-//		}
-//		printf("max at %d is %d and i = %d\n", baseOuterIdx, max, maxId);
-//		free(test0);
+
 
 		for (int baseInnerIdx = 0, j = 0; baseInnerIdx < inner_rows_; baseInnerIdx += partitionSize, j++) {
 			realPartSize = (baseInnerIdx + partitionSize < inner_rows_) ? partitionSize : (inner_rows_ - baseInnerIdx);
@@ -1173,12 +1189,12 @@ bool GPUHJ::join()
 								outerHashDev, innerHashDev,
 								baseOuterIdx, baseInnerIdx,
 								indexCount, realPartSize,
-	#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 								stack,
-	#else
+#elif defined(POST_EXP_)
 								val_stack,
 								type_stack,
-	#endif
+#endif
 								jresult_dev);
 			gettimeofday(&joinEnd, NULL);
 			joinTime.push_back(timeDiff(joinStart, joinEnd));
@@ -1205,7 +1221,7 @@ bool GPUHJ::join()
 //	m_sizeIndex_ -= (int)log2(tmp);
 //
 //	maxNumberOfBuckets_ = MAX_BUCKETS[m_sizeIndex_];
-//	printf("New m_sizeIndex = %d\n", m_sizeIndex_);
+	printf("New m_sizeIndex = %d\n", m_sizeIndex_);
 	innerHashHost = (GHashNode *)malloc(sizeof(GHashNode) * partNumInner);
 	innerHashed = (bool*)malloc(sizeof(bool) * partNumInner);
 
@@ -1238,9 +1254,9 @@ bool GPUHJ::join()
 	grid_x2 = (partitionSize - 1)/block_x2 + 1;
 
 	printf("block_x2 = %d, grid_x2 = %d\n", block_x2, grid_x2);
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * MAX_STACK_SIZE * block_x2 * grid_x2));
-#else
+#elif defined(POST_EXP_)
 	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * MAX_STACK_SIZE * block_x2 * grid_x2));
 	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * MAX_STACK_SIZE * block_x2 * grid_x2));
 #endif
@@ -1259,16 +1275,15 @@ bool GPUHJ::join()
 
 		gettimeofday(&outerPackStart, NULL);
 		checkCudaErrors(cudaMemset(outerKey, 0, sizeof(uint64_t) * partitionSize * keySize_));
-		checkCudaErrors(cudaMemset(hashCount, 0, sizeof(ulong) * (block_x * grid_x * maxNumberOfBuckets_ + 1)));
 		checkCudaErrors(cudaDeviceSynchronize());
-		printf("block_x = %d grid_x = %d realPartSize = %d\n", block_x, grid_x, realPartSize);
-		packSearchKeyWrapper(block_x, 1, grid_x, 1, outer_dev, realPartSize, outer_cols_,
+		printf("block_x = %d grid_x = %d realPartSize = %d\n", block_x2, grid_x2, realPartSize);
+		packSearchKeyWrapper(block_x2, 1, grid_x2, 1, outer_dev, realPartSize, outer_cols_,
 								outerKey, search_exp_dev, search_exp_size, search_exp_num_,
-								keySize_,
-#ifdef FUNC_CALL_
-								stack
-#else
-								val_stack,
+								keySize_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+								,stack
+#elif defined(POST_EXP_)
+								,val_stack,
 								type_stack
 #endif
 							);
@@ -1357,12 +1372,12 @@ bool GPUHJ::join()
 									post_dev, post_size_, innerHashDev,
 									baseOuterIdx, baseInnerIdx,
 									indexCount, realPartSize,
-	#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 									stack,
-	#else
+#elif defined(POST_EXP_)
 									val_stack,
 									type_stack,
-	#endif
+#endif
 									jresult_dev);
 			gettimeofday(&joinEnd, NULL);
 			joinTime.push_back(timeDiff(joinStart, joinEnd));
@@ -1466,13 +1481,14 @@ bool GPUHJ::join()
 			"*************************************************\n"
 			"Inner hash Total: %lu\n"
 			"Outer hash Total: %lu\n"
-			"Join: %lu\n"
+			"Exp evaluation: %lu\n"
 			"Data copy: %lu\n"
-			"Join time only: %lu\n"
+			"Total time including data copy: %lu\n"
+			"Total time excluding data copy: %lu\n"
 			"Total time: %lu\n", innerPackFinal, innerHashCountFinal, innerPrefixFinal, innerHashFinal,
 								outerPackFinal, outerHashCountFinal, outerPrefixFinal, outerHashFinal,
 								indexCountFinal, prefixSumFinal, joinFinal,
-								innerHashTotal, outerHashTotal, joinTotal, dataCopy, total - dataCopy, total);
+								innerHashTotal, outerHashTotal, joinTotal, dataCopy, total - innerHashTotal, total - innerHashTotal - dataCopy, total);
 
 
 	checkCudaErrors(cudaFree(outer_dev));
@@ -1493,9 +1509,9 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(search_exp_dev));
 	checkCudaErrors(cudaFree(search_exp_size));
 	checkCudaErrors(cudaFree(indices_dev));
-#ifdef FUNC_CALL_
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
 	checkCudaErrors(cudaFree(stack));
-#else
+#elif defined(POST_EXP_)
 	checkCudaErrors(cudaFree(val_stack));
 	checkCudaErrors(cudaFree(type_stack));
 #endif
@@ -1518,11 +1534,21 @@ bool GPUHJ::join()
 	checkCudaErrors(cudaFree(innerHashDev.hashedIdx));
 	checkCudaErrors(cudaFree(innerHashDev.hashedKey));
 
+	int max = 0, maxId = 0, blockMax;
 	for (int i = 0; i < partNumInner; i++) {
+		for (int k = 0; k < maxNumberOfBuckets_; k++) {
+			if (innerHashHost[i].bucketLocation[k + 1] - innerHashHost[i].bucketLocation[k] > max) {
+				max = innerHashHost[i].bucketLocation[k + 1] - innerHashHost[i].bucketLocation[k];
+				maxId = k;
+				blockMax = i;
+			}
+		}
 		free(innerHashHost[i].bucketLocation);
 		free(innerHashHost[i].hashedIdx);
 		free(innerHashHost[i].hashedKey);
 	}
+
+	printf("Max bucket of Outer at index %d and block %d is %d\n", maxId, blockMax, max);
 
 	free(innerHashHost);
 	free(innerHashed);

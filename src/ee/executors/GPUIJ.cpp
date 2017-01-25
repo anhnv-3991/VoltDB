@@ -322,7 +322,7 @@ bool GPUIJ::join(){
 				continue;
 			}
 
-			//printf("jr_size = %lu\n", jr_size);
+			printf("jr_size = %lu\n", jr_size);
 			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 
 			gettimeofday(&estart, NULL);
@@ -343,13 +343,14 @@ bool GPUIJ::join(){
 			prefix_sumWrapper(exp_psum, gpu_size, &jr_size2);
 			gettimeofday(&peend, NULL);
 
+			printf("jr_SIZEEEEEEEEEEEEEEEEEEEE2 = %lu\n", jr_size2);
 			expression.push_back((eend.tv_sec - estart.tv_sec) * 1000000 + (eend.tv_usec - estart.tv_usec));
 			epsum.push_back((peend.tv_sec - pestart.tv_sec) * 1000000 + (peend.tv_usec - pestart.tv_usec));
 
 			gettimeofday(&wstart, NULL);
 
 			if (jr_size2 == 0) {
-				//printf("Empty2\n");
+				printf("Empty2\n");
 				checkCudaErrors(cudaFree(jresult_dev));
 				continue;
 			}
@@ -361,7 +362,7 @@ bool GPUIJ::join(){
 
 			gettimeofday(&end_join, NULL);
 
-			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
+			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, write_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
 
 			checkCudaErrors(cudaFree(jresult_dev));
 			checkCudaErrors(cudaFree(write_dev));
