@@ -53,6 +53,7 @@ typedef struct _COLUMNDATA{
 } COLUMNDATA __attribute__((aligned(32)));
 
 typedef struct _RESULT_BOUND {
+	int outer;
 	int left;
 	int right;
 } ResBound;

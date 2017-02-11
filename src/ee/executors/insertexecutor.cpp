@@ -73,6 +73,8 @@
 using namespace std;
 using namespace voltdb;
 
+//int testVal = 0;
+
 bool InsertExecutor::p_init(AbstractPlanNode* abstractNode,
                             TempTableLimits* limits)
 {
@@ -177,6 +179,8 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
     // Update target table reference from table delegate
     Table* targetTable = m_node->getTargetTable();
 
+    //printf("TestVal = %d\n", testVal);
+    //testVal++;
     assert(targetTable);
     assert((targetTable == dynamic_cast<PersistentTable*>(targetTable)) ||
             (targetTable == dynamic_cast<StreamedTable*>(targetTable)));

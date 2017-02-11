@@ -14,6 +14,7 @@
 #include <thrust/copy.h>
 #include <thrust/scan.h>
 #include <thrust/fill.h>
+#include <thrust/execution_policy.h>
 
 namespace voltdb {
 
@@ -1283,9 +1284,11 @@ __global__ void index_filterLowerBound(GNValue *outer_dev,
 
 	int offset = blockDim.x * gridDim.x;
 
+
 	res_bound[x + k].left = -1;
 
 	if (x < outer_part_size && prejoin_res_dev[x]) {
+		res_bound[x + k].outer = x;
 		switch (lookup_type) {
 		case INDEX_LOOKUP_TYPE_EQ:
 		case INDEX_LOOKUP_TYPE_GT:
@@ -1515,6 +1518,32 @@ __global__ void write_out(RESULT *out,
 	}
 }
 
+__global__ void removeZeroesCount(ulong *input, int size, int *mark)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+
+	for (int i = index; i < size; i += blockIdx.x * blockDim.x) {
+		mark[i] = (input[i] != 0) ? 1 : 0;
+	}
+
+	if (index == size)
+		mark[index] = 0;
+}
+
+__global__ void removeZeros(ulong *input, ulong *output, ResBound *inBound, ResBound *outBound, int *mark, int size)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int location = mark[index];
+	ulong tmp;
+
+	for (int i = index; i < size; i += blockIdx.x * blockDim.x) {
+		tmp = input[i];
+		output[location] = (tmp != 0) ? tmp : output[location];
+		outBound[location] = (tmp != 0) ? inBound[i] : outBound[location];
+		location += (tmp != 0) ? 1 : 0;
+	}
+}
+
 void prejoin_filterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
 							GNValue *outer_dev,
@@ -1522,19 +1551,20 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 							uint outer_cols,
 							GTreeNode *prejoin_dev,
 							uint prejoin_size,
-							bool *result
+							bool *result,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							,GNValue *stack
+							GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							,int64_t *val_stack,
-							ValueType *type_stack
+							int64_t *val_stack,
+							ValueType *type_stack,
 #endif
+							cudaStream_t stream
 							)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	prejoin_filter<<<grid_size, block_size>>>(outer_dev, outer_part_size, outer_cols, prejoin_dev, prejoin_size, result
+	prejoin_filter<<<grid_size, block_size, 0, stream>>>(outer_dev, outer_part_size, outer_cols, prejoin_dev, prejoin_size, result
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
 												,stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
@@ -1542,11 +1572,11 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 												type_stack
 #endif
 												);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (prejoin_filter) error: %s\n", cudaGetErrorString(err));
-	}
-	checkCudaErrors(cudaDeviceSynchronize());
+//	cudaError_t err = cudaGetLastError();
+//	if (err != cudaSuccess) {
+//		printf("Error: Async kernel (prejoin_filter) error: %s\n", cudaGetErrorString(err));
+//	}
+//	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void index_filterWrapper(int grid_x, int grid_y,
@@ -1565,19 +1595,20 @@ void index_filterWrapper(int grid_x, int grid_y,
 							int *key_indices,
 							int key_index_size,
 							IndexLookupType lookup_type,
-							bool *prejoin_res_dev
+							bool *prejoin_res_dev,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							,GNValue *stack
+							GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							,int64_t *val_stack,
-							ValueType *type_stack
+							int64_t *val_stack,
+							ValueType *type_stack,
 #endif
+							cudaStream_t stream
 							)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	index_filterLowerBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
+	index_filterLowerBound<<<grid_size, block_size, 0, stream>>>(outer_dev, inner_dev,
 														index_psum, res_bound,
 														outer_part_size, outer_cols,
 														inner_part_size, inner_cols,
@@ -1592,13 +1623,13 @@ void index_filterWrapper(int grid_x, int grid_y,
 														type_stack
 #endif
 														);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (index_filterLowerBound) error: %s\n", cudaGetErrorString(err));
-	}
-	checkCudaErrors(cudaDeviceSynchronize());
+//	cudaError_t err = cudaGetLastError();
+//	if (err != cudaSuccess) {
+//		printf("Error: Async kernel (index_filterLowerBound) error: %s\n", cudaGetErrorString(err));
+//	}
+//	checkCudaErrors(cudaDeviceSynchronize());
 
-	index_filterUpperBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
+	index_filterUpperBound<<<grid_size, block_size, 0, stream>>>(outer_dev, inner_dev,
 														index_psum, res_bound,
 														outer_part_size, outer_cols,
 														inner_part_size, inner_cols,
@@ -1613,11 +1644,11 @@ void index_filterWrapper(int grid_x, int grid_y,
 														type_stack
 #endif
 														);
-	err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (index_filterUpperBound) error: %s\n", cudaGetErrorString(err));
-	}
-	checkCudaErrors(cudaDeviceSynchronize());
+//	err = cudaGetLastError();
+//	if (err != cudaSuccess) {
+//		printf("Error: Async kernel (index_filterUpperBound) error: %s\n", cudaGetErrorString(err));
+//	}
+//	checkCudaErrors(cudaDeviceSynchronize());
 
 }
 
@@ -1641,19 +1672,20 @@ void exp_filterWrapper(int grid_x, int grid_y,
 						ResBound *res_bound,
 						int outer_base_idx,
 						int inner_base_idx,
-						bool *prejoin_res_dev
+						bool *prejoin_res_dev,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-						,GNValue *stack
+						GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-						,int64_t *val_stack,
-						ValueType *type_stack
+						int64_t *val_stack,
+						ValueType *type_stack,
 #endif
+						cudaStream_t stream
 						)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	exp_filter<<<grid_size, block_size>>>(outer_dev, inner_dev,
+	exp_filter<<<grid_size, block_size, 0, stream>>>(outer_dev, inner_dev,
 											result_dev, index_psum,
 											exp_psum, outer_part_size,
 											outer_cols, inner_cols,
@@ -1670,11 +1702,11 @@ void exp_filterWrapper(int grid_x, int grid_y,
 											type_stack
 #endif
 											);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (exp_filter) error: %s\n", cudaGetErrorString(err));
-	}
-	checkCudaErrors(cudaDeviceSynchronize());
+//	cudaError_t err = cudaGetLastError();
+//	if (err != cudaSuccess) {
+//		printf("Error: Async kernel (exp_filter) error: %s\n", cudaGetErrorString(err));
+//	}
+	//checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void write_outWrapper(int grid_x, int grid_y,
@@ -1685,27 +1717,53 @@ void write_outWrapper(int grid_x, int grid_y,
 						ulong *count_dev2,
 						uint outer_part_size,
 						uint out_size,
-						uint in_size)
+						uint in_size,
+						cudaStream_t stream)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	write_out<<<grid_size, block_size>>>(out, in, count_dev, count_dev2, outer_part_size, out_size, in_size);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (write_out) error: %s\n", cudaGetErrorString(err));
-	}
-	checkCudaErrors(cudaDeviceSynchronize());
+	write_out<<<grid_size, block_size, 0, stream>>>(out, in, count_dev, count_dev2, outer_part_size, out_size, in_size);
+//	cudaError_t err = cudaGetLastError();
+//	if (err != cudaSuccess) {
+//		printf("Error: Async kernel (write_out) error: %s\n", cudaGetErrorString(err));
+//	}
+//	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum)
+void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum, cudaStream_t stream)
 {
 	thrust::device_ptr<ulong> dev_ptr(input);
 
-	thrust::exclusive_scan(dev_ptr, dev_ptr + ele_num, dev_ptr);
-	checkCudaErrors(cudaDeviceSynchronize());
+	thrust::exclusive_scan(thrust::cuda::par.on(stream), dev_ptr, dev_ptr + ele_num, dev_ptr);
+	//checkCudaErrors(cudaDeviceSynchronize());
+	//checkCudaErrors(cudaMemcpyAsync(sum, input + ele_num - 1, sizeof(ulong), cudaMemcpyDeviceToHost, stream));
+	checkCudaErrors(cudaStreamSynchronize(stream));
 
 	*sum = *(dev_ptr + ele_num - 1);
+}
+
+void rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResBound *inResBound, RESULT *outResBound, int inSize, int *outSize, cudaStream_t stream)
+{
+	// Remove Zeros
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, block_y, 1);
+	ulong *noZeros;
+	int *mark;
+	int sizeNoZeros;
+	int *out;
+	ResBound *tmpResBound;
+
+	checkCudaErrors(cudaMalloc(&inNoZeros, inSize * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&mark, (inSize + 1) * sizeof(int)));
+
+	removeZeroesCount<<<grid_size, block_size, 0, stream>>>(in, inSize, mark);
+	prefix_sumWrapper(mark, inSize + 1, &sizeNoZeros, stream);
+
+	checkCudaErrors(cudaMalloc(&noZeros, (sizeNoZeros + 1) * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&tmpResBound, sizeNoZeros * sizeof(ResBound)));
+	removeZeroes<<<grid_size, block_size, 0, stream>>>(in, noZeros, inResBound, tmpResBound, mark, inSize);
+	prefix_sumWrapper(noZeros, sizeNoZeros + 1, )
 }
 
 }

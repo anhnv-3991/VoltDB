@@ -31,13 +31,14 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 							uint outer_cols,
 							GTreeNode *prejoin_dev,
 							uint prejoin_size,
-							bool *result
+							bool *result,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							,GNValue *stack
+							GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							,int64_t *val_stack,
-							ValueType *type_stack
+							int64_t *val_stack,
+							ValueType *type_stack,
 #endif
+							cudaStream_t stream
 							);
 
 void index_filterWrapper(int grid_x, int grid_y,
@@ -56,13 +57,14 @@ void index_filterWrapper(int grid_x, int grid_y,
 							int *key_indices,
 							int key_index_size,
 							IndexLookupType lookup_type,
-							bool *prejoin_res_dev
+							bool *prejoin_res_dev,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							,GNValue *stack
+							GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							,int64_t *val_stack,
-							ValueType *type_stack
+							int64_t *val_stack,
+							ValueType *type_stack,
 #endif
+							cudaStream_t stream
 							);
 
 void exp_filterWrapper(int grid_x, int grid_y,
@@ -85,13 +87,14 @@ void exp_filterWrapper(int grid_x, int grid_y,
 						ResBound *res_bound,
 						int outer_base_idx,
 						int inner_base_idx,
-						bool *prejoin_res_dev
+						bool *prejoin_res_dev,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-						,GNValue *stack
+						GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-						,int64_t *val_stack,
-						ValueType *type_stack
+						int64_t *val_stack,
+						ValueType *type_stack,
 #endif
+						cudaStream_t stream
 						);
 
 void write_outWrapper(int grid_x, int grid_y,
@@ -102,9 +105,10 @@ void write_outWrapper(int grid_x, int grid_y,
 						ulong *count_dev2,
 						uint outer_part_size,
 						uint out_size,
-						uint in_size);
+						uint in_size,
+						cudaStream_t stream);
 
-void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum);
+void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum, cudaStream_t stream);
 }
 }
 #endif
