@@ -3,6 +3,7 @@
 #include "GPUetc/expressions/nodedata.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -27,11 +28,11 @@ finally join() store match tuple to result array .
 
 extern "C" {
 
-__forceinline__ __device__ GNValue evaluate(GTreeNode *tree_expression,
-							int root,
-							int tree_size,
-							GNValue *outer_tuple,
-							GNValue *inner_tuple)
+__forceinline__ __device__ GNValue EvaluateRecursive(GTreeNode *tree_expression,
+														int root,
+														int tree_size,
+														GNValue *outer_tuple,
+														GNValue *inner_tuple)
 {
 	if (root == 0)
 		return GNValue::getTrue();
@@ -52,8 +53,8 @@ __forceinline__ __device__ GNValue evaluate(GTreeNode *tree_expression,
 	}
 
 
-	GNValue left = evaluate(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
-	GNValue right = evaluate(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
+	GNValue left = EvaluateRecursive(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+	GNValue right = EvaluateRecursive(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
 
 
 	switch (tmp_node.type) {
@@ -98,12 +99,12 @@ __forceinline__ __device__ GNValue evaluate(GTreeNode *tree_expression,
 	}
 }
 
-__forceinline__ __device__ GNValue evaluate2(GTreeNode *tree_expression,
-							int tree_size,
-							GNValue *outer_tuple,
-							GNValue *inner_tuple,
-							GNValue *stack,
-							int offset)
+__forceinline__ __device__ GNValue EvaluateIterative(GTreeNode *tree_expression,
+														int tree_size,
+														GNValue *outer_tuple,
+														GNValue *inner_tuple,
+														GNValue *stack,
+														int offset)
 {
 	int top = 0;
 
@@ -199,11 +200,11 @@ __forceinline__ __device__ GNValue evaluate2(GTreeNode *tree_expression,
 	return stack[0];
 }
 
-__forceinline__ __device__ GNValue evaluate3(GTreeNode *tree_expression,
-							int root,
-							int tree_size,
-							GNValue *outer_tuple,
-							GNValue *inner_tuple)
+__forceinline__ __device__ GNValue EvaluateRecursive2(GTreeNode *tree_expression,
+														int root,
+														int tree_size,
+														GNValue *outer_tuple,
+														GNValue *inner_tuple)
 {
 	if (root == 0)
 		return GNValue::getTrue();
@@ -230,8 +231,8 @@ __forceinline__ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 	}
 
 
-	GNValue left = evaluate3(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
-	GNValue right = evaluate3(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
+	GNValue left = EvaluateRecursive2(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
+	GNValue right = EvaluateRecursive2(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
 	int64_t left_i = left.getValue(), right_i = right.getValue(), res_i;
 	ValueType left_t = left.getValueType(), right_t = right.getValueType(), res_t;
 
@@ -384,7 +385,7 @@ __forceinline__ __device__ GNValue evaluate3(GTreeNode *tree_expression,
 	}
 }
 
-__forceinline__ __device__ GNValue evaluate4(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue EvaluateIterative2(GTreeNode *tree_expression,
 							int tree_size,
 							GNValue *outer_tuple,
 							GNValue *inner_tuple,
@@ -676,341 +677,18 @@ __forceinline__ __device__ GNValue evaluate4(GTreeNode *tree_expression,
 	return retval;
 }
 
-
-__forceinline__ __device__ GNValue evaluate2_non_coalesce(GTreeNode *tree_expression,
-											int tree_size,
-											GNValue *outer_tuple,
-											GNValue *inner_tuple)
-{
-	GNValue stack[MAX_STACK_SIZE];
-	int top = 0;
-
-	for (int i = 0; i < tree_size; i++) {
-
-		switch (tree_expression[i].type) {
-			case EXPRESSION_TYPE_VALUE_TUPLE: {
-				if (tree_expression[i].tuple_idx == 0) {
-					stack[top] = outer_tuple[tree_expression[i].column_idx];
-					top ++;
-				} else if (tree_expression[i].tuple_idx == 1) {
-					stack[top] = inner_tuple[tree_expression[i].column_idx];
-					top ++;
-				}
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_CONSTANT:
-			case EXPRESSION_TYPE_VALUE_PARAMETER: {
-				stack[top] = tree_expression[i].value;
-				top ++;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_AND: {
-				stack[top - 2] = stack[top - 2].op_and(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_OR: {
-				stack[top - 2] = stack[top - 2].op_or(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_EQUAL: {
-				stack[top - 2] = stack[top - 2].op_equal(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-				stack[top - 2] = stack[top - 2].op_notEqual(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-				stack[top - 2] = stack[top - 2].op_lessThan(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-				stack[top - 2] = stack[top - 2].op_lessThanOrEqual(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-				stack[top - 2] = stack[top - 2].op_greaterThan(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-				stack[top - 2] = stack[top - 2].op_greaterThanOrEqual(stack[top - 1]);
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_PLUS: {
-				stack[top - 2] = stack[top - 2].op_add(stack[top - 1]);
-				top --;
-
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_MINUS: {
-				stack[top - 2] = stack[top - 2].op_subtract(stack[top - 1]);
-				top --;
-
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-				stack[top - 2] = stack[top - 2].op_divide(stack[top - 1]);
-				top --;
-
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-				stack[top - 2] = stack[top - 2].op_multiply(stack[top - 1]);
-				top --;
-
-				break;
-			}
-			default: {
-				return GNValue::getFalse();
-			}
-		}
-	}
-
-	return stack[0];
-}
-
-__forceinline__ __device__ GNValue evaluate4_non_coalesce(GTreeNode *tree_expression,
-											int tree_size,
-											GNValue *outer_tuple,
-											GNValue *inner_tuple)
-{
-	int64_t stack[MAX_STACK_SIZE];
-	ValueType gtype[MAX_STACK_SIZE];
-	ValueType ltype, rtype;
-
-	int top = 0;
-	double left_d, right_d, res_d;
-	int64_t left_i, right_i;
-
-	for (int i = 0; i < tree_size; i++) {
-		switch (tree_expression[i].type) {
-			case EXPRESSION_TYPE_VALUE_TUPLE: {
-				if (tree_expression[i].tuple_idx == 0) {
-					stack[top] = outer_tuple[tree_expression[i].column_idx].getValue();
-					gtype[top] = outer_tuple[tree_expression[i].column_idx].getValueType();
-				} else if (tree_expression[i].tuple_idx == 1) {
-					stack[top] = inner_tuple[tree_expression[i].column_idx].getValue();
-					gtype[top] = inner_tuple[tree_expression[i].column_idx].getValueType();
-
-				}
-
-				top ++;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_CONSTANT:
-			case EXPRESSION_TYPE_VALUE_PARAMETER: {
-				stack[top] = (tree_expression[i].value).getValue();
-				gtype[top] = (tree_expression[i].value).getValueType();
-				top ++;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_AND: {
-				assert(gtype[top - 2] == VALUE_TYPE_BOOLEAN && gtype[top - 1] == VALUE_TYPE_BOOLEAN);
-				stack[top - 2] = (int64_t)((bool)(stack[top - 2]) && (bool)(stack[top - 1]));
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_OR: {
-				assert(gtype[top - 2] == VALUE_TYPE_BOOLEAN && gtype[top - 1] == VALUE_TYPE_BOOLEAN);
-				stack[top - 2] = (int64_t)((bool)(stack[top - 2]) || (bool)(stack[top - 1]));
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_EQUAL: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2] =  (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i);
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i);
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i);
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				stack[top - 2] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
-				gtype[top - 2] = VALUE_TYPE_BOOLEAN;
-				top --;
-				break;
-			}
-
-			case EXPRESSION_TYPE_OPERATOR_PLUS: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d + right_d;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2] = VALUE_TYPE_DOUBLE;
-				} else {
-					stack[top - 2] = left_i + right_i;
-					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
-				}
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_MINUS: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d - right_d;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2] = VALUE_TYPE_DOUBLE;
-				} else {
-					stack[top - 2] = left_i - right_i;
-					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
-				}
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d * right_d;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2] = VALUE_TYPE_DOUBLE;
-				} else {
-					stack[top - 2] = left_i * right_i;
-					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
-				}
-				top --;
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-				ltype = gtype[top - 2];
-				rtype = gtype[top - 1];
-				assert(ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID);
-				left_i = stack[top - 2];
-				right_i = stack[top - 1];
-				left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = (right_d != 0) ? left_d / right_d : 0;
-				if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-					stack[top - 2] = *reinterpret_cast<int64_t *>(&res_d);
-					gtype[top - 2] = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
-				} else {
-					stack[top - 2] = (right_i != 0) ? left_i / right_i : 0;
-					gtype[top - 2] = (ltype > rtype) ? ltype : rtype;
-					gtype[top - 2] = (right_i != 0) ? gtype[top - 2] : VALUE_TYPE_INVALID;
-				}
-				top--;
-				break;
-			}
-			default: {
-				return GNValue::getFalse();
-			}
-		}
-	}
-
-	GNValue retval(gtype[0], stack[0]);
-
-	return retval;
-}
-
-__forceinline__ __device__ int lowerBound(GTreeNode * search_exp,
-							int *search_exp_size,
-							int search_exp_num,
-							int * key_indices,
-							int key_index_size,
-							GNValue *outer_table,
-							GNValue *inner_table,
-							int outer_cols,
-							int inner_cols,
-							int left,
-							int right,
+__forceinline__ __device__ int LowerBound(GTreeNode * search_exp, int *search_exp_size, int search_exp_num,
+											int * key_indices, int key_index_size,
+											GNValue *outer_table, GNValue *inner_table,
+											int outer_cols, int inner_cols,
+											int left, int right,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							GNValue *stack,
+											GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							int64_t *val_stack,
-							ValueType *type_stack,
+											int64_t *val_stack,
+											ValueType *type_stack,
 #endif
-							int offset)
+											int offset)
 {
 	int middle = -1;
 	int search_ptr;
@@ -1036,21 +714,17 @@ __forceinline__ __device__ int lowerBound(GTreeNode * search_exp,
 	for (int i = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
 #ifndef FUNC_CALL_
 #ifdef POST_EXP_
-		tmp = evaluate4(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, val_stack, type_stack, offset);
+		tmp = EvaluateIterative2(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, val_stack, type_stack, offset);
 #else
-		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+		tmp = EvaluateRecursive2(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 		outer_tmp[i] = tmp.getValue();
 		outer_gtype[i] = tmp.getValueType();
 #else
 #ifdef POST_EXP_
-#ifdef COALESCE_
-		outer_tmp[i] = evaluate2(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, stack, offset);
+		outer_tmp[i] = EvaluateIterative(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, stack, offset);
 #else
-		outer_tmp[i] = evaluate2_non_coalesce(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, offset);
-#endif
-#else
-		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+		outer_tmp[i] = EvaluateRecursive(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 #endif
 	}
@@ -1097,24 +771,18 @@ __forceinline__ __device__ int lowerBound(GTreeNode * search_exp,
 	return result;
 }
 
-__forceinline__ __device__ int upperBound(GTreeNode * search_exp,
-							int *search_exp_size,
-							int search_exp_num,
-							int * key_indices,
-							int key_index_size,
-							GNValue *outer_table,
-							GNValue *inner_table,
-							int outer_cols,
-							int inner_cols,
-							int left,
-							int right,
+__forceinline__ __device__ int UpperBound(GTreeNode * search_exp, int *search_exp_size, int search_exp_num,
+											int * key_indices, int key_index_size,
+											GNValue *outer_table, GNValue *inner_table,
+											int outer_cols, int inner_cols,
+											int left, int right,
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							GNValue *stack,
+											GNValue *stack,
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							int64_t *val_stack,
-							ValueType *type_stack,
+											int64_t *val_stack,
+											ValueType *type_stack,
 #endif
-							int offset)
+											int offset)
 {
 	int middle = -1;
 	int search_ptr;
@@ -1139,25 +807,17 @@ __forceinline__ __device__ int upperBound(GTreeNode * search_exp,
 	for (int i = 0; i < search_exp_num; search_ptr += search_exp_size[i], i++) {
 #ifndef FUNC_CALL_
 #ifdef POST_EXP_
-#ifdef COALESCE_
-		tmp = evaluate4(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, val_stack, type_stack, offset);
+		tmp = EvaluateIterative2(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, val_stack, type_stack, offset);
 #else
-		tmp = evaluate4_non_coalesce(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, offset);
-#endif
-#else
-		tmp = evaluate3(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+		tmp = EvaluateRecursive2(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 		outer_tmp[i] = tmp.getValue();
 		outer_gtype[i] = tmp.getValueType();
 #else
 #ifdef POST_EXP_
-#ifdef COALESCE_
-		outer_tmp[i] = evaluate2(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, stack, offset);
+		outer_tmp[i] = EvaluateIterative(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, stack, offset);
 #else
-		outer_tmp[i] = evaluate2_non_coalesce(search_exp + search_ptr, search_exp_size[i], outer_table, NULL, offset);
-#endif
-#else
-		outer_tmp[i] = evaluate(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
+		outer_tmp[i] = EvaluateRecursive(search_exp + search_ptr, 1, search_exp_size[i], outer_table, NULL);
 #endif
 #endif
 	}
@@ -1206,7 +866,7 @@ __forceinline__ __device__ int upperBound(GTreeNode * search_exp,
 }
 
 
-__global__ void prejoin_filter(GNValue *outer_dev,
+__global__ void PrejoinFilter(GNValue *outer_dev,
 								uint outer_part_size,
 								uint outer_cols,
 								GTreeNode *prejoin_dev,
@@ -1227,25 +887,17 @@ __global__ void prejoin_filter(GNValue *outer_dev,
 
 #ifdef 	TREE_EVAL_
 #ifdef FUNC_CALL_
-		res = (prejoin_size > 1) ? evaluate(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL) : res;
+		res = (prejoin_size > 1) ? EvaluateRecursive(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL) : res;
 #else
-		res = (prejoin_size > 1) ? evaluate3(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL) : res;
+		res = (prejoin_size > 1) ? EvaluateRecursive2(prejoin_dev, 1, prejoin_size, outer_dev + x, NULL) : res;
 #endif
 #elif	POST_EXP_
 		int offset = blockDim.x * gridDim.x;
 
 #ifndef FUNC_CALL_
-#ifdef COALESCE_
-		res = (prejoin_size > 1) ? evaluate4(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, val_stack + x, type_stack + x, offset) : res;
+		res = (prejoin_size > 1) ? EvaluateIterative2(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, val_stack + x, type_stack + x, offset) : res;
 #else
-		res = (prejoin_size > 1) ? evaluate4_non_coalesce(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, offset) : res;
-#endif
-#else
-#ifdef COALESCE_
-		res = (prejoin_size > 1) ? evaluate2(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, stack + x, offset) : res;
-#else
-		res = (prejoin_size > 1) ? evaluate2_non_coalesce(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, offset) : res;
-#endif
+		res = (prejoin_size > 1) ? EvaluateIterative(prejoin_dev, prejoin_size, outer_dev + x * outer_cols, NULL, stack + x, offset) : res;
 #endif
 #endif
 		result[x] = res.isTrue();
@@ -1253,7 +905,7 @@ __global__ void prejoin_filter(GNValue *outer_dev,
 }
 
 
-__global__ void index_filterLowerBound(GNValue *outer_dev,
+__global__ void IndexFilterLowerBound(GNValue *outer_dev,
 										  GNValue *inner_dev,
 										  ulong *index_psum,
 										  ResBound *res_bound,
@@ -1284,7 +936,6 @@ __global__ void index_filterLowerBound(GNValue *outer_dev,
 
 	int offset = blockDim.x * gridDim.x;
 
-
 	res_bound[x + k].left = -1;
 
 	if (x < outer_part_size && prejoin_res_dev[x]) {
@@ -1294,7 +945,7 @@ __global__ void index_filterLowerBound(GNValue *outer_dev,
 		case INDEX_LOOKUP_TYPE_GT:
 		case INDEX_LOOKUP_TYPE_GTE:
 		case INDEX_LOOKUP_TYPE_LT: {
-			res_bound[x + k].left = lowerBound(search_exp_dev,
+			res_bound[x + k].left = LowerBound(search_exp_dev,
 												search_exp_size,
 												search_exp_num,
 												key_indices,
@@ -1324,7 +975,7 @@ __global__ void index_filterLowerBound(GNValue *outer_dev,
 	}
 }
 
-__global__ void index_filterUpperBound(GNValue *outer_dev,
+__global__ void IndexFilterUpperBound(GNValue *outer_dev,
 										  GNValue *inner_dev,
 										  ulong *index_psum,
 										  ResBound *res_bound,
@@ -1362,7 +1013,7 @@ __global__ void index_filterUpperBound(GNValue *outer_dev,
 		switch (lookup_type) {
 		case INDEX_LOOKUP_TYPE_EQ:
 		case INDEX_LOOKUP_TYPE_LTE: {
-			res_bound[x + k].right = upperBound(search_exp_dev,
+			res_bound[x + k].right = UpperBound(search_exp_dev,
 													search_exp_size,
 													search_exp_num,
 													key_indices,
@@ -1405,30 +1056,30 @@ __global__ void index_filterUpperBound(GNValue *outer_dev,
 	}
 }
 
-__global__ void exp_filter(GNValue *outer_dev,
-							GNValue *inner_dev,
-							RESULT *result_dev,
-							ulong *index_psum,
-							ulong *exp_psum,
-							uint outer_part_size,
-							uint outer_cols,
-							uint inner_cols,
-							uint jr_size,
-							GTreeNode *end_dev,
-							int end_size,
-							GTreeNode *post_dev,
-							int post_size,
-							GTreeNode *where_dev,
-							int where_size,
-							ResBound *res_bound,
-							int outer_base_idx,
-							int inner_base_idx,
-							bool *prejoin_res_dev
+__global__ void ExpressionFilter(GNValue *outer_dev,
+									GNValue *inner_dev,
+									RESULT *result_dev,
+									ulong *index_psum,
+									ulong *exp_psum,
+									uint outer_part_size,
+									uint outer_cols,
+									uint inner_cols,
+									uint jr_size,
+									GTreeNode *end_dev,
+									int end_size,
+									GTreeNode *post_dev,
+									int post_size,
+									GTreeNode *where_dev,
+									int where_size,
+									ResBound *res_bound,
+									int outer_base_idx,
+									int inner_base_idx,
+									bool *prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							,GNValue *stack
+									,GNValue *stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							,int64_t *val_stack,
-							ValueType *type_stack
+									,int64_t *val_stack,
+									ValueType *type_stack
 #endif
 							)
 {
@@ -1450,27 +1101,22 @@ __global__ void exp_filter(GNValue *outer_dev,
 		while (res_left >= 0 && res_left <= res_right && writeloc < jr_size) {
 #ifdef	TREE_EVAL_
 #ifdef FUNC_CALL_
-			res = (end_size > 1) ? evaluate(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
-			res = (post_size > 1 && res.isTrue()) ? evaluate(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (end_size > 1) ? EvaluateRecursive(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (post_size > 1 && res.isTrue()) ? EvaluateRecursive(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 #else
-			res = (end_size > 1) ? evaluate3(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
-			res = (post_size > 1 && res.isTrue()) ? evaluate3(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (end_size > 1) ? EvaluateRecursive2(end_dev, 1, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
+			res = (post_size > 1 && res.isTrue()) ? EvaluateRecursive2(post_dev, 1, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols) : res;
 #endif
 
 #elif	POST_EXP_
 			int offset = blockDim.x * gridDim.x;
 
 #ifdef 	FUNC_CALL_
-#ifdef COALESCE_
-			res = (end_size > 0) ? evaluate2(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack + x, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate2(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack + x, offset) : res;
+			res = (end_size > 0) ? EvaluateIterative(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack + x, offset) : res;
+			res = (post_size > 0 && res.isTrue()) ? EvaluateIterative(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, stack + x, offset) : res;
 #else
-			res = (end_size > 0) ? evaluate2_non_coalesce(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate2_non_coalesce(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, offset) : res;
-#endif
-#else
-			res = (end_size > 0) ? evaluate4(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
-			res = (post_size > 0 && res.isTrue()) ? evaluate4(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
+			res = (end_size > 0) ? EvaluateIterative2(end_dev, end_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
+			res = (post_size > 0 && res.isTrue()) ? EvaluateIterative2(post_dev, post_size, outer_dev + x * outer_cols, inner_dev + res_left * inner_cols, val_stack + x, type_stack + x, offset) : res;
 #endif
 #endif
 			result_dev[writeloc].lkey = (res.isTrue()) ? (x + outer_base_idx) : (-1);
@@ -1487,13 +1133,62 @@ __global__ void exp_filter(GNValue *outer_dev,
 	}
 }
 
-__global__ void write_out(RESULT *out,
-							RESULT *in,
-							ulong *count_dev,
-							ulong *count_dev2,
-							uint outer_part_size,
-							uint out_size,
-							uint in_size)
+__global__ void ExpressionFilter2(GNValue *outer_dev, GNValue *inner_dev,
+									RESULT *in, RESULT *out,
+									ulong *exp_psum, int size,
+									uint outer_cols, uint inner_cols,
+									GTreeNode *end_dev, int end_size,
+									GTreeNode *post_dev, int post_size,
+									GTreeNode *where_dev, int where_size,
+									int outer_base_idx, int inner_base_idx
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+									,GNValue *stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+									,int64_t *val_stack, ValueType *type_stack
+#endif
+		)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int offset = blockDim.x * gridDim.x;
+	GNValue res = GNValue::getTrue();
+	//int count = 0;
+
+	for (int i = index; i < size; i += offset) {
+#ifdef TREE_EVAL_
+#ifdef FUNC_CALL_
+		res = (end_size > 1) ? EvaluateRecursive(end_dev, 1, end_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols) : res;
+		res = (post_size > 1 && res.isTrue()) ? EvaluateRecursive(post_dev, 1, post_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols) : res;
+#else
+		res = (end_size > 1) ? EvaluateRecursive2(end_dev, 1, end_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols) : res;
+		res = (post_size > 1 && res.isTrue()) ? EvaluateRecursive2(post_dev, 1, post_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols) : res;
+#endif
+#else
+#ifdef FUNC_CALL_
+		res = (end_size > 1) ? EvaluateIterative(end_dev, end_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols, stack + index, offset) : res;
+		res = (post_size > 1 && res.isTrue()) ? EvaluateIterative(post_dev, post_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols, stack + index, offset) : res;
+#else
+		res = (end_size > 1) ? EvaluateIterative2(end_dev, end_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols, val_stack + index, type_stack + index, offset) : res;
+		res = (post_size > 1 && res.isTrue()) ? EvaluateIterative2(post_dev, post_size, outer_dev + in[i].lkey * outer_cols, inner_dev + in[i].rkey * inner_cols, val_stack + index, type_stack + index, offset) : res;
+#endif
+		out[i].lkey = (res.isTrue()) ? (in[i].lkey + outer_base_idx) : (-1);
+		out[i].rkey = (res.isTrue()) ? (in[i].rkey + inner_base_idx) : (-1);
+		//count += (res.isTrue()) ? 1 : 0;
+		exp_psum[i] = (res.isTrue()) ? 1 : 0;
+#endif
+	}
+
+	//exp_psum[index] = count;
+
+	if (index == 0) {
+		exp_psum[size] = 0;
+	}
+}
+
+
+__global__ void RemoveEmptyResult(RESULT *out, RESULT *in,
+									ulong *count_dev, ulong *count_dev2,
+									uint outer_part_size,
+									uint out_size, uint in_size)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int k = blockIdx.y * gridDim.x * blockDim.x;
@@ -1518,53 +1213,93 @@ __global__ void write_out(RESULT *out,
 	}
 }
 
-__global__ void removeZeroesCount(ulong *input, int size, int *mark)
+__global__ void RemoveEmptyResult2(RESULT *out, RESULT *in, ulong *location, int size)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int tmp_location;
 
-	for (int i = index; i < size; i += blockIdx.x * blockDim.x) {
+	for (int i = index; i < size; i += blockDim.x * gridDim.x) {
+		tmp_location = location[i];
+		if (in[i].lkey != -1 && in[i].rkey != -1) {
+			out[tmp_location].lkey = in[i].lkey;
+			out[tmp_location].rkey = in[i].rkey;
+		}
+	}
+}
+
+__global__ void MarkNonZeros(ulong *input, int size, ulong *mark)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int i;
+
+	for (i = index; i < size; i += blockDim.x * gridDim.x) {
 		mark[i] = (input[i] != 0) ? 1 : 0;
 	}
 
-	if (index == size)
-		mark[index] = 0;
+	if (i == size)
+		mark[i] = 0;
 }
 
-__global__ void removeZeros(ulong *input, ulong *output, ResBound *inBound, ResBound *outBound, int *mark, int size)
+__global__ void RemoveZeros(ulong *input, ulong *output, ResBound *in_bound, ResBound *out_bound, ulong *mark, int size)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	int location = mark[index];
-	ulong tmp;
 
-	for (int i = index; i < size; i += blockIdx.x * blockDim.x) {
-		tmp = input[i];
-		output[location] = (tmp != 0) ? tmp : output[location];
-		outBound[location] = (tmp != 0) ? inBound[i] : outBound[location];
-		location += (tmp != 0) ? 1 : 0;
+	for (int i = index; i < size; i += blockDim.x * gridDim.x) {
+		if (input[i] != 0) {
+			output[mark[i]] = input[i];
+			out_bound[mark[i]] = in_bound[i];
+		}
 	}
 }
 
-void prejoin_filterWrapper(int grid_x, int grid_y,
+__global__ void MarkTmpLocation(ulong *tmp_location, ulong *input, int size)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+
+	for (int i = index; i < size; i += blockDim.x * gridDim.x) {
+		tmp_location[input[i]] = (i != 0) ? 1 : 0;
+	}
+}
+
+__global__ void ComputeOffset(ulong *input1, ulong *input2, ulong *out, int size)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+
+	for (int i = index; i < size; i += blockDim.x * gridDim.x) {
+		out[i] = i - input1[input2[i]];
+	}
+}
+
+__global__ void Decompose(ResBound *in, RESULT *out, ulong *in_location, ulong *local_offset, int size)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+
+	for (int i = index; i < size; i += blockDim.x * gridDim.x) {
+		out[i].lkey = in[in_location[i]].outer;
+		out[i].rkey = in[in_location[i]].left + local_offset[i];
+	}
+}
+
+void PrejoinFilterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
 							GNValue *outer_dev,
 							uint outer_part_size,
 							uint outer_cols,
 							GTreeNode *prejoin_dev,
 							uint prejoin_size,
-							bool *result,
+							bool *result
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							GNValue *stack,
+							, GNValue *stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							int64_t *val_stack,
-							ValueType *type_stack,
+							, int64_t *val_stack
+							, ValueType *type_stack
 #endif
-							cudaStream_t stream
 							)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	prejoin_filter<<<grid_size, block_size, 0, stream>>>(outer_dev, outer_part_size, outer_cols, prejoin_dev, prejoin_size, result
+	PrejoinFilter<<<grid_size, block_size>>>(outer_dev, outer_part_size, outer_cols, prejoin_dev, prejoin_size, result
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
 												,stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
@@ -1572,14 +1307,15 @@ void prejoin_filterWrapper(int grid_x, int grid_y,
 												type_stack
 #endif
 												);
-//	cudaError_t err = cudaGetLastError();
-//	if (err != cudaSuccess) {
-//		printf("Error: Async kernel (prejoin_filter) error: %s\n", cudaGetErrorString(err));
-//	}
-//	checkCudaErrors(cudaDeviceSynchronize());
+	cudaError_t err = cudaGetLastError();
+
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (PrejoinFilter) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void index_filterWrapper(int grid_x, int grid_y,
+void IndexFilterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
 							GNValue *outer_dev,
 							GNValue *inner_dev,
@@ -1595,20 +1331,19 @@ void index_filterWrapper(int grid_x, int grid_y,
 							int *key_indices,
 							int key_index_size,
 							IndexLookupType lookup_type,
-							bool *prejoin_res_dev,
+							bool *prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							GNValue *stack,
+							, GNValue *stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							int64_t *val_stack,
-							ValueType *type_stack,
+							, int64_t *val_stack
+							, ValueType *type_stack
 #endif
-							cudaStream_t stream
 							)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	index_filterLowerBound<<<grid_size, block_size, 0, stream>>>(outer_dev, inner_dev,
+	IndexFilterLowerBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
 														index_psum, res_bound,
 														outer_part_size, outer_cols,
 														inner_part_size, inner_cols,
@@ -1623,13 +1358,15 @@ void index_filterWrapper(int grid_x, int grid_y,
 														type_stack
 #endif
 														);
-//	cudaError_t err = cudaGetLastError();
-//	if (err != cudaSuccess) {
-//		printf("Error: Async kernel (index_filterLowerBound) error: %s\n", cudaGetErrorString(err));
-//	}
-//	checkCudaErrors(cudaDeviceSynchronize());
 
-	index_filterUpperBound<<<grid_size, block_size, 0, stream>>>(outer_dev, inner_dev,
+	cudaError_t err = cudaGetLastError();
+
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (IndexFilterLowerBound) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	IndexFilterUpperBound<<<grid_size, block_size>>>(outer_dev, inner_dev,
 														index_psum, res_bound,
 														outer_part_size, outer_cols,
 														inner_part_size, inner_cols,
@@ -1644,126 +1381,237 @@ void index_filterWrapper(int grid_x, int grid_y,
 														type_stack
 #endif
 														);
-//	err = cudaGetLastError();
-//	if (err != cudaSuccess) {
-//		printf("Error: Async kernel (index_filterUpperBound) error: %s\n", cudaGetErrorString(err));
-//	}
-//	checkCudaErrors(cudaDeviceSynchronize());
+
+	err = cudaGetLastError();
+
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (IndexFilterUpperBound) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
 
 }
 
-void exp_filterWrapper(int grid_x, int grid_y,
-						int block_x, int block_y,
-						GNValue *outer_dev,
-						GNValue *inner_dev,
-						RESULT *result_dev,
-						ulong *index_psum,
-						ulong *exp_psum,
-						uint outer_part_size,
-						uint outer_cols,
-						uint inner_cols,
-						uint jr_size,
-						GTreeNode *end_dev,
-						int end_size,
-						GTreeNode *post_dev,
-						int post_size,
-						GTreeNode *where_dev,
-						int where_size,
-						ResBound *res_bound,
-						int outer_base_idx,
-						int inner_base_idx,
-						bool *prejoin_res_dev,
+void ExpressionFilterWrapper(int grid_x, int grid_y,
+								int block_x, int block_y,
+								GNValue *outer_dev, GNValue *inner_dev,
+								RESULT *result_dev,
+								ulong *index_psum, ulong *exp_psum,
+								uint outer_part_size,
+								uint outer_cols, uint inner_cols,
+								uint jr_size,
+								GTreeNode *end_dev, int end_size,
+								GTreeNode *post_dev, int post_size,
+								GTreeNode *where_dev, int where_size,
+								ResBound *res_bound,
+								int outer_base_idx, int inner_base_idx,
+								bool *prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-						GNValue *stack,
+								, GNValue *stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-						int64_t *val_stack,
-						ValueType *type_stack,
+								, int64_t *val_stack
+								, ValueType *type_stack
 #endif
-						cudaStream_t stream
 						)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	exp_filter<<<grid_size, block_size, 0, stream>>>(outer_dev, inner_dev,
-											result_dev, index_psum,
-											exp_psum, outer_part_size,
-											outer_cols, inner_cols,
-											jr_size, end_dev,
-											end_size, post_dev,
-											post_size, where_dev,
-											where_size, res_bound,
-											outer_base_idx, inner_base_idx,
-											prejoin_res_dev
+	ExpressionFilter<<<grid_size, block_size>>>(outer_dev, inner_dev,
+												result_dev, index_psum,
+												exp_psum, outer_part_size,
+												outer_cols, inner_cols,
+												jr_size, end_dev,
+												end_size, post_dev,
+												post_size, where_dev,
+												where_size, res_bound,
+												outer_base_idx, inner_base_idx,
+												prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-											,stack
+												, stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-											,val_stack,
-											type_stack
+												, val_stack
+												, type_stack
 #endif
-											);
-//	cudaError_t err = cudaGetLastError();
-//	if (err != cudaSuccess) {
-//		printf("Error: Async kernel (exp_filter) error: %s\n", cudaGetErrorString(err));
-//	}
-	//checkCudaErrors(cudaDeviceSynchronize());
+												);
+
+	cudaError_t err = cudaGetLastError();
+
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (exp_filter) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void write_outWrapper(int grid_x, int grid_y,
-						int block_x, int block_y,
-						RESULT *out,
-						RESULT *in,
-						ulong *count_dev,
-						ulong *count_dev2,
-						uint outer_part_size,
-						uint out_size,
-						uint in_size,
-						cudaStream_t stream)
+void ExpressionFilterWrapper2(int grid_x, int grid_y,
+								int block_x, int block_y,
+								GNValue *outer_dev, GNValue *inner_dev,
+								RESULT *in_index, RESULT *out_index,
+								ulong *exp_psum, int size,
+								uint outer_cols, uint inner_cols,
+								GTreeNode *end_dev, int end_size,
+								GTreeNode *post_dev, int post_size,
+								GTreeNode *where_dev, int where_size,
+								int outer_base_idx, int inner_base_idx
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+								, GNValue *stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+								, int64_t *val_stack, ValueType *type_stack
+#endif
+						)
 {
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
 
-	write_out<<<grid_size, block_size, 0, stream>>>(out, in, count_dev, count_dev2, outer_part_size, out_size, in_size);
-//	cudaError_t err = cudaGetLastError();
-//	if (err != cudaSuccess) {
-//		printf("Error: Async kernel (write_out) error: %s\n", cudaGetErrorString(err));
-//	}
-//	checkCudaErrors(cudaDeviceSynchronize());
+	ExpressionFilter2<<<grid_size, block_size>>>(outer_dev, inner_dev,
+															in_index, out_index,
+															exp_psum, size,
+															outer_cols, inner_cols,
+															end_dev, end_size,
+															post_dev, post_size,
+															where_dev, where_size,
+															outer_base_idx, inner_base_idx
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+															, stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+															, val_stack, type_stack
+#endif
+															);
+	cudaError_t err = cudaGetLastError();
+
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (ExpressionFilterWrapper2) failed error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
+
 }
 
-void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum, cudaStream_t stream)
+void RemoveEmptyResultWrapper(int grid_x, int grid_y,
+								int block_x, int block_y,
+								RESULT *out,
+								RESULT *in,
+								ulong *count_dev,
+								ulong *count_dev2,
+								uint outer_part_size,
+								uint out_size,
+								uint in_size)
+{
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, block_y, 1);
+
+	RemoveEmptyResult<<<grid_size, block_size>>>(out, in, count_dev, count_dev2, outer_part_size, out_size, in_size);
+
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (RemoveEmptyResult) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void RemoveEmptyResultWrapper2(int grid_x, int grid_y,
+								int block_x, int block_y,
+								RESULT *out, RESULT *in,
+								ulong *location, int size)
+{
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, block_y, 1);
+
+	RemoveEmptyResult2<<<grid_size, block_size>>>(out, in, location, size);
+
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		printf("Error: Async kernel (RemoveEmptyResult2) error: %s\n", cudaGetErrorString(err));
+	}
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void ExclusiveScanWrapper(ulong *input, int ele_num, ulong *sum)
 {
 	thrust::device_ptr<ulong> dev_ptr(input);
 
-	thrust::exclusive_scan(thrust::cuda::par.on(stream), dev_ptr, dev_ptr + ele_num, dev_ptr);
-	//checkCudaErrors(cudaDeviceSynchronize());
-	//checkCudaErrors(cudaMemcpyAsync(sum, input + ele_num - 1, sizeof(ulong), cudaMemcpyDeviceToHost, stream));
-	checkCudaErrors(cudaStreamSynchronize(stream));
+	thrust::exclusive_scan(dev_ptr, dev_ptr + ele_num, dev_ptr);
+	checkCudaErrors(cudaDeviceSynchronize());
 
 	*sum = *(dev_ptr + ele_num - 1);
 }
 
-void rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResBound *inResBound, RESULT *outResBound, int inSize, int *outSize, cudaStream_t stream)
+void InclusiveScanWrapper(ulong *input, int ele_num)
+{
+	thrust::device_ptr<ulong> dev_ptr(input);
+
+	thrust::inclusive_scan(dev_ptr, dev_ptr + ele_num, dev_ptr);
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size)
 {
 	// Remove Zeros
 	dim3 grid_size(grid_x, grid_y, 1);
 	dim3 block_size(block_x, block_y, 1);
-	ulong *noZeros;
-	int *mark;
-	int sizeNoZeros;
-	int *out;
-	ResBound *tmpResBound;
 
-	checkCudaErrors(cudaMalloc(&inNoZeros, inSize * sizeof(ulong)));
-	checkCudaErrors(cudaMalloc(&mark, (inSize + 1) * sizeof(int)));
+	ulong *mark;
+	ulong size_no_zeros;
+	ResBound *tmp_bound;
+	ulong sum;
 
-	removeZeroesCount<<<grid_size, block_size, 0, stream>>>(in, inSize, mark);
-	prefix_sumWrapper(mark, inSize + 1, &sizeNoZeros, stream);
+	/* Remove zeros elements */
+	ulong *no_zeros;
 
-	checkCudaErrors(cudaMalloc(&noZeros, (sizeNoZeros + 1) * sizeof(ulong)));
-	checkCudaErrors(cudaMalloc(&tmpResBound, sizeNoZeros * sizeof(ResBound)));
-	removeZeroes<<<grid_size, block_size, 0, stream>>>(in, noZeros, inResBound, tmpResBound, mark, inSize);
-	prefix_sumWrapper(noZeros, sizeNoZeros + 1, )
+	checkCudaErrors(cudaMalloc(&mark, (in_size + 1) * sizeof(ulong)));
+
+	MarkNonZeros<<<grid_size, block_size>>>(in, in_size, mark);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	ExclusiveScanWrapper(mark, in_size + 1, &size_no_zeros);
+
+	if (size_no_zeros == 0) {
+		*out_size = 0;
+		checkCudaErrors(cudaFree(mark));
+
+		return;
+	}
+
+	checkCudaErrors(cudaMalloc(&no_zeros, (size_no_zeros + 1) * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&tmp_bound, size_no_zeros * sizeof(ResBound)));
+
+	RemoveZeros<<<grid_size, block_size>>>(in, no_zeros, in_bound, tmp_bound, mark, in_size);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	ExclusiveScanWrapper(no_zeros, size_no_zeros + 1, &sum);
+
+	if (sum == 0) {
+		*out_size = 0;
+		checkCudaErrors(cudaFree(mark));
+		checkCudaErrors(cudaFree(no_zeros));
+		checkCudaErrors(cudaFree(tmp_bound));
+
+		return;
+	}
+
+	ulong *tmp_location, *local_offset;
+
+	checkCudaErrors(cudaMalloc(&tmp_location, sum * sizeof(ulong)));
+	checkCudaErrors(cudaMemset(tmp_location, 0, sizeof(ulong) * sum));
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	MarkTmpLocation<<<grid_size, block_size>>>(tmp_location, no_zeros, size_no_zeros);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	InclusiveScanWrapper(tmp_location, sum);
+
+	checkCudaErrors(cudaMalloc(&local_offset, sum * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(out_bound, sum * sizeof(RESULT)));
+
+	ComputeOffset<<<grid_size, block_size>>>(no_zeros, tmp_location, local_offset, sum);
+	Decompose<<<grid_size, block_size>>>(tmp_bound, *out_bound, tmp_location, local_offset, sum);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	*out_size = sum;
+
+	checkCudaErrors(cudaFree(local_offset));
+	checkCudaErrors(cudaFree(tmp_location));
+	checkCudaErrors(cudaFree(no_zeros));
+	checkCudaErrors(cudaFree(mark));
+
 }
 
 }

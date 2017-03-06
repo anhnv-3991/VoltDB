@@ -489,7 +489,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
 					real_result_size++;
 					//printf("Index of output outer = %d and inner = %d\n", l, r);
-					//join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
+					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;

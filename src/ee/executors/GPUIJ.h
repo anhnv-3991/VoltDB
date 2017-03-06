@@ -66,6 +66,11 @@ private:
 	void setNValue(NValue *nvalue, GNValue &gnvalue);
 	void debugGTrees(const GTreeNode *expression, int size);
 
+	unsigned long timeDiff(struct timeval start, struct timeval end)
+	{
+		return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
+	}
+
 	void GNValueDebug(GNValue &column_data)	{
 		NValue value;
 		long double gtmp = column_data.getMdata();

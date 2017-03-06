@@ -150,27 +150,21 @@ bool GPUIJ::join(){
 	uint gpu_size = 0, part_size = 0;
 	//ulong jr_size = 0, jr_size2 = 0;
 	ulong jr_size, jr_size2;
-	GNValue *outer_dev[2], *inner_dev[2];
-	RESULT *jresult_dev, *write_dev[2];
+	GNValue *outer_dev, *inner_dev;
+	RESULT *jresult_dev, *write_dev;
 	int *indices_dev, *search_exp_size;
 	ulong *index_psum, *exp_psum, *index_psum2, *exp_psum2;
 	ResBound *res_bound;
 	bool *prejoin_res_dev;
 	GTreeNode *initial_dev, *skipNull_dev, *prejoin_dev, *where_dev, *end_dev, *post_dev, *search_exp_dev;
 	uint block_x = 0, block_y = 0, grid_x = 0, grid_y = 0;
-	std::vector<unsigned long> allocation, prejoin, index, expression, ipsum, epsum, wtime, joins_only;
+	std::vector<unsigned long> allocation, prejoin, index, expression, ipsum, epsum, wtime, joins_only, rebalance;
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
 	GNValue *stack;
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
 	int64_t *val_stack;
 	ValueType *type_stack;
 #endif
-
-	cudaStream_t stream[3];
-
-	checkCudaErrors(cudaStreamCreate(&stream[0]));
-	checkCudaErrors(cudaStreamCreate(&stream[1]));
-	checkCudaErrors(cudaStreamCreate(&stream[2]));
 
 	part_size = getPartitionSize();
 	printf("Part size = %u\n", part_size);
@@ -190,16 +184,14 @@ bool GPUIJ::join(){
 	}
 
 	/******** Allocate GPU buffer for table data and counting data *****/
-	//res = cuMemAlloc(&outer_dev, part_size * sizeof(IndexData));
-	checkCudaErrors(cudaMalloc(&outer_dev[0], part_size * outer_cols_ * sizeof(GNValue)));
-	checkCudaErrors(cudaMalloc(&outer_dev[1], part_size * outer_cols_ * sizeof(GNValue)));
-	checkCudaErrors(cudaMalloc(&inner_dev[0], part_size * inner_cols_ * sizeof(GNValue)));
-	checkCudaErrors(cudaMalloc(&inner_dev[1], part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue)));
 	checkCudaErrors(cudaMalloc(&prejoin_res_dev, part_size * sizeof(bool)));
 	checkCudaErrors(cudaMalloc(&index_psum, gpu_size * sizeof(ulong)));
+#ifndef DECOMPOSED_
 	checkCudaErrors(cudaMalloc(&exp_psum, gpu_size * sizeof(ulong)));
+#endif
 	checkCudaErrors(cudaMalloc(&res_bound, gpu_size * sizeof(ResBound)));
-	//cudaMemset(&count_dev, 0, gpu_size * sizeof(ulong));
 
 	/******* Allocate GPU buffer for join condition *********/
 
@@ -259,52 +251,47 @@ bool GPUIJ::join(){
 #endif
 #endif
 
-	checkCudaErrors(cudaHostRegister(outer_table_, outer_size_ * outer_cols_ * sizeof(GNValue), cudaHostRegisterDefault));
-	checkCudaErrors(cudaHostRegister(inner_table_, inner_size_ * inner_cols_ * sizeof(GNValue), cudaHostRegisterDefault));
-
 	int stream_idx = 0;
-	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
-	bool jresult_flag = false, write_flag[2];
+	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join, balance_start, balance_end;
 
-	write_flag[0] = write_flag[1] = false;
 	int init_outer_size = (part_size < outer_size_) ? part_size : outer_size_;
 	int init_inner_size = (part_size < inner_size_) ? part_size : inner_size_;
 
 	bool registered = false;
-	checkCudaErrors(cudaMemcpy(outer_dev[0], outer_table_, init_outer_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(inner_dev[0], inner_table_, init_inner_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, init_outer_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, init_inner_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 	int old_result_size = 0;
 
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
-	for (uint outer_idx = 0, i = 0, j = 0; outer_idx < outer_size_; outer_idx += part_size, i = 1 - i) {
+	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
 		//Size of outer small table
 		uint outer_part_size = (outer_idx + part_size < outer_size_) ? part_size : (outer_size_ - outer_idx);
 
 		block_x = (outer_part_size < BLOCK_SIZE_X) ? outer_part_size : BLOCK_SIZE_X;
 		grid_x = divUtility(outer_part_size, block_x);
 
-		if (outer_idx + part_size < outer_size_) {
-			uint outer_copy_size = (outer_idx + part_size + part_size < outer_size_) ? part_size : (outer_size_ - outer_idx - part_size);
-			checkCudaErrors(cudaMemcpyAsync(outer_dev[1 - i], outer_table_ + (outer_idx + part_size) * outer_cols_, outer_copy_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice, stream[0]));
-		}
+		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 
 		/* Evaluate prejoin predicate */
 		gettimeofday(&pre_start, NULL);
-		prejoin_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev[i], outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev,
+		PrejoinFilterWrapper(grid_x, grid_y,
+								block_x, block_y,
+								outer_dev, outer_part_size, outer_cols_,
+								prejoin_dev, prejoin_size_, prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-				stack,
+								, stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-				val_stack,
-				type_stack,
+								, val_stack
+								,type_stack
 #endif
-				stream[1]
-				);
+								);
 		gettimeofday(&pre_end, NULL);
-		prejoin.push_back((pre_end.tv_sec - pre_start.tv_sec) * 1000000 + (pre_end.tv_usec - pre_start.tv_usec));
+		prejoin.push_back(timeDiff(pre_start, pre_end));
 
+		joins_only.push_back(timeDiff(pre_start, pre_end));
 
 		loop_count++;
-		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size, j = 1 - j) {
+		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size) {
 			//Size of inner small table
 			uint inner_part_size = (inner_idx + part_size < inner_size_) ? part_size : (inner_size_ - inner_idx);
 
@@ -313,38 +300,41 @@ bool GPUIJ::join(){
 			block_y = 1;
 			gpu_size = block_x * block_y * grid_x * grid_y + 1;
 
-			//printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
-			loop_count2++;
 			/**** Copy IndexData to GPU memory ****/
-			if (inner_idx + part_size < inner_size_) {
-				uint inner_copy_size = (inner_idx + part_size + part_size < inner_size_) ? part_size : (inner_size_ - inner_idx - part_size);
-				checkCudaErrors(cudaMemcpyAsync(inner_dev[1 - j], inner_table_ + (inner_idx + part_size) * inner_cols_, inner_copy_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice, stream[0]));
-			} else {
-				uint inner_copy_size = (part_size < inner_size_) ? part_size : (inner_size_ - part_size);
-				checkCudaErrors(cudaMemcpyAsync(inner_dev[1 - j], inner_table_, inner_copy_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice, stream[0]));
-			}
+			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 
 			/* Binary search for index */
 			gettimeofday(&istart, NULL);
-			index_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev[i], inner_dev[j], index_psum, res_bound, outer_part_size, outer_cols_, inner_part_size, inner_cols_,
-								search_exp_dev, search_exp_size, search_exp_num_, indices_dev, indices_size_, lookup_type_, prejoin_res_dev,
+			IndexFilterWrapper(grid_x, grid_y,
+								block_x, block_y,
+								outer_dev, inner_dev,
+								index_psum,
+								res_bound,
+								outer_part_size, outer_cols_,
+								inner_part_size, inner_cols_,
+								search_exp_dev, search_exp_size, search_exp_num_,
+								indices_dev, indices_size_,
+								lookup_type_,
+								prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-								stack,
+								, stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-								val_stack,
-								type_stack,
+								, val_stack
+								, type_stack
 #endif
-								stream[1]
 								);
-			gettimeofday(&iend, NULL);
 
+			gettimeofday(&iend, NULL);
+			index.push_back(timeDiff(istart, iend));
+
+#ifndef DECOMPOSED_
 			/* Prefix sum on the result */
 			gettimeofday(&pistart, NULL);
-			prefix_sumWrapper(index_psum, gpu_size, &jr_size, stream[1]);
+			ExclusiveScanWrapper(index_psum, gpu_size, &jr_size);
 			gettimeofday(&piend, NULL);
 
-			index.push_back((iend.tv_sec - istart.tv_sec) * 1000000 + (iend.tv_usec - istart.tv_usec));
-			ipsum.push_back((piend.tv_sec - pistart.tv_sec) * 1000000 + (piend.tv_usec - pistart.tv_usec));
+
+			ipsum.push_back(timeDiff(pistart, piend));
 
 			if (jr_size < 0) {
 				printf("Scanning failed\n");
@@ -353,94 +343,132 @@ bool GPUIJ::join(){
 
 			if (jr_size == 0) {
 				gettimeofday(&end_join, NULL);
-				joins_only.push_back((end_join.tv_sec - istart.tv_sec) * 1000000 + (end_join.tv_usec - istart.tv_usec));
+				joins_only.push_back(timeDiff(istart, end_join));
 				continue;
 			}
 
-			//printf("jr_size = %lu\n", jr_size);
-			if (jresult_flag) {
-				checkCudaErrors(cudaFree(jresult_dev));
-				jresult_flag = false;
-			}
 			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
-			jresult_flag = true;
 
 			gettimeofday(&estart, NULL);
-			exp_filterWrapper(grid_x, grid_y, block_x, block_y, outer_dev[i], inner_dev[j], jresult_dev, index_psum, exp_psum,
-								outer_part_size, outer_cols_, inner_cols_, jr_size, end_dev, end_size_, post_dev, post_size_,
-								where_dev, where_size_, res_bound, outer_idx, inner_idx, prejoin_res_dev,
+			ExpressionFilterWrapper(grid_x, grid_y,
+									block_x, block_y,
+									outer_dev[i], inner_dev[j],
+									jresult_dev,
+									index_psum, exp_psum,
+									outer_part_size,
+									outer_cols_, inner_cols_,
+									jr_size,
+									end_dev, end_size_,
+									post_dev, post_size_,
+									where_dev, where_size_,
+									res_bound,
+									outer_idx, inner_idx,
+									prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-								stack,
+									, stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-								val_stack,
-								type_stack,
+									, val_stack
+									, type_stack
 #endif
-								stream[1]
-								);
+									);
 			gettimeofday(&eend, NULL);
 
 
 			gettimeofday(&pestart, NULL);
-			prefix_sumWrapper(exp_psum, gpu_size, &jr_size2, stream[1]);
+			ExclusiveScanWrapper(exp_psum, gpu_size, &jr_size2);
 			gettimeofday(&peend, NULL);
 
-			//printf("jr_SIZEEEEEEEEEEEEEEEEEEEE2 = %lu\n", jr_size2);
-			expression.push_back((eend.tv_sec - estart.tv_sec) * 1000000 + (eend.tv_usec - estart.tv_usec));
-			epsum.push_back((peend.tv_sec - pestart.tv_sec) * 1000000 + (peend.tv_usec - pestart.tv_usec));
+			expression.push_back(timeDiff(estart, eend));
+			epsum.push_back(timeDiff(pestart, peend));
 
-			gettimeofday(&wstart, NULL);
-
-			checkCudaErrors(cudaStreamSynchronize(stream[1]));
 			if (jr_size2 == 0) {
-				//printf("Empty2\n");
-				//checkCudaErrors(cudaFree(jresult_dev));
-				//write_flag = false;
+				checkCudaErrors(cudaFree(jresult_dev));
 				continue;
 			}
 
-			if (write_flag[j]) {
-				checkCudaErrors(cudaFree(write_dev[j]));
-				write_flag[j] = false;
-			}
-			checkCudaErrors(cudaMalloc(&write_dev[j], jr_size2 * sizeof(RESULT)));
-			write_flag[j] = true;
+			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
 
-			write_outWrapper(grid_x, grid_y, block_x, block_y, write_dev[j], jresult_dev, index_psum, exp_psum, outer_part_size, jr_size2, jr_size, stream[1]);
-			checkCudaErrors(cudaStreamSynchronize(stream[1]));
-			checkCudaErrors(cudaStreamSynchronize(stream[2]));
+			gettimeofday(&wstart, NULL);
+			RemoveEmptyResultWrapper(grid_x, grid_y, block_x, block_y, write_dev, jresult_dev, index_psum, exp_psum, outer_part_size, jr_size2, jr_size);
+			gettimeofday(&wend, NULL);
+#else
+			RESULT *tmp_result;
+			ulong tmp_size = 0;
 
-			if (registered) {
-				checkCudaErrors(cudaHostUnregister(join_result_ + result_size_ - old_result_size));
-				registered = false;
+			gettimeofday(&balance_start, NULL);
+			Rebalance(grid_x, grid_y, block_x, block_y, index_psum, res_bound, &tmp_result, gpu_size, &tmp_size);
+			gettimeofday(&balance_end, NULL);
+
+			rebalance.push_back(timeDiff(balance_start, balance_end));
+
+			if (tmp_size == 0) {
+				gettimeofday(&end_join, NULL);
+				joins_only.push_back(timeDiff(istart, end_join));
+				continue;
 			}
-			old_result_size = jr_size2;
+
+			checkCudaErrors(cudaMalloc(&jresult_dev, tmp_size * sizeof(RESULT)));
+			checkCudaErrors(cudaMalloc(&exp_psum, (tmp_size + 1) * sizeof(ulong)));
+
+			gettimeofday(&estart, NULL);
+			ExpressionFilterWrapper2(grid_x, grid_y,
+										block_x, block_y,
+										outer_dev, inner_dev,
+										tmp_result, jresult_dev,
+										exp_psum, tmp_size,
+										outer_cols_, inner_cols_,
+										end_dev, end_size_,
+										post_dev, post_size_,
+										where_dev, where_size_,
+										outer_idx, inner_idx
+#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+										, stack
+#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+										, val_stack, type_stack
+#endif
+										);
+			gettimeofday(&eend, NULL);
+
+			expression.push_back(timeDiff(estart, eend));
+
+			gettimeofday(&pestart, NULL);
+			ExclusiveScanWrapper(exp_psum, tmp_size + 1, &jr_size2);
+			gettimeofday(&peend, NULL);
+
+			epsum.push_back(timeDiff(pestart, peend));
+
+			checkCudaErrors(cudaFree(tmp_result));
+			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
+
+			gettimeofday(&wstart, NULL);
+			RemoveEmptyResultWrapper2(grid_x, grid_y, block_x, block_y, write_dev, jresult_dev, exp_psum, tmp_size);
+			gettimeofday(&wend, NULL);
+#endif
+
+			wtime.push_back(timeDiff(wstart, wend));
+
 			join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size2) * sizeof(RESULT));
-			checkCudaErrors(cudaHostRegister(join_result_ + result_size_, jr_size2 * sizeof(RESULT), cudaHostRegisterDefault));
-			registered = true;
 
 			gettimeofday(&end_join, NULL);
 
-			checkCudaErrors(cudaMemcpyAsync(join_result_ + result_size_, write_dev[j], jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost, stream[2]));
-
-
+			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, write_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
 
 			result_size_ += jr_size2;
 			jr_size = 0;
 			jr_size2 = 0;
-//			gettimeofday(&wend, NULL);
-//			wtime.push_back((wend.tv_sec - wstart.tv_sec) * 1000000 + (wend.tv_usec - wstart.tv_usec));
-//
-//			joins_only.push_back((end_join.tv_sec - pre_start.tv_sec) * 1000000 + (end_join.tv_usec - pre_start.tv_usec));
+
+			joins_only.push_back(timeDiff(istart, end_join));
+
+			checkCudaErrors(cudaFree(jresult_dev));
+			checkCudaErrors(cudaFree(write_dev));
 		}
 	}
 
 
 	checkCudaErrors(cudaDeviceSynchronize());
 	/******** Free GPU memory, unload module, end session **************/
-	checkCudaErrors(cudaFree(outer_dev[0]));
-	checkCudaErrors(cudaFree(outer_dev[1]));
-	checkCudaErrors(cudaFree(inner_dev[0]));
-	checkCudaErrors(cudaFree(inner_dev[1]));
+	checkCudaErrors(cudaFree(outer_dev));
+	checkCudaErrors(cudaFree(inner_dev));
 	checkCudaErrors(cudaFree(search_exp_dev));
 	checkCudaErrors(cudaFree(search_exp_size));
 	checkCudaErrors(cudaFree(indices_dev));
@@ -448,14 +476,6 @@ bool GPUIJ::join(){
 	checkCudaErrors(cudaFree(exp_psum));
 	checkCudaErrors(cudaFree(res_bound));
 	checkCudaErrors(cudaFree(prejoin_res_dev));
-	checkCudaErrors(cudaStreamDestroy(stream[0]));
-	checkCudaErrors(cudaStreamDestroy(stream[1]));
-	checkCudaErrors(cudaStreamDestroy(stream[2]));
-	checkCudaErrors(cudaFree(jresult_dev));
-	if (write_flag[0])
-		checkCudaErrors(cudaFree(write_dev[0]));
-	if (write_flag[1])
-		checkCudaErrors(cudaFree(write_dev[1]));
 
 	if (initial_size_ > 0)
 		checkCudaErrors(cudaFree(initial_dev));
@@ -481,11 +501,6 @@ bool GPUIJ::join(){
 	checkCudaErrors(cudaFree(val_stack));
 	checkCudaErrors(cudaFree(type_stack));
 #endif
-
-	checkCudaErrors(cudaHostUnregister(outer_table_));
-	checkCudaErrors(cudaHostUnregister(inner_table_));
-	if (registered)
-		checkCudaErrors(cudaHostUnregister(join_result_ + result_size_ - old_result_size));
 
 	gettimeofday(&all_end, NULL);
 
@@ -514,6 +529,14 @@ bool GPUIJ::join(){
 		wtime_time += wtime[i];
 	}
 
+#ifdef DECOMPOSED_
+	unsigned long rebalance_cost = 0;
+	for (int i = 0; i < rebalance.size(); i++) {
+		rebalance_cost += rebalance[i];
+	}
+#endif
+
+
 	for (int i = 0; i < joins_only.size(); i++) {
 		joins_only_time += joins_only[i];
 	}
@@ -525,16 +548,25 @@ bool GPUIJ::join(){
 			"Allocation & data movement time: %lu\n"
 			"Prejoin filter Time: %lu\n"
 			"Index Search Time: %lu\n"
+#ifndef DECOMPOSED_
 			"Index Prefix Sum Time: %lu\n"
+#else
+			"Rebalance Cost: %lu\n"
+#endif
 			"Expression filter Time: %lu\n"
 			"Expression Prefix Sum Time: %lu\n"
 			"Write back time Time: %lu\n"
 			"Joins Only Time: %lu\n"
 			"Total join time: %lu\n"
 			"*******************************\n",
-			allocation_time, prejoin_time, index_time, ipsum_time, expression_time, epsum_time, wtime_time, joins_only_time, all_time);
-	printf("End of join\n");
-	cudaDeviceReset();
+			allocation_time, prejoin_time, index_time,
+#ifndef DECOMPOSED_
+			ipsum_time,
+#else
+			rebalance_cost,
+#endif
+			expression_time, epsum_time, wtime_time, joins_only_time, all_time);
+
 	return true;
 }
 

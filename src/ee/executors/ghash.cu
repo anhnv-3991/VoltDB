@@ -2056,4 +2056,76 @@ void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum)
 
 	*sum = *(dev_ptr + ele_num - 1);
 }
+
+void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size)
+{
+	// Remove Zeros
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, block_y, 1);
+
+	ulong *mark;
+	ulong size_no_zeros;
+	ResBound *tmp_bound;
+	ulong sum;
+
+	/* Remove zeros elements */
+	ulong *no_zeros;
+
+	checkCudaErrors(cudaMalloc(&mark, (in_size + 1) * sizeof(ulong)));
+
+	MarkNonZeros<<<grid_size, block_size>>>(in, in_size, mark);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	ExclusiveScanWrapper(mark, in_size + 1, &size_no_zeros);
+
+	if (size_no_zeros == 0) {
+		*out_size = 0;
+		checkCudaErrors(cudaFree(mark));
+
+		return;
+	}
+
+	checkCudaErrors(cudaMalloc(&no_zeros, (size_no_zeros + 1) * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&tmp_bound, size_no_zeros * sizeof(ResBound)));
+
+	RemoveZeros<<<grid_size, block_size>>>(in, no_zeros, in_bound, tmp_bound, mark, in_size);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	ExclusiveScanWrapper(no_zeros, size_no_zeros + 1, &sum);
+
+	if (sum == 0) {
+		*out_size = 0;
+		checkCudaErrors(cudaFree(mark));
+		checkCudaErrors(cudaFree(no_zeros));
+		checkCudaErrors(cudaFree(tmp_bound));
+
+		return;
+	}
+
+	ulong *tmp_location, *local_offset;
+
+	checkCudaErrors(cudaMalloc(&tmp_location, sum * sizeof(ulong)));
+	checkCudaErrors(cudaMemset(tmp_location, 0, sizeof(ulong) * sum));
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	MarkTmpLocation<<<grid_size, block_size>>>(tmp_location, no_zeros, size_no_zeros);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	InclusiveScanWrapper(tmp_location, sum);
+
+	checkCudaErrors(cudaMalloc(&local_offset, sum * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(out_bound, sum * sizeof(RESULT)));
+
+	ComputeOffset<<<grid_size, block_size>>>(no_zeros, tmp_location, local_offset, sum);
+	Decompose<<<grid_size, block_size>>>(tmp_bound, *out_bound, tmp_location, local_offset, sum);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	*out_size = sum;
+
+	checkCudaErrors(cudaFree(local_offset));
+	checkCudaErrors(cudaFree(tmp_location));
+	checkCudaErrors(cudaFree(no_zeros));
+	checkCudaErrors(cudaFree(mark));
+
+}
 }

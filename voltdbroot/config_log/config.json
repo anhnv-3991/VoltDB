@@ -3,6 +3,6 @@
         "format": "'.'yyyy-MM-dd",
         "path": "/home/anh/work/anh/VoltDB/log/volt.log"
     }],
-    "pid": 24185,
+    "pid": 24294,
     "workingDir": "/home/anh/work/anh/VoltDB"
 }

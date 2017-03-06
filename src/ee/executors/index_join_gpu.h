@@ -24,91 +24,98 @@
 namespace voltdb {
 
 extern "C" {
-void prejoin_filterWrapper(int grid_x, int grid_y,
+void PrejoinFilterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
 							GNValue *outer_dev,
 							uint outer_part_size,
 							uint outer_cols,
 							GTreeNode *prejoin_dev,
 							uint prejoin_size,
-							bool *result,
+							bool *result
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							GNValue *stack,
+							, GNValue *stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							int64_t *val_stack,
-							ValueType *type_stack,
+							, int64_t *val_stack
+							, ValueType *type_stack
 #endif
-							cudaStream_t stream
 							);
 
-void index_filterWrapper(int grid_x, int grid_y,
+void IndexFilterWrapper(int grid_x, int grid_y,
 							int block_x, int block_y,
-							GNValue *outer_dev,
-							GNValue *inner_dev,
+							GNValue *outer_dev, GNValue *inner_dev,
 							ulong *index_psum,
 							ResBound *res_bound,
-							uint outer_part_size,
-							uint outer_cols,
-							uint inner_part_size,
-							uint inner_cols,
+							uint outer_part_size, uint outer_cols,
+							uint inner_part_size, uint inner_cols,
 							GTreeNode *search_exp_dev,
-							int *search_exp_size,
-							int search_exp_num,
-							int *key_indices,
-							int key_index_size,
+							int *search_exp_size, int search_exp_num,
+							int *key_indices, int key_index_size,
 							IndexLookupType lookup_type,
-							bool *prejoin_res_dev,
+							bool *prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							GNValue *stack,
+							, GNValue *stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							int64_t *val_stack,
-							ValueType *type_stack,
+							, int64_t *val_stack
+							, ValueType *type_stack
 #endif
-							cudaStream_t stream
 							);
 
-void exp_filterWrapper(int grid_x, int grid_y,
-						int block_x, int block_y,
-						GNValue *outer_dev,
-						GNValue *inner_dev,
-						RESULT *result_dev,
-						ulong *index_psum,
-						ulong *exp_psum,
-						uint outer_part_size,
-						uint outer_cols,
-						uint inner_cols,
-						uint jr_size,
-						GTreeNode *end_dev,
-						int end_size,
-						GTreeNode *post_dev,
-						int post_size,
-						GTreeNode *where_dev,
-						int where_size,
-						ResBound *res_bound,
-						int outer_base_idx,
-						int inner_base_idx,
-						bool *prejoin_res_dev,
+void ExpressionFilterWrapper(int grid_x, int grid_y,
+								int block_x, int block_y,
+								GNValue *outer_dev, GNValue *inner_dev,
+								RESULT *result_dev,
+								ulong *index_psum,
+								ulong *exp_psum,
+								uint outer_part_size,
+								uint outer_cols, uint inner_cols,
+								uint jr_size,
+								GTreeNode *end_dev, int end_size,
+								GTreeNode *post_dev, int post_size,
+								GTreeNode *where_dev, int where_size,
+								ResBound *res_bound,
+								int outer_base_idx, int inner_base_idx,
+								bool *prejoin_res_dev
 #if (defined(POST_EXP_) && defined(FUNC_CALL_))
-						GNValue *stack,
+								, GNValue *stack
 #elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-						int64_t *val_stack,
-						ValueType *type_stack,
+								, int64_t *val_stack
+								, ValueType *type_stack
 #endif
-						cudaStream_t stream
 						);
 
-void write_outWrapper(int grid_x, int grid_y,
-						int block_x, int block_y,
-						RESULT *out,
-						RESULT *in,
-						ulong *count_dev,
-						ulong *count_dev2,
-						uint outer_part_size,
-						uint out_size,
-						uint in_size,
-						cudaStream_t stream);
+void ExpressionFilterWrapper2(int grid_x, int grid_y,
+								int block_x, int block_y,
+								GNValue *outer_dev, GNValue *inner_dev,
+								RESULT *in_index, RESULT *out_index,
+								ulong *exp_psum, int size,
+								uint outer_cols, uint inner_cols,
+								GTreeNode *end_dev, int end_size,
+								GTreeNode *post_dev, int post_size,
+								GTreeNode *where_dev, int where_size,
+								int outer_base_idx, int inner_base_idx
+	#if (defined(POST_EXP_) && defined(FUNC_CALL_))
+								, GNValue *stack
+	#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
+								, int64_t *val_stack, ValueType *type_stack
+	#endif
+								);
 
-void prefix_sumWrapper(ulong *input, int ele_num, ulong *sum, cudaStream_t stream);
+void RemoveEmptyResultWrapper(int grid_x, int grid_y,
+								int block_x, int block_y,
+								RESULT *out,
+								RESULT *in,
+								ulong *count_dev,
+								ulong *count_dev2,
+								uint outer_part_size,
+								uint out_size,
+								uint in_size
+								);
+
+void RemoveEmptyResultWrapper2(int grid_x, int grid_y, int block_x, int block_y, RESULT *out, RESULT *in, ulong *location, int size);
+void ExclusiveScanWrapper(ulong *input, int ele_num, ulong *sum);
+void InclusiveScanWrapper(ulong *input, int ele_num);
+void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
+
 }
 }
 #endif
