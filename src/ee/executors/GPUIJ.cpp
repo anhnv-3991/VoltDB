@@ -14,6 +14,7 @@
 #include "GPUIJ.h"
 #include "scan_common.h"
 #include "index_join_gpu.h"
+#include "gcommon/gpu_common.h"
 
 namespace voltdb {
 
@@ -150,21 +151,30 @@ bool GPUIJ::join(){
 	uint gpu_size = 0, part_size = 0;
 	//ulong jr_size = 0, jr_size2 = 0;
 	ulong jr_size, jr_size2;
+	int *indices_dev, *search_exp_size;
+	GTreeNode *initial_dev, *skipNull_dev, *prejoin_dev, *where_dev, *end_dev, *post_dev, *search_exp_dev;
+
+#ifdef ASYNC_
+	GNValue *outer_dev[2], *inner_dev[2];
+	RESULT *jresult_dev[2], *write_dev[2];
+	jresult_dev[0] = jresult_dev[1] = NULL;
+	write_dev[0] = write_dev[1] = NULL;
+	ulong *index_psum[2], *exp_psum[2];
+	index_psum[0] = index_psum[1] = NULL;
+	exp_psum[0] = exp_psum[1] = NULL;
+	ResBound *res_bound[2];
+	bool *prejoin_res_dev[2];
+#else
 	GNValue *outer_dev, *inner_dev;
 	RESULT *jresult_dev, *write_dev;
-	int *indices_dev, *search_exp_size;
-	ulong *index_psum, *exp_psum, *index_psum2, *exp_psum2;
+	jresult_dev = write_dev = NULL;
+	ulong *index_psum, *exp_psum;
 	ResBound *res_bound;
 	bool *prejoin_res_dev;
-	GTreeNode *initial_dev, *skipNull_dev, *prejoin_dev, *where_dev, *end_dev, *post_dev, *search_exp_dev;
+#endif
+
 	uint block_x = 0, block_y = 0, grid_x = 0, grid_y = 0;
 	std::vector<unsigned long> allocation, prejoin, index, expression, ipsum, epsum, wtime, joins_only, rebalance;
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-	GNValue *stack;
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-	int64_t *val_stack;
-	ValueType *type_stack;
-#endif
 
 	part_size = getPartitionSize();
 	printf("Part size = %u\n", part_size);
@@ -184,14 +194,40 @@ bool GPUIJ::join(){
 	}
 
 	/******** Allocate GPU buffer for table data and counting data *****/
-	checkCudaErrors(cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue)));
-	checkCudaErrors(cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue)));
+
+#ifdef ASYNC_
+	checkCudaErrors(cudaMalloc(&prejoin_res_dev[0], part_size * sizeof(bool)));
+	checkCudaErrors(cudaMalloc(&prejoin_res_dev[1], part_size * sizeof(bool)));
+	checkCudaErrors(cudaMalloc(&outer_dev[0], part_size * outer_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&outer_dev[1], part_size * outer_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&inner_dev[0], part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&inner_dev[1], part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&index_psum[0], gpu_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&index_psum[1], gpu_size * sizeof(ulong)));
+
+#ifndef DECOMPOSED1_
+	checkCudaErrors(cudaMalloc(&exp_psum[0], gpu_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&exp_psum[1], gpu_size * sizeof(ulong)));
+#endif
+	checkCudaErrors(cudaMalloc(&res_bound[0], gpu_size * sizeof(ResBound)));
+	checkCudaErrors(cudaMalloc(&res_bound[1], gpu_size * sizeof(ResBound)));
+
+#else
+	//checkCudaErrors(cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue)));
+	//checkCudaErrors(cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_cols_ * outer_rows_));
+	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_cols_ * inner_rows_));
 	checkCudaErrors(cudaMalloc(&prejoin_res_dev, part_size * sizeof(bool)));
 	checkCudaErrors(cudaMalloc(&index_psum, gpu_size * sizeof(ulong)));
-#ifndef DECOMPOSED_
+
+#ifndef DECOMPOSED1_
 	checkCudaErrors(cudaMalloc(&exp_psum, gpu_size * sizeof(ulong)));
 #endif
 	checkCudaErrors(cudaMalloc(&res_bound, gpu_size * sizeof(ResBound)));
+#endif
+
+
+
 
 	/******* Allocate GPU buffer for join condition *********/
 
@@ -242,95 +278,116 @@ bool GPUIJ::join(){
 
 	printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
 
-#ifdef POST_EXP_
-#ifdef FUNC_CALL_
-	checkCudaErrors(cudaMalloc(&stack, block_x * grid_x * sizeof(GNValue) * MAX_STACK_SIZE));
-#else
-	checkCudaErrors(cudaMalloc(&val_stack, block_x * grid_x * sizeof(int64_t) * MAX_STACK_SIZE));
-	checkCudaErrors(cudaMalloc(&type_stack, block_x * grid_x * sizeof(ValueType) * MAX_STACK_SIZE));
-#endif
-#endif
-
 	int stream_idx = 0;
 	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join, balance_start, balance_end;
 
 	int init_outer_size = (part_size < outer_size_) ? part_size : outer_size_;
 	int init_inner_size = (part_size < inner_size_) ? part_size : inner_size_;
 
-	bool registered = false;
-	checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, init_outer_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, init_inner_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
+#ifdef ASYNC_
+	cudaStream_t stream[2];
+
+	checkCudaErrors(cudaStreamCreate(&stream[0]));
+	checkCudaErrors(cudaStreamCreate(&stream[1]));
+#endif
+
+	uint outer_part_size = 0, inner_part_size = 0;
+	uint outer_idx, inner_idx;
+	uint outer_dev_idx, inner_dev_idx;
 	int old_result_size = 0;
+	RESULT *old_result = NULL;
+	GNValue *old_outer = NULL, *old_inner = NULL;
+
+#ifdef ASYNC_
+	checkCudaErrors(cudaHostRegister(outer_table_, sizeof(GNValue) * outer_cols_ * outer_rows_, cudaHostRegisterDefault));
+	checkCudaErrors(cudaHostRegister(inner_table_, sizeof(GNValue) * inner_cols_ * inner_rows_, cudaHostRegisterDefault));
+#endif
+
+	//checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_cols_ * outer_rows_, cudaMemcpyHostToDevice));
+	//checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_cols_ * inner_rows_, cudaMemcpyHostToDevice));
 
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
-	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
+	for (outer_idx = 0, outer_dev_idx = 0, stream_idx = 0; outer_idx < outer_size_; outer_idx += part_size, stream_idx = 1 - stream_idx, outer_dev_idx = 1 - outer_dev_idx) {
 		//Size of outer small table
-		uint outer_part_size = (outer_idx + part_size < outer_size_) ? part_size : (outer_size_ - outer_idx);
-
-		block_x = (outer_part_size < BLOCK_SIZE_X) ? outer_part_size : BLOCK_SIZE_X;
-		grid_x = divUtility(outer_part_size, block_x);
-
+		uint old_outer_size = outer_part_size;
+		outer_part_size = (outer_idx + part_size < outer_size_) ? part_size : (outer_size_ - outer_idx);
+#ifdef ASYNC_
+//		if (old_outer != NULL) {
+//			checkCudaErrors(cudaHostUnregister(old_outer));
+//			old_outer = NULL;
+//		}
+//		checkCudaErrors(cudaHostRegister(outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaHostRegisterDefault));
+//		old_outer = outer_table_ + outer_idx * outer_cols_;
+		checkCudaErrors(cudaMemcpyAsync(outer_dev[outer_dev_idx], outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice, stream[stream_idx]));
+#else
 		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
+#endif
 
 		/* Evaluate prejoin predicate */
 		gettimeofday(&pre_start, NULL);
-		PrejoinFilterWrapper(grid_x, grid_y,
-								block_x, block_y,
-								outer_dev, outer_part_size, outer_cols_,
-								prejoin_dev, prejoin_size_, prejoin_res_dev
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-								, stack
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-								, val_stack
-								,type_stack
+#ifdef ASYNC_
+		PrejoinFilterAsyncWrapper(outer_dev[outer_dev_idx], outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev[outer_dev_idx], stream[stream_idx]);
+#else
+		//PrejoinFilterWrapper(outer_dev, outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev);
+		PrejoinFilterWrapper(outer_dev + outer_idx * outer_cols_, outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev);
 #endif
-								);
 		gettimeofday(&pre_end, NULL);
 		prejoin.push_back(timeDiff(pre_start, pre_end));
 
 		joins_only.push_back(timeDiff(pre_start, pre_end));
 
-		loop_count++;
-		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size) {
+		for (inner_idx = 0, inner_dev_idx = 0; inner_idx < inner_size_; inner_idx += part_size, inner_dev_idx = 1 - inner_dev_idx) {
 			//Size of inner small table
-			uint inner_part_size = (inner_idx + part_size < inner_size_) ? part_size : (inner_size_ - inner_idx);
+			uint old_inner_size = inner_part_size;
 
-			block_y = (inner_part_size < BLOCK_SIZE_Y) ? inner_part_size : BLOCK_SIZE_Y;
-			grid_y = divUtility(inner_part_size, block_y);
-			block_y = 1;
-			gpu_size = block_x * block_y * grid_x * grid_y + 1;
+			inner_part_size = (inner_idx + part_size < inner_size_) ? part_size : (inner_size_ - inner_idx);
 
+			gpu_size = outer_part_size + 1;
 			/**** Copy IndexData to GPU memory ****/
+#ifdef ASYNC_
+//			if (old_inner != NULL) {
+//				checkCudaErrors(cudaHostUnregister(old_inner));
+//				old_inner = NULL;
+//			}
+//			checkCudaErrors(cudaHostRegister(inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaHostRegisterDefault));
+//			old_inner = inner_table_ + inner_idx * inner_cols_;
+			checkCudaErrors(cudaMemcpyAsync(inner_dev[inner_dev_idx], inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice, stream[stream_idx]));
+#else
 			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
+#endif
 
 			/* Binary search for index */
 			gettimeofday(&istart, NULL);
-			IndexFilterWrapper(grid_x, grid_y,
-								block_x, block_y,
-								outer_dev, inner_dev,
-								index_psum,
-								res_bound,
+#ifdef ASYNC_
+			IndexFilterAsyncWrapper(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+									index_psum[stream_idx], res_bound[stream_idx],
+									outer_part_size, outer_cols_,
+									inner_part_size, inner_cols_,
+									search_exp_dev, search_exp_size, search_exp_num_,
+									indices_dev, indices_size_,
+									lookup_type_, prejoin_res_dev[outer_dev_idx], stream[stream_idx]);
+#else
+			//IndexFilterWrapper(outer_dev + outer_idx * outer_cols_, inner_dev + inner_idx * inner_cols_,
+			IndexFilterWrapper(outer_dev, inner_dev,
+								index_psum, res_bound,
 								outer_part_size, outer_cols_,
 								inner_part_size, inner_cols_,
 								search_exp_dev, search_exp_size, search_exp_num_,
 								indices_dev, indices_size_,
-								lookup_type_,
-								prejoin_res_dev
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-								, stack
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-								, val_stack
-								, type_stack
+								lookup_type_, prejoin_res_dev);
 #endif
-								);
 
 			gettimeofday(&iend, NULL);
 			index.push_back(timeDiff(istart, iend));
 
-#ifndef DECOMPOSED_
+#if !defined(DECOMPOSED1_) && !defined(DECOMPOSED2_)
 			/* Prefix sum on the result */
 			gettimeofday(&pistart, NULL);
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(index_psum[stream_idx], gpu_size, &jr_size, stream[stream_idx]);
+#else
 			ExclusiveScanWrapper(index_psum, gpu_size, &jr_size);
+#endif
 			gettimeofday(&piend, NULL);
 
 
@@ -347,14 +404,28 @@ bool GPUIJ::join(){
 				continue;
 			}
 
+#ifdef ASYNC_
+			checkCudaErrors(cudaMalloc(&jresult_dev[stream_idx], jr_size * sizeof(RESULT)));
+#else
 			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
+#endif
 
 			gettimeofday(&estart, NULL);
-			ExpressionFilterWrapper(grid_x, grid_y,
-									block_x, block_y,
-									outer_dev[i], inner_dev[j],
-									jresult_dev,
-									index_psum, exp_psum,
+#ifdef ASYNC_
+			ExpressionFilterAsyncWrapper(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+											jresult_dev[stream_idx], index_psum[stream_idx], exp_psum[stream_idx],
+											outer_part_size,
+											outer_cols_, inner_cols_,
+											jr_size,
+											end_dev, end_size_,
+											post_dev, post_size_,
+											where_dev, where_size_,
+											res_bound[stream_idx],
+											outer_idx, inner_idx,
+											prejoin_res_dev, stream[stream_idx]);
+#else
+			ExpressionFilterWrapper(outer_dev, inner_dev,
+									jresult_dev, index_psum, exp_psum,
 									outer_part_size,
 									outer_cols_, inner_cols_,
 									jr_size,
@@ -363,19 +434,17 @@ bool GPUIJ::join(){
 									where_dev, where_size_,
 									res_bound,
 									outer_idx, inner_idx,
-									prejoin_res_dev
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-									, stack
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-									, val_stack
-									, type_stack
+									prejoin_res_dev);
 #endif
-									);
 			gettimeofday(&eend, NULL);
 
 
 			gettimeofday(&pestart, NULL);
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(exp_psum[stream_idx], gpu_size, &jr_size2, stream[stream_idx]);
+#else
 			ExclusiveScanWrapper(exp_psum, gpu_size, &jr_size2);
+#endif
 			gettimeofday(&peend, NULL);
 
 			expression.push_back(timeDiff(estart, eend));
@@ -386,17 +455,29 @@ bool GPUIJ::join(){
 				continue;
 			}
 
+#ifdef ASYNC_
+			checkCudaErrors(cudaMalloc(&write_dev[stream_idx], jr_size2 * sizeof(RESULT)));
+#else
 			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
+#endif
 
 			gettimeofday(&wstart, NULL);
-			RemoveEmptyResultWrapper(grid_x, grid_y, block_x, block_y, write_dev, jresult_dev, index_psum, exp_psum, outer_part_size, jr_size2, jr_size);
-			gettimeofday(&wend, NULL);
+#ifdef ASYNC_
+			RemoveEmptyResultAsyncWrapper(write_dev[stream_idx], jresult_dev[stream_idx], index_psum[stream_idx], exp_psum[stream_idx], jr_size, stream[stream_idx]);
 #else
+			RemoveEmptyResultWrapper(write_dev, jresult_dev, index_psum, exp_psum, jr_size);
+#endif
+			gettimeofday(&wend, NULL);
+#elif defined(DECOMPOSED1_)
 			RESULT *tmp_result;
 			ulong tmp_size = 0;
 
 			gettimeofday(&balance_start, NULL);
-			Rebalance(grid_x, grid_y, block_x, block_y, index_psum, res_bound, &tmp_result, gpu_size, &tmp_size);
+#ifdef ASYNC_
+			RebalanceAsync3(index_psum[stream_idx], res_bound[stream_idx], &tmp_result, gpu_size, &tmp_size, stream[stream_idx]);
+#else
+			Rebalance3(index_psum, res_bound, &tmp_result, gpu_size, &tmp_size);
+#endif
 			gettimeofday(&balance_end, NULL);
 
 			rebalance.push_back(timeDiff(balance_start, balance_end));
@@ -407,41 +488,173 @@ bool GPUIJ::join(){
 				continue;
 			}
 
+#ifdef ASYNC_
+			if (jresult_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(jresult_dev[1 - stream_idx]));
+				jresult_dev[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&jresult_dev[stream_idx], tmp_size * sizeof(RESULT)));
+
+			if (exp_psum[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(exp_psum[1 - stream_idx]));
+				exp_psum[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&exp_psum[stream_idx], (tmp_size + 1) * sizeof(ulong)));
+#else
 			checkCudaErrors(cudaMalloc(&jresult_dev, tmp_size * sizeof(RESULT)));
 			checkCudaErrors(cudaMalloc(&exp_psum, (tmp_size + 1) * sizeof(ulong)));
+#endif
 
 			gettimeofday(&estart, NULL);
-			ExpressionFilterWrapper2(grid_x, grid_y,
-										block_x, block_y,
-										outer_dev, inner_dev,
+#ifdef ASYNC_
+			ExpressionFilterAsyncWrapper2(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+											tmp_result, jresult_dev[stream_idx],
+											exp_psum[stream_idx], tmp_size,
+											outer_cols_, inner_cols_,
+											end_dev, end_size_,
+											post_dev, post_size_,
+											where_dev, where_size_,
+											outer_idx, inner_idx, stream[stream_idx]);
+#else
+			//ExpressionFilterWrapper2(outer_dev + outer_idx * outer_cols_, inner_dev + inner_idx * inner_cols_,
+			ExpressionFilterWrapper2(outer_dev, inner_dev,
 										tmp_result, jresult_dev,
 										exp_psum, tmp_size,
 										outer_cols_, inner_cols_,
 										end_dev, end_size_,
 										post_dev, post_size_,
 										where_dev, where_size_,
-										outer_idx, inner_idx
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-										, stack
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-										, val_stack, type_stack
+										outer_idx, inner_idx);
 #endif
-										);
 			gettimeofday(&eend, NULL);
 
 			expression.push_back(timeDiff(estart, eend));
 
 			gettimeofday(&pestart, NULL);
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(exp_psum[stream_idx], tmp_size + 1, &jr_size2, stream[stream_idx]);
+#else
 			ExclusiveScanWrapper(exp_psum, tmp_size + 1, &jr_size2);
+#endif
 			gettimeofday(&peend, NULL);
 
 			epsum.push_back(timeDiff(pestart, peend));
 
 			checkCudaErrors(cudaFree(tmp_result));
+
+			if (jr_size2 == 0) {
+				continue;
+			}
+#ifdef ASYNC_
+			if (write_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(write_dev[1 - stream_idx]));
+				write_dev[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&write_dev[stream_idx], jr_size2 * sizeof(RESULT)));
+#else
 			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
+#endif
 
 			gettimeofday(&wstart, NULL);
-			RemoveEmptyResultWrapper2(grid_x, grid_y, block_x, block_y, write_dev, jresult_dev, exp_psum, tmp_size);
+#ifdef ASYNC_
+			RemoveEmptyResultAsyncWrapper2(write_dev[stream_idx], jresult_dev[stream_idx], exp_psum[stream_idx], tmp_size, stream[stream_idx]);
+#else
+			RemoveEmptyResultWrapper2(write_dev, jresult_dev, exp_psum, tmp_size);
+#endif
+			gettimeofday(&wend, NULL);
+#elif defined(DECOMPOSED2_)
+			RESULT *tmp_result;
+			ulong tmp_size = 0;
+
+			gettimeofday(&balance_start, NULL);
+#ifdef ASYNC_
+			RebalanceAsync2(index_psum[stream_idx], res_bound[stream_idx], &tmp_result, gpu_size, &tmp_size, stream[stream_idx]);
+#else
+			Rebalance2(index_psum, res_bound, &tmp_result, gpu_size, &tmp_size);
+#endif
+			gettimeofday(&balance_end, NULL);
+
+			rebalance.push_back(timeDiff(balance_start, balance_end));
+
+			if (tmp_size == 0) {
+				gettimeofday(&end_join, NULL);
+				joins_only.push_back(timeDiff(istart, end_join));
+				continue;
+			}
+
+#ifdef ASYNC_
+			if (jresult_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(jresult_dev[1 - stream_idx]));
+				jresult_dev[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&jresult_dev[stream_idx], tmp_size * sizeof(RESULT)));
+
+			if (exp_psum[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(exp_psum[1 - stream_idx]));
+				exp_psum[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&exp_psum[stream_idx], (tmp_size + 1) * sizeof(ulong)));
+#else
+			checkCudaErrors(cudaMalloc(&jresult_dev, tmp_size * sizeof(RESULT)));
+			checkCudaErrors(cudaMalloc(&exp_psum, (tmp_size + 1) * sizeof(ulong)));
+#endif
+
+
+			gettimeofday(&estart, NULL);
+#ifdef ASYNC_
+			ExpressionFilterAsyncWrapper2(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+											tmp_result, jresult_dev[stream_idx],
+											exp_psum[stream_idx], tmp_size,
+											outer_cols_, inner_cols_,
+											end_dev, end_size_,
+											post_dev, post_size_,
+											where_dev, where_size_,
+											outer_idx, inner_idx, stream[stream_idx]);
+
+#else
+			ExpressionFilterWrapper2(outer_dev, inner_dev,
+										tmp_result, jresult_dev,
+										exp_psum, tmp_size,
+										outer_cols_, inner_cols_,
+										end_dev, end_size_,
+										post_dev, post_size_,
+										where_dev, where_size_,
+										outer_idx, inner_idx);
+#endif
+			gettimeofday(&eend, NULL);
+
+			expression.push_back(timeDiff(estart, eend));
+
+			gettimeofday(&pestart, NULL);
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(exp_psum[stream_idx], tmp_size + 1, &jr_size2, stream[stream_idx]);
+#else
+			ExclusiveScanWrapper(exp_psum, tmp_size + 1, &jr_size2);
+#endif
+			gettimeofday(&peend, NULL);
+
+			epsum.push_back(timeDiff(pestart, peend));
+
+			checkCudaErrors(cudaFree(tmp_result));
+
+			if (jr_size2 == 0)
+				continue;
+#ifdef ASYNC_
+			if (write_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(write_dev[1 - stream_idx]));
+				write_dev[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&write_dev[stream_idx], jr_size2 * sizeof(RESULT)));
+#else
+			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
+#endif
+
+			gettimeofday(&wstart, NULL);
+#ifdef ASYNC_
+			RemoveEmptyResultAsyncWrapper2(write_dev[stream_idx], jresult_dev[stream_idx], exp_psum[stream_idx], tmp_size, stream[stream_idx]);
+#else
+			RemoveEmptyResultWrapper2(write_dev, jresult_dev, exp_psum, tmp_size);
+#endif
 			gettimeofday(&wend, NULL);
 #endif
 
@@ -451,32 +664,85 @@ bool GPUIJ::join(){
 
 			gettimeofday(&end_join, NULL);
 
+			//checkCudaErrors(cudaHostRegister(join_result_ + result_size_, jr_size2 * sizeof(RESULT), cudaHostRegisterDefault));
+#ifdef ASYNC_
+			if (old_result != NULL) {
+				checkCudaErrors(cudaHostUnregister(old_result));
+				old_result = NULL;
+			}
+			checkCudaErrors(cudaHostRegister(join_result_ + result_size_, jr_size2 * sizeof(RESULT), cudaHostRegisterDefault));
+			old_result = join_result_ + result_size_;
+			checkCudaErrors(cudaMemcpyAsync(join_result_ + result_size_, write_dev[stream_idx], jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost, stream[stream_idx]));
+#else
 			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, write_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
+#endif
+			//checkCudaErrors(cudaHostUnregister(join_result_ + result_size_));
 
 			result_size_ += jr_size2;
 			jr_size = 0;
 			jr_size2 = 0;
 
+
 			joins_only.push_back(timeDiff(istart, end_join));
 
+#ifndef ASYNC_
+			checkCudaErrors(cudaFree(exp_psum));
 			checkCudaErrors(cudaFree(jresult_dev));
 			checkCudaErrors(cudaFree(write_dev));
+#endif
 		}
 	}
 
 
 	checkCudaErrors(cudaDeviceSynchronize());
 	/******** Free GPU memory, unload module, end session **************/
+
+#ifdef ASYNC_
+	checkCudaErrors(cudaFree(outer_dev[0]));
+	checkCudaErrors(cudaFree(outer_dev[1]));
+	checkCudaErrors(cudaFree(inner_dev[0]));
+	checkCudaErrors(cudaFree(inner_dev[1]));
+	checkCudaErrors(cudaFree(index_psum[0]));
+	checkCudaErrors(cudaFree(index_psum[1]));
+	checkCudaErrors(cudaFree(res_bound[0]));
+	checkCudaErrors(cudaFree(res_bound[1]));
+	checkCudaErrors(cudaFree(prejoin_res_dev[0]));
+	checkCudaErrors(cudaFree(prejoin_res_dev[1]));
+
+#ifndef DECOMPOSED1_
+	checkCudaErrors(cudaFree(exp_psum[0]));
+	checkCudaErrors(cudaFree(exp_psum[1]));
+#else
+	checkCudaErrors(cudaFree(exp_psum[stream_idx]));
+	checkCudaErrors(cudaFree(write_dev[stream_idx]));
+	checkCudaErrors(cudaFree(jresult_dev[stream_idx]));
+
+	checkCudaErrors(cudaStreamDestroy(stream[0]));
+	checkCudaErrors(cudaStreamDestroy(stream[1]));
+
+//	if (old_outer != NULL)
+//		checkCudaErrors(cudaHostUnregister(old_outer));
+//	if (old_inner != NULL)
+//		checkCudaErrors(cudaHostUnregister(old_inner));
+	if (old_result != NULL)
+		checkCudaErrors(cudaHostUnregister(old_result));
+	checkCudaErrors(cudaHostUnregister(outer_table_));
+	checkCudaErrors(cudaHostUnregister(inner_table_));
+#endif
+#else
 	checkCudaErrors(cudaFree(outer_dev));
 	checkCudaErrors(cudaFree(inner_dev));
+	checkCudaErrors(cudaFree(index_psum));
+#ifndef DECOMPOSED1_
+	checkCudaErrors(cudaFree(exp_psum));
+#endif
+	checkCudaErrors(cudaFree(res_bound));
+	checkCudaErrors(cudaFree(prejoin_res_dev));
+#endif
+
 	checkCudaErrors(cudaFree(search_exp_dev));
 	checkCudaErrors(cudaFree(search_exp_size));
 	checkCudaErrors(cudaFree(indices_dev));
-	checkCudaErrors(cudaFree(index_psum));
-	checkCudaErrors(cudaFree(exp_psum));
-	checkCudaErrors(cudaFree(res_bound));
-	checkCudaErrors(cudaFree(prejoin_res_dev));
-
 	if (initial_size_ > 0)
 		checkCudaErrors(cudaFree(initial_dev));
 
@@ -494,13 +760,6 @@ bool GPUIJ::join(){
 
 	if (post_size_ > 0)
 		checkCudaErrors(cudaFree(post_dev));
-
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-	checkCudaErrors(cudaFree(stack));
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-	checkCudaErrors(cudaFree(val_stack));
-	checkCudaErrors(cudaFree(type_stack));
-#endif
 
 	gettimeofday(&all_end, NULL);
 
@@ -529,7 +788,7 @@ bool GPUIJ::join(){
 		wtime_time += wtime[i];
 	}
 
-#ifdef DECOMPOSED_
+#if (defined(DECOMPOSED1_) || defined(DECOMPOSED2_))
 	unsigned long rebalance_cost = 0;
 	for (int i = 0; i < rebalance.size(); i++) {
 		rebalance_cost += rebalance[i];
@@ -548,7 +807,7 @@ bool GPUIJ::join(){
 			"Allocation & data movement time: %lu\n"
 			"Prejoin filter Time: %lu\n"
 			"Index Search Time: %lu\n"
-#ifndef DECOMPOSED_
+#if !defined(DECOMPOSED1_) && !defined(DECOMPOSED2_)
 			"Index Prefix Sum Time: %lu\n"
 #else
 			"Rebalance Cost: %lu\n"
@@ -560,13 +819,14 @@ bool GPUIJ::join(){
 			"Total join time: %lu\n"
 			"*******************************\n",
 			allocation_time, prejoin_time, index_time,
-#ifndef DECOMPOSED_
+#if !defined(DECOMPOSED1_) && !defined(DECOMPOSED2_)
 			ipsum_time,
 #else
 			rebalance_cost,
 #endif
 			expression_time, epsum_time, wtime_time, joins_only_time, all_time);
 
+	//exit(0);
 	return true;
 }
 
@@ -731,84 +991,5 @@ void GPUIJ::debug(void)
 		}
 	} else
 		std::cout << "Empty indices array" << std::endl;
-}
-
-void GPUIJ::setNValue(NValue *nvalue, GNValue &gnvalue)
-{
-	double tmp = gnvalue.getMdata();
-	char gtmp[16];
-	memcpy(gtmp, &tmp, sizeof(double));
-	nvalue->setMdataFromGPU(gtmp);
-//	nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
-	nvalue->setValueTypeFromGPU(gnvalue.getValueType());
-}
-
-void GPUIJ::debugGTrees(const GTreeNode *expression, int size)
-{
-	std::cout << "DEBUGGING INFORMATION..." << std::endl;
-	for (int index = 0; index < size; index++) {
-		switch (expression[index].type) {
-			case EXPRESSION_TYPE_CONJUNCTION_AND: {
-				std::cout << "[" << index << "] CONJUNCTION AND" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_OR: {
-				std::cout << "[" << index << "] CONJUNCTION OR" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_EQUAL: {
-				std::cout << "[" << index << "] COMPARE EQUAL" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-				std::cout << "[" << index << "] COMPARE NOTEQUAL" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-				std::cout << "[" << index << "] COMPARE LESS THAN" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-				std::cout << "[" << index << "] COMPARE GREATER THAN" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-				std::cout << "[" << index << "] COMPARE LESS THAN OR EQUAL TO" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-				std::cout << "[" << index << "] COMPARE GREATER THAN OR EQUAL TO" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LIKE: {
-				std::cout << "[" << index << "] COMPARE LIKE" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_IN: {
-				std::cout << "[" << index << "] COMPARE IN" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_TUPLE: {
-				std::cout << "[" << index << "] TUPLE(";
-				std::cout << expression[index].column_idx << "," << expression[index].tuple_idx;
-				std::cout << ")" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_CONSTANT: {
-				NValue tmp;
-				GNValue tmp_gnvalue = expression[index].value;
-
-				setNValue(&tmp, tmp_gnvalue);
-				std::cout << "[" << index << "] VALUE TUPLE = " << tmp.debug().c_str()  << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_NULL:
-			case EXPRESSION_TYPE_INVALID:
-			default: {
-				std::cout << "NULL value" << std::endl;
-				break;
-			}
-		}
-	}
 }
 }

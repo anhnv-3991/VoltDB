@@ -135,7 +135,6 @@ public:
     static boost::shared_ptr<ExecutorVector> fromJsonPlan(VoltDBEngine* engine,
                                                           const std::string& jsonPlan,
                                                           int64_t fragId) {
-    	//std::cout << "ExecutorVector fromJsonPlan" << std::endl;
         PlanNodeFragment *pnf = NULL;
         try {
             pnf = PlanNodeFragment::createFromCatalog(jsonPlan);
@@ -184,7 +183,6 @@ public:
 
     /** Build the list of executors from its plan node fragment */
     void init(VoltDBEngine* engine) {
-    	//std::cout << "VoltDBEngine init" << std::endl;
         BOOST_FOREACH(AbstractPlanNode* planNode, m_fragment->getExecuteList()) {
             initPlanNode(engine, planNode);
             //std::cout << "VoltDBEngine init debug:: planNode type is " << planNode->debug() << std::endl;
@@ -344,8 +342,7 @@ private:
 
     void initPlanNode(VoltDBEngine* engine, AbstractPlanNode* node)
     {
-    	//std::cout << "InitPlanNode execute" << std::endl;
-        assert(node);
+    	assert(node);
         assert(node->getExecutor() == NULL);
 
         // Executor is created here. An executor is *devoted* to this

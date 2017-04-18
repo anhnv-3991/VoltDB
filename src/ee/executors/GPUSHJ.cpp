@@ -13,7 +13,7 @@
 #include <helper_functions.h>
 #include "scan_common.h"
 #include "GPUSHJ.h"
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 

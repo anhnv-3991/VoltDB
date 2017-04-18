@@ -22,11 +22,11 @@ typedef struct _TreeNode {
 } GTreeNode;
 
 typedef struct _HashNode {
-	int *hashedIdx;
-	uint64_t *hashedKey;
-	int *bucketLocation;
-	int bucketNum;
-	int keySize;
+	int *hashed_idx;
+	uint64_t *hashed_key;
+	int *bucket_location;
+	int bucket_num;
+	int key_size;
 	int size;	//number of elements
 } GHashNode;
 
@@ -36,10 +36,22 @@ typedef struct _HashNode {
 #define COALESCE_ 1
 //#define PHYSICAL_HASH_ 1
 //#define METHOD_1_ 1
-//#define METHOD_2_ 2
-#define SHARED_ 1
-#define DECOMPOSED_ 1
+//#define SHARED_ 1
+#define DECOMPOSED1_ 1
+//#define DECOMPOSED2_ 1
+//#define ASYNC_ 1
 
+typedef struct {
+	int64_t *gdata;
+	int rows;
+	int columns;
+	int block_size;
+} GBlock;
+
+typedef struct {
+	int column_idx;
+	ValueType data_type;
+} GColumnInfo;
 
 }
 

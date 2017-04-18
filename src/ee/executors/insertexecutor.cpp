@@ -66,8 +66,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "GPUTUPLE.h"
-#include "GPUINSERT.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 
 using namespace std;
@@ -170,6 +169,7 @@ bool InsertExecutor::executePurgeFragmentIfNeeded(PersistentTable** ptrToTable) 
 }
 
 bool InsertExecutor::p_execute(const NValueArray &params) {
+	//printf("PEXECUTE*******************\n");
     assert(m_node == dynamic_cast<InsertPlanNode*>(m_abstractNode));
     assert(m_node);
     assert(m_inputTable == dynamic_cast<TempTable*>(m_node->getInputTable()));
@@ -274,6 +274,7 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
         if (! m_isUpsert) {
             // try to put the tuple into the target table
 
+        	printf("THIS WAY\n");
             if (m_hasPurgeFragment) {
                 if (!executePurgeFragmentIfNeeded(&persistentTable))
                     return false;
@@ -283,6 +284,18 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
                 targetTable = persistentTable;
             }
 
+            //printf("Address of the target table %p\n", (void*)targetTable);
+            //Added for GPUs
+            printf("Column = %d\n", targetTable->columnCount());
+            if (!targetTable->insertGTuple(templateTuple)) {
+            	printf("FAILED TO INSERT TO GPU\n");
+            }
+
+            if (targetTable->tupleCount() == 7) {
+            	PersistentTable *test = dynamic_cast<PersistentTable*>(targetTable);
+
+            	test->testGPU();
+            }
             if (!targetTable->insertTuple(templateTuple)) {
                 VOLT_ERROR("Failed to insert tuple from input table '%s' into"
                            " target table '%s'",
@@ -292,6 +305,7 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
             }
 
         } else {
+        	printf("IOTHER WAY\n");
             // upsert execution logic
             assert(persistentTable->primaryKeyIndex() != NULL);
             TableTuple existsTuple = persistentTable->lookupTuple(templateTuple);

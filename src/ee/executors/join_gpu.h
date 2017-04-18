@@ -7,7 +7,7 @@
 #include <helper_cuda.h>
 #include <helper_functions.h>
 #include <sys/time.h>
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 #include <thrust/fill.h>

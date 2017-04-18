@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <cuda.h>
 #include <sys/time.h>
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 

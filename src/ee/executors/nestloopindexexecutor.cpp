@@ -70,11 +70,8 @@
 #include "indexes/tableindex.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "GPUNIJ.h"
-#include "GPUSHJ.h"
 #include "GPUIJ.h"
-#include "GPUHJ.h"
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 #include "expressions/comparisonexpression.h"

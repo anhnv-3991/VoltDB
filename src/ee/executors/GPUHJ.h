@@ -3,8 +3,8 @@
 
 #include <cuda.h>
 #include "GPUetc/expressions/treeexpression.h"
-#include "GPUetc/expressions/nodedata.h"
-#include "GPUTUPLE.h"
+#include "GPUetc/common/nodedata.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "common/types.h"
 #include "GPUetc/common/GNValue.h"
 #include <sys/time.h>
@@ -67,23 +67,15 @@ private:
 	bool getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression);
 	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);
-	void setNValue(NValue *nvalue, GNValue &gnvalue);
-	void debugGTrees(const GTreeNode *expression, int size);
-	unsigned long timeDiff(struct timeval start, struct timeval end);
-	void keyGenerateTest(GNValue *tuple, int *keyIndices, int indexNum, uint64_t *packedKey);
+	void setNValue(NValue *nvalue, GNValue &gnvalue)
+	{
+		int64_t tmp = gnvalue.getMdata();
+		char gtmp[16];
 
-	void GNValueDebug(GNValue &column_data)	{
-		NValue value;
-		long double gtmp = column_data.getMdata();
-		char tmp[16];
-		memcpy(tmp, &gtmp, sizeof(long double));
-		value.setMdataFromGPU(tmp);
-		//value.setSourceInlinedFromGPU(column_data.getSourceInlined());
-		value.setValueTypeFromGPU(column_data.getValueType());
-
-		std::cout << value.debug();
+		memcpy(gtmp, &tmp, sizeof(int64_t));
+		nvalue->setMdataFromGPU(gtmp);
+		nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 	}
-
 };
 
 }

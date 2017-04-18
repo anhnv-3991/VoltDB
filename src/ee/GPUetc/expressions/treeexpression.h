@@ -8,7 +8,7 @@
 #include "expressions/abstractexpression.h"
 #include "expressions/comparisonexpression.h"
 #include "expressions/tuplevalueexpression.h"
-#include "GPUetc/expressions/nodedata.h"
+#include "GPUetc/common/nodedata.h"
 
 
 namespace voltdb {

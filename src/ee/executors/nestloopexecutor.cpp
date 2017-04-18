@@ -45,11 +45,6 @@
 #include <vector>
 #include <string>
 #include <stack>
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "GPUNIJ.h"
-#include "GPUSHJ.h"
-#include "GPUTUPLE.h"
 #include "nestloopexecutor.h"
 #include "common/debuglog.h"
 #include "common/common.h"
@@ -67,6 +62,11 @@
 #include "plannodes/nestloopnode.h"
 #include "plannodes/limitnode.h"
 #include "plannodes/aggregatenode.h"
+
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include "GPUNIJ.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 

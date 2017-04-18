@@ -239,7 +239,6 @@ class GNValue {
         return m_valueType;
     }
 
-
     __forceinline__ CUDAH void debug() const {
     	switch (m_valueType) {
 			case VALUE_TYPE_INVALID: {
@@ -308,6 +307,95 @@ class GNValue {
 				break;
 			}
     	}
+    }
+
+	std::string debug2() const {
+		std::stringstream output;
+		switch (m_valueType) {
+			case VALUE_TYPE_INVALID: {
+				output << "VALUE TYPE INVALID";
+
+				break;
+			}
+			case VALUE_TYPE_NULL: {
+				output<< "VALUE TYPE NULL";
+
+				break;
+			}
+			case VALUE_TYPE_FOR_DIAGNOSTICS_ONLY_NUMERIC: {
+				output << "VALUE TYPE FOR DIAGNOSTICS ONLY NUMERIC";
+
+				break;
+			}
+			case VALUE_TYPE_TINYINT: {
+				output << "VALUE TYPE TINYINT: " <<  (int)getValue();
+
+				break;
+			}
+			case VALUE_TYPE_SMALLINT: {
+				output << "VALUE TYPE SMALLINT: " << (int)getValue();
+
+				break;
+			}
+			case VALUE_TYPE_INTEGER: {
+				output << "VALUE TYPE INTEGER: " << (int)getValue();
+
+				break;
+			}
+			case VALUE_TYPE_BIGINT: {
+				output << "VALUE TYPE BIGINT: " << (int)getValue();
+
+				break;
+			}
+			case VALUE_TYPE_DOUBLE: {
+				int64_t tmp = getValue();
+				output << "VALUE TYPE DOUBLE: " << (*reinterpret_cast<double *>(&tmp));
+
+				break;
+			}
+			case VALUE_TYPE_VARCHAR: {
+				output << "VALUE TYPE VARCHAR";
+
+				break;
+			}
+			case VALUE_TYPE_TIMESTAMP: {
+				output << "VALUE TYPE TIMESTAMP";
+
+				break;
+			}
+			case VALUE_TYPE_DECIMAL: {
+				output << "VALUE TYPE DECIMAL";
+
+				break;
+			}
+			case VALUE_TYPE_BOOLEAN: {
+				output << "VALUE TYPE BOOLEAN";
+
+				break;
+			}
+			case VALUE_TYPE_ADDRESS: {
+				output << "VALUE TYPE ADDRESS";
+
+				break;
+			}
+			case VALUE_TYPE_VARBINARY: {
+				output << "VALUE TYPE VARBINARY";
+
+				break;
+			}
+			case VALUE_TYPE_ARRAY: {
+				output << "VALUE TYPE VARBINARY";
+
+				break;
+			}
+			default: {
+				output << "UNDETECTED TYPE";
+
+				break;
+			}
+		}
+		return output.str();
+
     }
 
     __forceinline__ CUDAH int64_t getValue() const {

@@ -10,7 +10,7 @@ GPUで動かすため配列のほうが向いていると思ったので
 #define GPUSHJ_H
 
 #include <cuda.h>
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 //#include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 

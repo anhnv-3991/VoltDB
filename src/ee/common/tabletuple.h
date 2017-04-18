@@ -584,6 +584,7 @@ inline void TableTuple::copyForPersistentInsert(const voltdb::TableTuple &source
 #endif
     // copy the data AND the isActive flag
     ::memcpy(m_data, source.m_data, m_schema->tupleLength() + TUPLE_HEADER_SIZE);
+    //printf("Address is %p\n", (void*)m_data);
     if (uninlineableObjectColumnCount > 0) {
 
         /*

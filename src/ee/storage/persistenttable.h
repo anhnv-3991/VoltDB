@@ -449,6 +449,9 @@ class PersistentTable : public Table, public UndoQuantumReleaseInterest,
         return m_purgeExecutorVector;
     }
 
+    //Added for GPUs
+    void testGPU();
+
   private:
 
     // Zero allocation size uses defaults.
@@ -482,6 +485,9 @@ class PersistentTable : public Table, public UndoQuantumReleaseInterest,
     }
 
     void nextFreeTuple(TableTuple *tuple);
+    //Added for GPUs
+    void nextFreeGTuple(int *block_idx, int *tuple_idx);
+    bool insertGTuple(TableTuple &tuple);
     bool doCompactionWithinSubset(TBBucketMap *bucketMap);
     void doForcedCompaction();
 

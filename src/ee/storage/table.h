@@ -65,6 +65,10 @@
 #include "stx/btree_set.h"
 #include "common/ThreadLocalPool.h"
 
+// Added for GPUs
+#include "GPUetc/common/GNValue.h"
+#include "GPUetc/common/nodedata.h"
+
 namespace voltdb {
 
 const size_t COLUMN_DESCRIPTOR_SIZE = 1 + 4 + 4; // type, name offset, name length
@@ -77,6 +81,7 @@ const size_t COLUMN_DESCRIPTOR_SIZE = 1 + 4 + 4; // type, name offset, name leng
  * Table objects including derived classes are only instantiated via a
  * factory class (TableFactory).
  */
+/* GNOTICED */
 class Table {
     friend class TableFactory;
     friend class TableIterator;
@@ -138,6 +143,12 @@ class Table {
     // -- Most callers should be using TempTable::insertTempTuple, anyway.
     virtual bool insertTuple(TableTuple &tuple) = 0;
 
+    //Added for GPUs
+    virtual bool insertGTuple(TableTuple &tuple) {
+    	throwFatalException("Unsupported operation");
+    	return false;
+    }
+
     // ------------------------------------------------------------------
     // TUPLES AND MEMORY USAGE
     // ------------------------------------------------------------------
@@ -197,6 +208,9 @@ class Table {
         return m_columnCount;
     }
 
+    inline int tupleCount() const {
+    	return m_tupleCount;
+    }
     // ------------------------------------------------------------------
     // INDEXES
     // ------------------------------------------------------------------
@@ -369,6 +383,9 @@ public:
 protected:
     // virtual block management functions
     virtual void nextFreeTuple(TableTuple *tuple) = 0;
+    virtual void nextFreeGTuple(int *block_idx, int *tuple_idx) {
+    	throwFatalException("Unsupported operation");
+    }
     virtual void freeLastScanedBlock(std::vector<TBPtr>::iterator nextBlockIterator) {
         throw SerializableEEException(VOLT_EE_EXCEPTION_TYPE_EEEXCEPTION,
                                      "May not use freeLastScanedBlock with streamed tables or persistent tables.");
@@ -430,6 +447,11 @@ protected:
     std::vector<TableIndex*> m_indexes;
     std::vector<TableIndex*> m_uniqueIndexes;
     TableIndex *m_pkeyIndex;
+
+    // Added for GPUs
+    std::vector<GBlock> m_gdata;
+    GColumnInfo *m_gschema;
+    std::vector<int32_t*> m_gIndexes;
 
   private:
     int32_t m_refcount;

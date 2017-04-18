@@ -4,8 +4,8 @@
 #include <iostream>
 
 #include <cuda.h>
-#include "GPUTUPLE.h"
-#include "GPUetc/expressions/nodedata.h"
+#include "GPUetc/common/GPUTUPLE.h"
+#include "GPUetc/common/nodedata.h"
 #include "GPUetc/expressions/treeexpression.h"
 
 using namespace voltdb;

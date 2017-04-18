@@ -25,6 +25,7 @@ namespace voltdb{
 #define RADIX 6
 #define PART_C_NUM 16
 #define SHARED_MAX PARTITION * PART_C_NUM
+#define MAX_BLOCK_SIZE (1024 * 1024 * 8)
 
 #define RIGHT_PER_TH 256
 
@@ -35,6 +36,7 @@ namespace voltdb{
 #define MAX_SHARED_MEM 16
 #define MAX_BUFFER_SIZE (1024 * 1024)
 #define SHARED_MEM 128
+#define SHARED_SIZE_ 49152
 /*
 typedef struct _TUPLE {
     int key;

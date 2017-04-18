@@ -12,7 +12,7 @@
 #include <thrust/scan.h>
 #include <thrust/fill.h>
 #include <inttypes.h>
-
+#include "gcommon/gpu_common.h"
 
 #include "ghash.h"
 
@@ -21,174 +21,19 @@ extern "C" {
 #define MASK_BITS 0x9e3779b9
 
 
-__forceinline__ __device__ void keyGenerate(GNValue *tuple, int *keyIndices, int indexNum, uint64_t *packedKey)
-{
-	int keyOffset = 0;
-	int intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-
-	if (keyIndices != NULL) {
-		for (int i = 0; i < indexNum; i++) {
-			//uint64_t keyValue = static_cast<uint64_t>(tuple[keyIndices[i]].getValue() + INT64_MAX + 1);
-
-			switch (tuple[keyIndices[i]].getValueType()) {
-				case VALUE_TYPE_TINYINT: {
-					printf("Value Tiny Integer\n");
-					uint64_t keyValue = static_cast<uint8_t>((int8_t)tuple[keyIndices[i]].getValue() + INT8_MAX + 1);
-
-					for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-					break;
-				}
-				case VALUE_TYPE_SMALLINT: {
-					printf("Value Small Integer\n");
-					uint64_t keyValue = static_cast<uint16_t>((int16_t)tuple[keyIndices[i]].getValue() + INT16_MAX + 1);
-
-					for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-
-					break;
-				}
-				case VALUE_TYPE_INTEGER: {
-					uint64_t keyValue = static_cast<uint32_t>((int32_t)tuple[keyIndices[i]].getValue() + INT32_MAX + 1);
-
-					if (keyValue == tuple[keyIndices[i]].getValue())
-						printf("Error at inner\n");
-
-					for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= ((0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8));
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-
-					break;
-				}
-				case VALUE_TYPE_BIGINT: {
-					uint64_t keyValue = static_cast<uint64_t>((int64_t)tuple[keyIndices[i]].getValue() + INT64_MAX + 1);
-
-					for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-
-					break;
-				}
-				default: {
-					return;
-				}
-			}
-		}
-	} else {
-		for (int i = 0; i < indexNum; i++) {
-			//uint64_t keyValue = static_cast<uint64_t>(tuple[i].getValue() + INT64_MAX + 1);
-
-			switch (tuple[i].getValueType()) {
-				case VALUE_TYPE_TINYINT: {
-					uint64_t keyValue = static_cast<uint8_t>((int8_t)tuple[i].getValue() + INT8_MAX + 1);
-
-					for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-					break;
-				}
-				case VALUE_TYPE_SMALLINT: {
-					printf("Outer Value Small Integer\n");
-					uint64_t keyValue = static_cast<uint16_t>((int16_t)tuple[i].getValue() + INT16_MAX + 1);
-
-					for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-
-					break;
-				}
-				case VALUE_TYPE_INTEGER: {
-					uint64_t keyValue = static_cast<uint32_t>((int32_t)tuple[i].getValue() + INT32_MAX + 1);
-
-					for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-
-					break;
-				}
-				case VALUE_TYPE_BIGINT: {
-					uint64_t keyValue = static_cast<uint64_t>((int64_t)tuple[i].getValue() + INT64_MAX + 1);
-
-					for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
-						packedKey[keyOffset] |= (0xFF & (keyValue >> (j * 8))) << (intraKeyOffset * 8);
-						intraKeyOffset--;
-						if (intraKeyOffset < 0) {
-							intraKeyOffset = static_cast<int>(sizeof(uint64_t) - 1);
-							keyOffset++;
-						}
-					}
-
-					break;
-				}
-				default: {
-					return;
-				}
-			}
-
-		}
-	}
-}
-
-__forceinline__ __device__ uint64_t hasher(uint64_t *packedKey, int keySize)
+__forceinline__ __device__ uint64_t Hasher(uint64_t *packed_key, int key_size)
 {
 	uint64_t seed = 0;
 
-	for (int i = 0; i <  keySize; i++) {
-		seed ^= packedKey[i] + MASK_BITS + (seed << 6) + (seed >> 2);
+	for (int i = 0; i <  key_size; i++) {
+		seed ^= packed_key[i] + MASK_BITS + (seed << 6) + (seed >> 2);
 	}
 
 	return seed;
 }
 
-__forceinline__ __device__ bool equalityChecker(uint64_t *leftKey, uint64_t *rightKey, int keySize)
-{
-	bool res = true;
 
-	while (--keySize >= 0) {
-		res &= (leftKey[keySize] == rightKey[keySize]);
-	}
-
-	return res;
-}
-
-__forceinline__ __device__ GNValue hashEvaluate_itr_func(GTreeNode *tree_expression,
+__forceinline__ __device__ GNValue HashEvaluateItrFunc(GTreeNode *tree_expression,
 															int tree_size,
 															GNValue *outer_tuple,
 															GNValue *inner_tuple,
@@ -290,976 +135,58 @@ __forceinline__ __device__ GNValue hashEvaluate_itr_func(GTreeNode *tree_express
 	return stack[0];
 }
 
-
-__forceinline__ __device__ GNValue hashEvaluate_itr_nonfunc(GTreeNode *tree_expression,
-																int tree_size,
-																GNValue *outer_tuple,
-																GNValue *inner_tuple,
-																int64_t *stack,
-																ValueType *gtype,
-																int offset)
-{
-	ValueType ltype, rtype;
-	int l_idx, r_idx;
-
-	int top = 0;
-	double left_d, right_d, res_d;
-	int64_t left_i, right_i;
-
-	for (int i = 0; i < tree_size; i++) {
-
-		switch (tree_expression[i].type) {
-			case EXPRESSION_TYPE_VALUE_TUPLE: {
-				if (tree_expression[i].tuple_idx == 0) {
-					stack[top] = outer_tuple[tree_expression[i].column_idx].getValue();
-					gtype[top] = outer_tuple[tree_expression[i].column_idx].getValueType();
-				} else if (tree_expression[i].tuple_idx == 1) {
-					stack[top] = inner_tuple[tree_expression[i].column_idx].getValue();
-					gtype[top] = inner_tuple[tree_expression[i].column_idx].getValueType();
-
-				}
-
-				top += offset;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_CONSTANT:
-			case EXPRESSION_TYPE_VALUE_PARAMETER: {
-				stack[top] = (tree_expression[i].value).getValue();
-				gtype[top] = (tree_expression[i].value).getValueType();
-				top += offset;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_AND: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				if (gtype[l_idx] == VALUE_TYPE_BOOLEAN && gtype[r_idx] == VALUE_TYPE_BOOLEAN) {
-					stack[l_idx] = (int64_t)((bool)(stack[l_idx]) && (bool)(stack[r_idx]));
-					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] = 0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_OR: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				if (gtype[l_idx] == VALUE_TYPE_BOOLEAN && gtype[r_idx] == VALUE_TYPE_BOOLEAN) {
-					stack[l_idx] = (int64_t)((bool)(stack[l_idx]) || (bool)(stack[r_idx]));
-					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] = 0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_EQUAL: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] =  (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
-					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
-					gtype[r_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i));
-					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i));
-					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i));
-					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] = 0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					stack[l_idx] = (int64_t)((ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
-					gtype[l_idx] = VALUE_TYPE_BOOLEAN;
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-
-			case EXPRESSION_TYPE_OPERATOR_PLUS: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					res_d = left_d + right_d;
-					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
-						gtype[l_idx] = VALUE_TYPE_DOUBLE;
-					} else {
-						stack[l_idx] = left_i + right_i;
-						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
-					}
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_MINUS: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					res_d = left_d - right_d;
-					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
-						gtype[l_idx] = VALUE_TYPE_DOUBLE;
-					} else {
-						stack[l_idx] = left_i - right_i;
-						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
-					}
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					res_d = left_d * right_d;
-					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
-						gtype[l_idx] = VALUE_TYPE_DOUBLE;
-					} else {
-						stack[l_idx] = left_i * right_i;
-						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
-					}
-				} else {
-					stack[l_idx] =  0;
-					gtype[l_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-				l_idx = top - 2 * offset;
-				r_idx = top - offset;
-				ltype = gtype[l_idx];
-				rtype = gtype[r_idx];
-				if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-					left_i = stack[l_idx];
-					right_i = stack[r_idx];
-					left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-					right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-					res_d = (right_d != 0) ? left_d / right_d : 0;
-					if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-						stack[l_idx] = *reinterpret_cast<int64_t *>(&res_d);
-						gtype[l_idx] = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
-					} else {
-						stack[l_idx] = (right_i != 0) ? left_i / right_i : 0;
-						gtype[l_idx] = (ltype > rtype) ? ltype : rtype;
-						gtype[l_idx] = (right_i != 0) ? ltype : VALUE_TYPE_INVALID;
-					}
-				} else {
-					stack[l_idx] =  0;
-					gtype[r_idx] = VALUE_TYPE_INVALID;
-				}
-				top = r_idx;
-				break;
-			}
-			default: {
-				return GNValue::getFalse();
-			}
-		}
-	}
-
-	GNValue retval(gtype[0], stack[0]);
-
-	return retval;
-}
-
-__forceinline__ __device__ GNValue hashEvaluate_recv_func(GTreeNode *tree_expression,
-															int root,
-															int tree_size,
-															GNValue *outer_tuple,
-															GNValue *inner_tuple)
-{
-	if (root == 0)
-		return GNValue::getTrue();
-
-	if (root >= tree_size)
-		return GNValue::getNullValue();
-
-	GTreeNode tmp_node = tree_expression[root];
-
-	if (tmp_node.type == EXPRESSION_TYPE_VALUE_TUPLE) {
-		if (tmp_node.tuple_idx == 0) {
-			return outer_tuple[tmp_node.column_idx];
-		} else if (tmp_node.tuple_idx == 1) {
-			return inner_tuple[tmp_node.column_idx];
-		}
-	} else if (tmp_node.type == EXPRESSION_TYPE_VALUE_CONSTANT || tmp_node.type == EXPRESSION_TYPE_VALUE_PARAMETER) {
-		return tmp_node.value;
-	}
-
-
-	GNValue left = hashEvaluate_recv_func(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
-	GNValue right = hashEvaluate_recv_func(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
-
-	switch (tmp_node.type) {
-	case EXPRESSION_TYPE_CONJUNCTION_AND: {
-		return left.op_and(right);
-	}
-	case EXPRESSION_TYPE_CONJUNCTION_OR: {
-		return left.op_or(right);
-	}
-	case EXPRESSION_TYPE_COMPARE_EQUAL: {
-		return left.op_equal(right);
-	}
-	case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-		return left.op_notEqual(right);
-	}
-	case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-		return left.op_lessThan(right);
-	}
-	case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-		return left.op_lessThanOrEqual(right);
-	}
-	case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-		return left.op_greaterThan(right);
-	}
-	case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-		return left.op_greaterThanOrEqual(right);
-	}
-	case EXPRESSION_TYPE_OPERATOR_PLUS: {
-		return left.op_add(right);
-	}
-	case EXPRESSION_TYPE_OPERATOR_MINUS: {
-		return left.op_subtract(right);
-	}
-	case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-		return left.op_multiply(right);
-	}
-	case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-		return left.op_divide(right);
-	}
-	default:
-		return GNValue::getNullValue();
-	}
-}
-
-__forceinline__ __device__ GNValue hashEvaluate_recv_nonfunc(GTreeNode *tree_expression,
-																int root,
-																int tree_size,
-																GNValue *outer_tuple,
-																GNValue *inner_tuple)
-{
-	if (root == 0)
-		return GNValue::getTrue();
-
-	if (root >= tree_size)
-		return GNValue::getNullValue();
-
-	GTreeNode tmp_node = tree_expression[root];
-
-	if (tmp_node.type == EXPRESSION_TYPE_VALUE_TUPLE) {
-		if (tmp_node.tuple_idx == 0) {
-			return outer_tuple[tmp_node.column_idx];
-		} else if (tmp_node.tuple_idx == 1) {
-			return inner_tuple[tmp_node.column_idx];
-		}
-	} else if (tmp_node.type == EXPRESSION_TYPE_VALUE_CONSTANT || tmp_node.type == EXPRESSION_TYPE_VALUE_PARAMETER) {
-		return tmp_node.value;
-	}
-
-
-	GNValue left = hashEvaluate_recv_nonfunc(tree_expression, root * 2, tree_size, outer_tuple, inner_tuple);
-	GNValue right = hashEvaluate_recv_nonfunc(tree_expression, root * 2 + 1, tree_size, outer_tuple, inner_tuple);
-	int64_t left_i = left.getValue(), right_i = right.getValue(), res_i;
-	ValueType left_t = left.getValueType(), right_t = right.getValueType(), res_t;
-
-	switch (tmp_node.type) {
-		case EXPRESSION_TYPE_CONJUNCTION_AND: {
-			if (left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN) {
-				res_i = (int64_t)((bool)(left_i) && (bool)(right_i));
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_CONJUNCTION_OR: {
-			if (left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN) {
-				res_i = (int64_t)((bool)(left_i) || (bool)(right_i));
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_COMPARE_EQUAL: {
-			double left_d, right_d;
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_i =  (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i);
-
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-			double left_d, right_d;
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_i = (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i);
-
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-			double left_d, right_d;
-
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i));
-
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-			double left_d, right_d;
-
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i));
-
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-			double left_d, right_d;
-
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i));
-
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-			double left_d, right_d;
-
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
-
-				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-
-		case EXPRESSION_TYPE_OPERATOR_PLUS: {
-			double left_d, right_d, res_d;
-
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d + right_d;
-				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
-					res_i = *reinterpret_cast<int64_t *>(&res_d);
-					res_t = VALUE_TYPE_DOUBLE;
-				} else {
-					res_i = left_i + right_i;
-					res_t = (left_t > right_t) ? left_t : right_t;
-				}
-
-				return GNValue(res_t, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_OPERATOR_MINUS: {
-			double left_d, right_d, res_d;
-
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d - right_d;
-				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
-					res_i = *reinterpret_cast<int64_t *>(&res_d);
-					res_t = VALUE_TYPE_DOUBLE;
-				} else {
-					res_i = left_i - right_i;
-					res_t = (left_t > right_t) ? left_t : right_t;
-				}
-
-				return GNValue(res_t, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-			double left_d, right_d, res_d;
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = left_d * right_d;
-				if (left_d == VALUE_TYPE_DOUBLE || right_d == VALUE_TYPE_DOUBLE) {
-					res_i = *reinterpret_cast<int64_t *>(&res_d);
-					res_t = VALUE_TYPE_DOUBLE;
-				} else {
-					res_i = left_i * right_i;
-					res_t = (left_t > right_t) ? left_t : right_t;
-				}
-
-				return GNValue(res_t, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-			double left_d, right_d, res_d;
-
-			if (left_t != VALUE_TYPE_NULL && left_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID) {
-				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-				res_d = (right_d != 0) ? left_d / right_d : 0;
-				if (left_d == VALUE_TYPE_DOUBLE || right_d == VALUE_TYPE_DOUBLE) {
-					res_i = *reinterpret_cast<int64_t *>(&res_d);
-					res_t = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
-				} else {
-					res_i = (right_i != 0) ? left_i / right_i : 0;
-					res_t = (left_t > right_t) ? left_t : right_t;
-					res_t = (right_i != 0) ? left_t : VALUE_TYPE_INVALID;
-				}
-
-				return GNValue(res_t, res_i);
-			}
-
-			return GNValue(VALUE_TYPE_INVALID, 0);
-		}
-		default: {
-			return GNValue::getNullValue();
-		}
-	}
-}
-
-__global__ void packKey(GNValue *index_table, int tuple_num, int col_num, int *indices, int index_num, uint64_t *packedKey, int keySize)
+__global__ void GhashCount(uint64_t *packed_key, int tuple_num, int key_size, ulong *hash_count, uint64_t max_buckets)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x;
 
 	for (int i = index; i < tuple_num; i += stride) {
-		keyGenerate(index_table + i * col_num, indices, index_num, packedKey + i * keySize);
-	}
-}
-
-
-__global__ void packSearchKey(GNValue *outer_table, int outer_rows, int outer_cols,
-								uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
-								int *searchKeySize, int searchExpNum,
-								int keySize
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-								,GNValue *stack
-#elif defined(POST_EXP_)
-								,int64_t *val_stack,
-								ValueType *type_stack
-#endif
-								)
-{
-	int index = threadIdx.x + blockIdx.x *blockDim.x;
-	int stride = blockDim.x * gridDim.x;
-	GNValue tmp_outer[4];
-	int search_ptr = 0;
-
-	for (int i = index; i < outer_rows; i += stride) {
-		search_ptr = 0;
-		for (int j = 0; j < searchExpNum; search_ptr += searchKeySize[j], j++) {
-#ifdef POST_EXP_
-#ifdef FUNC_CALL_
-			tmp_outer[j] = hashEvaluate_itr_func(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, stack + index, stride);
-#else
-			tmp_outer[j] = hashEvaluate_itr_nonfunc(searchKeyExp + search_ptr, searchKeySize[j], outer_table + i * outer_cols, NULL, val_stack + index, type_stack + index, stride);
-#endif
-#else
-#ifdef FUNC_CALL_
-			tmp_outer[j] = hashEvaluate_recv_func(searchKeyExp + search_ptr, 1, searchKeySize[j], outer_table + i * outer_cols, NULL);
-#else
-			tmp_outer[j] = hashEvaluate_recv_nonfunc(searchKeyExp + search_ptr, 1, searchKeySize[j], outer_table + i * outer_cols, NULL);
-#endif
-#endif
-		}
-
-		keyGenerate(tmp_outer, NULL, searchExpNum, searchPackedKey + i * keySize);
-	}
-}
-
-
-__global__ void ghashCount(uint64_t *packedKey, int tupleNum, int keySize, ulong *hashCount, uint64_t maxNumberOfBuckets)
-{
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	int stride = blockDim.x * gridDim.x;
-
-	for (int i = index; i < maxNumberOfBuckets * stride; i += stride) {
-		if (hashCount[i] != 0)
-			printf("Error at i = %d\n");
-	}
-
-	for (int i = index; i < tupleNum; i += stride) {
-		uint64_t hash = hasher(packedKey + i * keySize, keySize);
-		uint64_t bucketOffset = hash % maxNumberOfBuckets;
-		hashCount[bucketOffset * stride + index]++;
+		uint64_t hash = Hasher(packed_key + i * key_size, key_size);
+		uint64_t bucket_offset = hash % max_buckets;
+		hash_count[bucket_offset * stride + index]++;
 	}
 
 }
 
 
-__global__ void ghash(uint64_t *packedKey, ulong *hashCount, GHashNode hashTable)
+__global__ void Ghash(uint64_t *packed_key, ulong *hash_count, GHashNode hash_table)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x;
 	int i;
-	int keySize = hashTable.keySize;
-	int maxNumberOfBuckets = hashTable.bucketNum;
+	int key_size = hash_table.key_size;
+	int max_buckets = hash_table.bucket_num;
 
-	for (i = index; i <= maxNumberOfBuckets; i+= stride) {
-		hashTable.bucketLocation[i] = hashCount[i * stride];
+	for (i = index; i <= max_buckets; i+= stride) {
+		hash_table.bucket_location[i] = hash_count[i * stride];
 	}
 
 	__syncthreads();
 
-	for (i = index; i < hashTable.size; i += stride) {
-		uint64_t hash = hasher(packedKey + i * keySize, keySize);
-		uint64_t bucketOffset = hash % maxNumberOfBuckets;
-		ulong hashIdx = hashCount[bucketOffset * stride + index];
+	for (i = index; i < hash_table.size; i += stride) {
+		uint64_t hash = Hasher(packed_key + i * key_size, key_size);
+		uint64_t bucket_offset = hash % max_buckets;
+		ulong hash_idx = hash_count[bucket_offset * stride + index];
 
-		hashTable.hashedIdx[hashIdx] = i;
+		hash_table.hashed_idx[hash_idx] = i;
 
-		for (int j = 0; j < keySize; j++) {
-			hashTable.hashedKey[hashIdx * keySize + j] = packedKey[i * keySize + j];
+		for (int j = 0; j < key_size; j++) {
+			hash_table.hashed_key[hash_idx * key_size + j] = packed_key[i * key_size + j];
 		}
 
-		hashCount[bucketOffset * stride + index]++;
+		hash_count[bucket_offset * stride + index]++;
 	}
 }
 
 
-__global__ void hashIndexCount(GHashNode outerHash, GHashNode innerHash, int lowerBound, int upperBound, ulong *indexCount, int size)
-{
-	int outerIdx;
-	//int innerIdx;
-	ulong count_res = 0;
-	int threadGlobalIndex = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * gridDim.x * blockDim.x;
-	int bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x;
-//	int keySize = outerHash.keySize;
 
-	if (threadGlobalIndex < size && bucketIdx < upperBound) {
-		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx]; outerIdx < outerHash.bucketLocation[bucketIdx + 1]; outerIdx += blockDim.x)
-			count_res += innerHash.bucketLocation[bucketIdx + 1] - innerHash.bucketLocation[bucketIdx];
-//			for (innerIdx = innerHash.bucketLocation[bucketIdx]; innerIdx < innerHash.bucketLocation[bucketIdx + 1]; innerIdx++)
-//				count_res += equalityChecker(outerHash.hashedKey + outerIdx * keySize, innerHash.hashedKey + innerIdx * keySize, keySize) ? 1 : 0;
-		indexCount[threadGlobalIndex] = count_res;
-	}
-}
-
-__global__ void hashIndexCountShared(GHashNode outerHash, GHashNode innerHash, int lowerBound, int upperBound, ulong *indexCount, int size)
-{
-	int outerIdx, innerIdx, endInnerIdx;
-	ulong count_res = 0;
-	int threadGlobalIndex = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * gridDim.x * blockDim.x;
-	int bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x;
-	int keySize = outerHash.keySize;
-	__shared__ uint64_t tmpInnerKey[SHARED_MEM];
-	int realSize = 0;
-	int sharedSize = SHARED_MEM;
-
-	if (threadGlobalIndex < size && bucketIdx < upperBound) {
-		for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx += (realSize/keySize)) {
-			realSize = ((innerIdx + (sharedSize/keySize)) < endInnerIdx) ? ((sharedSize/keySize) * keySize) : ((endInnerIdx - innerIdx) * keySize);
-			for (int i = threadIdx.x; i < realSize; i += blockDim.x) {
-				tmpInnerKey[i] = innerHash.hashedKey[innerIdx * keySize + i];
-			}
-
-			__syncthreads();
-
-			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx]; outerIdx < outerHash.bucketLocation[bucketIdx + 1]; outerIdx += blockDim.x) {
-				for (int tmpInnerIdx = 0; tmpInnerIdx < realSize/keySize; tmpInnerIdx++)
-					count_res += equalityChecker(outerHash.hashedKey + outerIdx * keySize, tmpInnerKey + tmpInnerIdx * keySize, keySize) ? 1 : 0;
-			}
-			__syncthreads();
-		}
-		indexCount[threadGlobalIndex] = count_res;
-	}
-}
-
-__global__ void hashJoin(GNValue *outer_table, GNValue *inner_table,
+__global__ void HashJoin(GNValue *outer_table, GNValue *inner_table,
 							int outer_cols, int inner_cols,
 							GTreeNode *end_expression, int end_size,
 							GTreeNode *post_expression,	int post_size,
-							GHashNode outerHash,
-							GHashNode innerHash,
-							int lowerBound,
-							int upperBound,
-							ulong *indexCount,
-							int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-							GNValue *stack,
-#elif defined(POST_EXP_)
-							int64_t *val_stack,
-							ValueType *type_stack,
-#endif
-							RESULT *result)
-{
-	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * gridDim.x * blockDim.x;
-	int bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x;
-
-	ulong write_location;
-	int outerIdx, innerIdx;
-	int outerTupleIdx, innerTupleIdx;
-	int endOuterIdx, endInnerIdx;
-	GNValue end_check;
-
-	if (index < size && bucketIdx < upperBound) {
-		write_location = indexCount[index];
-		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-			for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-				outerTupleIdx = outerHash.hashedIdx[outerIdx];
-				innerTupleIdx = innerHash.hashedIdx[innerIdx];
-
-				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
-#ifdef POST_EXP_
-#ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (hashEvaluate_itr_func(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	stack + index, gridDim.x * gridDim.y * blockDim.x)) : GNValue::getTrue();
-				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_func(post_expression, post_size,
-																				outer_table + outerTupleIdx * outer_cols,
-																				inner_table + innerTupleIdx * inner_cols,
-																				stack + index, gridDim.x * gridDim.y * blockDim.x)) : end_check;
-#else
-				end_check = (end_size > 0) ? (hashEvaluate_itr_nonfunc(end_expression, end_size,
-																		outer_table + outerTupleIdx * outer_cols,
-																		inner_table + innerTupleIdx * inner_cols,
-																		val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x)) : GNValue::getTrue();
-				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_nonfunc(post_expression, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								inner_table + innerTupleIdx * inner_cols,
-																								val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x)) : end_check;
-#endif
-#else
-#ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (hashEvaluate_recv_func(end_expression, 1, end_size,
-																		outer_table + outerTupleIdx * outer_cols,
-																		inner_table + innerTupleIdx * inner_cols)) : GNValue::getTrue();
-				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_func(post_expression, 1, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								inner_table + innerTupleIdx * inner_cols)) : end_check;
-#else
-				end_check = (end_size > 0) ? (hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
-																		outer_table + outerTupleIdx * outer_cols,
-																		inner_table + innerTupleIdx * inner_cols)) : GNValue::getTrue();
-				end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								inner_table + innerTupleIdx * inner_cols)) : end_check;
-#endif
-
-#endif
-
-				result[write_location].lkey = (end_check.isTrue()) ? (outerTupleIdx) : (-1);
-				result[write_location].rkey = (end_check.isTrue()) ? (innerTupleIdx) : (-1);
-				write_location++;
-			}
-		}
-	}
-}
-
-__global__ void hashJoinShared(GNValue *outer_table, GNValue *inner_table,
-								int outer_cols, int inner_cols,
-								GTreeNode *end_expression, int end_size,
-								GTreeNode *post_expression,	int post_size,
-								GHashNode outerHash, GHashNode innerHash,
-								int lowerBound, int upperBound,
-								ulong *indexCount, int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-								GNValue *stack,
-#elif defined(POST_EXP_)
-								int64_t *val_stack,
-								ValueType *type_stack,
-#endif
-								RESULT *result)
-{
-	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * gridDim.x * blockDim.x;
-	int bucketIdx = lowerBound + blockIdx.x + blockIdx.y * gridDim.x;
-
-	ulong write_location;
-	int outerIdx, innerIdx;
-	int outerTupleIdx, innerTupleIdx;
-	int endOuterIdx, endInnerIdx;
-	bool end_check;
-	__shared__ GNValue tmpInner[SHARED_MEM];
-	int realSize = 0;
-	int sharedSize = SHARED_MEM;
-
-	if (index < size && bucketIdx < upperBound) {
-		write_location = indexCount[index];
-		for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx += (sharedSize / inner_cols)) {
-			realSize = ((innerIdx + (sharedSize/inner_cols)) < endInnerIdx) ? ((sharedSize/inner_cols) * inner_cols) : ((endInnerIdx - innerIdx) * inner_cols);
-			for (int i = threadIdx.x; i < realSize; i += blockDim.x) {
-				tmpInner[i] = inner_table[innerHash.hashedIdx[innerIdx + i / inner_cols] * inner_cols + i % inner_cols];
-			}
-			__syncthreads();
-
-			for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-				outerTupleIdx = outerHash.hashedIdx[outerIdx];
-				for (int tmpInnerIdx = 0; tmpInnerIdx < realSize/inner_cols; tmpInnerIdx++) {
-					innerTupleIdx = innerHash.hashedIdx[tmpInnerIdx + innerIdx];
-#ifdef POST_EXP_
-#ifdef FUNC_CALL_
-					end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
-																				outer_table + outerTupleIdx * outer_cols,
-																				tmpInner + tmpInnerIdx * inner_cols,
-																				stack + index, gridDim.x * blockDim.x).getValue()) : true;
-					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								tmpInner + tmpInnerIdx * inner_cols,
-																								stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
-#else
-					end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
-																					outer_table + outerTupleIdx * outer_cols,
-																					tmpInner + tmpInnerIdx * inner_cols,
-																					val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : true;
-					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								tmpInner + tmpInnerIdx * inner_cols,
-																								val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
-#endif
-#else
-#ifdef FUNC_CALL_
-					end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
-																				outer_table + outerTupleIdx * outer_cols,
-																				tmpInner + tmpInnerIdx * inner_cols).getValue()) : true;
-					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								tmpInner + tmpInnerIdx * inner_cols).getValue()) : end_check;
-#else
-					end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
-																									outer_table + outerTupleIdx * outer_cols,
-																									tmpInner + tmpInnerIdx * inner_cols).getValue()) : true;
-					end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								tmpInner + tmpInnerIdx * inner_cols).getValue()) : end_check;
-#endif
-#endif
-
-					result[write_location].lkey = (end_check) ? (outerTupleIdx) : (-1);
-					result[write_location].rkey = (end_check) ? (innerTupleIdx) : (-1);
-					write_location++;
-				}
-			}
-			__syncthreads();
-		}
-
-	}
-}
-
-__global__ void ghashPhysical(GNValue *inputTable, GNValue *outputTable, int colNum, int rowNum, GHashNode hashTable)
-{
-	for (int index = threadIdx.x + blockIdx.x * blockDim.x; index < rowNum; index += blockDim.x * gridDim.x) {
-		for (int i = 0; i < colNum; i++) {
-			outputTable[index * colNum + i] = inputTable[hashTable.hashedIdx[index] * colNum + i];
-		}
-	}
-}
-
-
-__global__ void hashPhysicalJoin(GNValue *outer_table, GNValue *inner_table,
-									int outer_cols, int inner_cols,
-									GTreeNode *end_expression, int end_size,
-									GTreeNode *post_expression,	int post_size,
-									GHashNode outerHash,
-									GHashNode innerHash,
-									int lowerBound,
-									int upperBound,
-									ulong *indexCount,
-									int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-									GNValue *stack,
-#elif defined(POST_EXP_)
-									int64_t *val_stack,
-									ValueType *type_stack,
-#endif
-									RESULT *result)
-{
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	int bucketIdx = lowerBound + blockIdx.x;
-
-	ulong write_location;
-	int outerIdx, innerIdx;
-	int endOuterIdx, endInnerIdx;
-	bool end_check;
-
-	if (index < size && bucketIdx < upperBound) {
-		write_location = indexCount[index];
-		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-			for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-
-				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
-				//GNValue exp_check(VALUE_TYPE_BOOLEAN, key_check);
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerIdx * inner_cols,
-																	stack + index, gridDim.x * blockDim.x).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
-																				outer_table + outerIdx * outer_cols,
-																				inner_table + innerIdx * inner_cols,
-																				stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
-#elif defined(POST_EXP_)
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
-																	outer_table + outerIdx * outer_cols,
-																	inner_table + innerIdx * inner_cols,
-																	val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
-																				outer_table + outerIdx * outer_cols,
-																				inner_table + innerIdx * inner_cols,
-																				val_stack + index, type_stack + index, gridDim.x * blockDim.x).getValue()) : end_check;
-#endif
-
-				result[write_location].lkey = (end_check) ? outerHash.hashedIdx[outerIdx] : (-1);
-				result[write_location].rkey = (end_check) ? innerHash.hashedIdx[innerIdx] : (-1);
-				write_location++;
-			}
-		}
-	}
-}
-
-__global__ void hashJoin2(GNValue *outer_table, GNValue *inner_table,
-							int outer_cols, int inner_cols,
-							GTreeNode *end_expression, int end_size,
-							GTreeNode *post_expression,	int post_size,
-							GHashNode outerHash, GHashNode innerHash,
-							int baseOuterIdx, int baseInnerIdx,
-							ulong *indexCount, int size,
+							GHashNode outer_hash, GHashNode inner_hash,
+							int base_outer_idx, int base_inner_idx,
+							ulong *index_count, int size,
 #if defined(FUNC_CALL_) && defined(POST_EXP_)
 							GNValue *stack,
 #elif defined(POST_EXP_)
@@ -1269,159 +196,76 @@ __global__ void hashJoin2(GNValue *outer_table, GNValue *inner_table,
 							RESULT *result)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
-	int bucketIdx = blockIdx.x + blockIdx.y * gridDim.x;
+	int bucket_idx = blockIdx.x + blockIdx.y * gridDim.x;
 
 	ulong write_location;
-	int outerIdx, innerIdx;
-	int outerTupleIdx, innerTupleIdx;
-	int endOuterIdx, endInnerIdx;
+	int outer_idx, inner_idx;
+	int outer_tuple_idx, inner_tuple_idx;
+	int end_outer_idx, end_inner_idx;
 	bool end_check;
 
-	if (index < size && bucketIdx < outerHash.bucketNum) {
-		write_location = indexCount[index];
-		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-			for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-				outerTupleIdx = outerHash.hashedIdx[outerIdx];
-				innerTupleIdx = innerHash.hashedIdx[innerIdx];
+	if (index < size && bucket_idx < outer_hash.bucket_num) {
+		write_location = index_count[index];
+		for (outer_idx = threadIdx.x + outer_hash.bucket_location[bucket_idx], end_outer_idx = outer_hash.bucket_location[bucket_idx + 1]; outer_idx < end_outer_idx; outer_idx += blockDim.x) {
+			for (inner_idx = inner_hash.bucket_location[bucket_idx], end_inner_idx = inner_hash.bucket_location[bucket_idx + 1]; inner_idx < end_inner_idx; inner_idx++) {
+				outer_tuple_idx = outer_hash.hashed_idx[outer_idx];
+				inner_tuple_idx = inner_hash.hashed_idx[inner_idx];
 
-				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
+				//key_check = equalityChecker(&outer_hash.hashedKey[outer_idx * outer_hash.key_size], &inner_hash.hashedKey[inner_idx * outer_hash.key_size], outer_hash.key_size);
 #ifdef POST_EXP_
 #ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
-																			outer_table + outerTupleIdx * outer_cols,
-																			inner_table + innerTupleIdx * inner_cols,
-																			stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
-																							outer_table + outerTupleIdx * outer_cols,
-																							inner_table + innerTupleIdx * inner_cols,
-																							stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : end_check;
+				end_check = (end_size > 0) ? (bool)(EvaluateItrFunc(end_expression, end_size,
+																	outer_table + outer_tuple_idx * outer_cols,
+																	inner_table + inner_tuple_idx * inner_cols,
+																	stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(EvaluateItrFunc(post_expression, post_size,
+																					outer_table + outer_tuple_idx * outer_cols,
+																					inner_table + inner_tuple_idx * inner_cols,
+																					stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : end_check;
 #else
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
-																				outer_table + outerTupleIdx * outer_cols,
-																				inner_table + innerTupleIdx * inner_cols,
-																				val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
-																							outer_table + outerTupleIdx * outer_cols,
-																							inner_table + innerTupleIdx * inner_cols,
-																							val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : end_check;
+				end_check = (end_size > 0) ? (bool)(EvaluateItrNonFunc(end_expression, end_size,
+																		outer_table + outer_tuple_idx * outer_cols,
+																		inner_table + inner_tuple_idx * inner_cols,
+																		val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(EvaluateItrNonFunc(post_expression, post_size,
+																						outer_table + outer_tuple_idx * outer_cols,
+																						inner_table + inner_tuple_idx * inner_cols,
+																						val_stack + index, type_stack + index, gridDim.x * blockDim.x * gridDim.y).getValue()) : end_check;
 #endif
 
 #else
 #ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
-																			outer_table + outerIdx * outer_cols,
-																			inner_table + innerIdx * inner_cols).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
-																							outer_table + outerIdx * outer_cols,
-																							inner_table + innerIdx * inner_cols).getValue()) : end_check;
+				end_check = (end_size > 0) ? (bool)(EvaluateRecvFunc(end_expression, 1, end_size,
+																		outer_table + outer_idx * outer_cols,
+																		inner_table + inner_idx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(EvaluateRecvFunc(post_expression, 1, post_size,
+																					outer_table + outer_idx * outer_cols,
+																					inner_table + inner_idx * inner_cols).getValue()) : end_check;
 #else
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
-																							outer_table + outerIdx * outer_cols,
-																							inner_table + innerIdx * inner_cols).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
-																							outer_table + outerIdx * outer_cols,
-																							inner_table + innerIdx * inner_cols).getValue()) : end_check;
+				end_check = (end_size > 0) ? (bool)(EvaluateRecvNonFunc(end_expression, 1, end_size,
+																		outer_table + outer_idx * outer_cols,
+																		inner_table + inner_idx * inner_cols).getValue()) : true;
+				end_check = (end_check && post_size > 0) ? (bool)(EvaluateRecvNonFunc(post_expression, 1, post_size,
+																						outer_table + outer_idx * outer_cols,
+																						inner_table + inner_idx * inner_cols).getValue()) : end_check;
 #endif
 #endif
 
-				result[write_location].lkey = (end_check) ? (outerTupleIdx + baseOuterIdx) : (-1);
-				result[write_location].rkey = (end_check) ? (innerTupleIdx + baseInnerIdx) : (-1);
+				result[write_location].lkey = (end_check) ? (outer_tuple_idx + base_outer_idx) : (-1);
+				result[write_location].rkey = (end_check) ? (inner_tuple_idx + base_inner_idx) : (-1);
 				write_location++;
 			}
 		}
 	}
 }
 
-__global__ void hashJoin3(GNValue *outer_table, GNValue *inner_table,
-							int outer_cols, int inner_cols,
-							GTreeNode *end_expression, int end_size,
-							GTreeNode *post_expression,	int post_size,
-							GHashNode outerHash,
-							GHashNode innerHash,
-							int lowerBound, int upperBound,
-							int baseOuterIdx, int baseInnerIdx,
-							ulong *indexCount,
-							int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-							GNValue *stack,
-#elif defined(POST_EXP_)
-							int64_t *val_stack,
-							ValueType *type_stack,
-#endif
-							RESULT *result)
-{
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	int bucketIdx = lowerBound + blockIdx.x;
-
-	ulong write_location;
-	int outerIdx, innerIdx;
-	int outerTupleIdx, innerTupleIdx;
-	int endOuterIdx, endInnerIdx;
-	bool end_check;
-
-	if (index < size && bucketIdx < upperBound) {
-		write_location = indexCount[index];
-		for (outerIdx = threadIdx.x + outerHash.bucketLocation[bucketIdx], endOuterIdx = outerHash.bucketLocation[bucketIdx + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-			for (innerIdx = innerHash.bucketLocation[bucketIdx], endInnerIdx = innerHash.bucketLocation[bucketIdx + 1]; innerIdx < endInnerIdx; innerIdx++) {
-				outerTupleIdx = outerHash.hashedIdx[outerIdx];
-				innerTupleIdx = innerHash.hashedIdx[innerIdx];
-
-				//key_check = equalityChecker(&outerHash.hashedKey[outerIdx * outerHash.keySize], &innerHash.hashedKey[innerIdx * outerHash.keySize], outerHash.keySize);
-#ifdef POST_EXP_
-#ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
-																	outer_table + outerTupleIdx * outer_cols,
-																	inner_table + innerTupleIdx * inner_cols,
-																	stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
-																				outer_table + outerTupleIdx * outer_cols,
-																				inner_table + innerTupleIdx * inner_cols,
-																				stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : end_check;
-#else
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
-																				outer_table + outerTupleIdx * outer_cols,
-																				inner_table + innerTupleIdx * inner_cols,
-																				val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
-																							outer_table + outerTupleIdx * outer_cols,
-																							inner_table + innerTupleIdx * inner_cols,
-																							val_stack + index, type_stack + index, gridDim.x * gridDim.y * blockDim.x).getValue()) : end_check;
-#endif
-#else
-#ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
-																			outer_table + outerTupleIdx * outer_cols,
-																			inner_table + innerTupleIdx * inner_cols).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
-																							outer_table + outerTupleIdx * outer_cols,
-																							inner_table + innerTupleIdx * inner_cols).getValue()) : end_check;
-#else
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
-																				outer_table + outerTupleIdx * outer_cols,
-																				inner_table + innerTupleIdx * inner_cols).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								inner_table + innerTupleIdx * inner_cols).getValue()) : end_check;
-#endif
-#endif
-
-				result[write_location].lkey = (end_check) ? (outerTupleIdx + baseOuterIdx) : (-1);
-				result[write_location].rkey = (end_check) ? (innerTupleIdx + baseInnerIdx) : (-1);
-				write_location++;
-			}
-		}
-	}
-}
-
-
-
-__global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
+__global__ void HashJoinShared(GNValue *outer_table, GNValue *inner_table,
 								int outer_cols, int inner_cols,
-								GTreeNode *end_expression, int end_size,
-								GTreeNode *post_expression,	int post_size,
-								GHashNode outerHash, GHashNode innerHash,
-								int baseOuterIdx, int baseInnerIdx,
-								ulong *indexCount, int size,
+								GTreeNode *end_exp, int end_size,
+								GTreeNode *post_exp,	int post_size,
+								GHashNode outer_hash, GHashNode inner_hash,
+								int base_outer_idx, int base_inner_idx,
+								ulong *index_count, int size,
 #if defined(FUNC_CALL_) && defined(POST_EXP_)
 								GNValue *stack,
 #elif defined(POST_EXP_)
@@ -1430,73 +274,74 @@ __global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
 #endif
 								RESULT *result)
 {
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
+	int bucket_idx = blockIdx.x + blockIdx.y * gridDim.x;
 
 	ulong write_location;
-	int outerIdx, innerIdx;
-	int outerTupleIdx, innerTupleIdx;
-	int endOuterIdx, endInnerIdx;
+	int outer_idx, inner_idx;
+	int outer_tuple_idx, inner_tuple_idx;
+	int end_outer_idx, end_inner_idx;
 	GNValue end_check;
-	__shared__ GNValue tmpInner[SHARED_MEM];
-	int realSize = 0;
-	int sharedSize = SHARED_MEM;
+	__shared__ GNValue tmp_inner[SHARED_MEM];
+	int real_size = 0;
+	int shared_size = SHARED_MEM;
 	int tmp = 0;
 
-	if (index < size && blockIdx.x < outerHash.bucketNum) {
-		write_location = indexCount[index];
-		for (innerIdx = innerHash.bucketLocation[blockIdx.x], endInnerIdx = innerHash.bucketLocation[blockIdx.x + 1]; innerIdx < endInnerIdx; innerIdx += (sharedSize / inner_cols)) {
-			//innerTupleIdx = innerHash.hashedIdx[innerIdx];
-			tmp = sharedSize/inner_cols;
-			realSize = ((innerIdx + tmp) < endInnerIdx) ? (tmp * inner_cols) : ((endInnerIdx - innerIdx) * inner_cols);
-			for (int i = threadIdx.x; i < realSize; i += blockDim.x) {
-				tmpInner[i] = inner_table[innerHash.hashedIdx[innerIdx + i / inner_cols] * inner_cols + i % inner_cols];
+	if (index < size && blockIdx.x < outer_hash.bucket_num) {
+		write_location = index_count[index];
+		for (inner_idx = inner_hash.bucket_location[bucket_idx], end_inner_idx = inner_hash.bucket_location[bucket_idx + 1]; inner_idx < end_inner_idx; inner_idx += (shared_size / inner_cols)) {
+			//inner_tuple_idx = inner_hash.hashed_idx[inner_idx];
+			tmp = shared_size/inner_cols;
+			real_size = ((inner_idx + tmp) < end_inner_idx) ? (tmp * inner_cols) : ((end_inner_idx - inner_idx) * inner_cols);
+			for (int i = threadIdx.x; i < real_size; i += blockDim.x) {
+				tmp_inner[i] = inner_table[inner_hash.hashed_idx[inner_idx + i / inner_cols] * inner_cols + i % inner_cols];
 			}
 			__syncthreads();
 
-			for (outerIdx = threadIdx.x + outerHash.bucketLocation[blockIdx.x], endOuterIdx = outerHash.bucketLocation[blockIdx.x + 1]; outerIdx < endOuterIdx; outerIdx += blockDim.x) {
-				outerTupleIdx = outerHash.hashedIdx[outerIdx];
-				for (int tmpInnerIdx = 0; tmpInnerIdx < realSize/inner_cols; tmpInnerIdx++) {
-					innerTupleIdx = innerHash.hashedIdx[innerIdx + tmpInnerIdx];
+			for (outer_idx = threadIdx.x + outer_hash.bucket_location[bucket_idx], end_outer_idx = outer_hash.bucket_location[bucket_idx + 1]; outer_idx < end_outer_idx; outer_idx += blockDim.x) {
+				outer_tuple_idx = outer_hash.hashed_idx[outer_idx];
+				for (int tmp_inner_idx = 0; tmp_inner_idx < real_size/inner_cols; tmp_inner_idx++) {
+					inner_tuple_idx = inner_hash.hashed_idx[inner_idx + tmp_inner_idx];
 #ifdef POST_EXP_
 #ifdef FUNC_CALL_
-					end_check = (end_size > 0) ? (hashEvaluate_itr_func(end_expression, end_size,
-																		outer_table + outerTupleIdx * outer_cols,
-																		tmpInner + tmpInnerIdx * inner_cols,
+					end_check = (end_size > 0) ? (EvaluateItrFunc(end_exp, end_size,
+																		outer_table + outer_tuple_idx * outer_cols,
+																		tmp_inner + tmp_inner_idx * inner_cols,
 																		stack + index, gridDim.x * blockDim.x)) : GNValue::getTrue();
-					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_func(post_expression, post_size,
-																								outer_table + outerTupleIdx * outer_cols,
-																								tmpInner + tmpInnerIdx * inner_cols,
-																								stack + index, gridDim.x * blockDim.x)) : end_check;
+					end_check = (end_check.isTrue() && post_size > 0) ? (EvaluateItrFunc(post_exp, post_size,
+																							outer_table + outer_tuple_idx * outer_cols,
+																							tmp_inner + tmp_inner_idx * inner_cols,
+																							stack + index, gridDim.x * blockDim.x)) : end_check;
 #else
-					end_check = (end_size > 0) ? hashEvaluate_itr_nonfunc(end_expression, end_size,
-																			outer_table + outerTupleIdx * outer_cols,
-																			tmpInner + tmpInnerIdx * inner_cols,
-																			val_stack + index, type_stack + index, gridDim.x * blockDim.x) : GNValue::getTrue();
-					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_itr_nonfunc(post_expression, post_size,
-																									outer_table + outerTupleIdx * outer_cols,
-																									tmpInner + tmpInnerIdx * inner_cols,
-																									val_stack + index, type_stack + index, gridDim.x * blockDim.x)) : end_check;
+					end_check = (end_size > 0) ? EvaluateItrNonFunc(end_exp, end_size,
+																	outer_table + outer_tuple_idx * outer_cols,
+																	tmp_inner + tmp_inner_idx * inner_cols,
+																	val_stack + index, type_stack + index, gridDim.x * blockDim.x) : GNValue::getTrue();
+					end_check = (end_check.isTrue() && post_size > 0) ? (EvaluateItrNonFunc(post_exp, post_size,
+																							outer_table + outer_tuple_idx * outer_cols,
+																							tmp_inner + tmp_inner_idx * inner_cols,
+																							val_stack + index, type_stack + index, gridDim.x * blockDim.x)) : end_check;
 #endif
 #else
 #ifdef FUNC_CALL_
-					end_check = (end_size > 0) ? (hashEvaluate_recv_func(end_expression, 1, end_size,
-																			outer_table + outerTupleIdx * outer_cols,
-																			tmpInner + tmpInnerIdx * inner_cols)) : GNValue::getTrue();
-					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_func(post_expression, 1, post_size,
-																									outer_table + outerTupleIdx * outer_cols,
-																									tmpInner + tmpInnerIdx * inner_cols)) : end_check;
+					end_check = (end_size > 0) ? (EvaluateRecvFunc(end_exp, 1, end_size,
+																	outer_table + outer_tuple_idx * outer_cols,
+																	tmp_inner + tmp_inner_idx * inner_cols)) : GNValue::getTrue();
+					end_check = (end_check.isTrue() && post_size > 0) ? (EvaluateRecvFunc(post_exp, 1, post_size,
+																							outer_table + outer_tuple_idx * outer_cols,
+																							tmp_inner + tmp_inner_idx * inner_cols)) : end_check;
 #else
-					end_check = (end_size > 0) ? (hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
-																			outer_table + outerTupleIdx * outer_cols,
-																			tmpInner + tmpInnerIdx * inner_cols)) : GNValue::getTrue();
-					end_check = (end_check.isTrue() && post_size > 0) ? (hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
-																									outer_table + outerTupleIdx * outer_cols,
-																									tmpInner + tmpInnerIdx * inner_cols)) : end_check;
+					end_check = (end_size > 0) ? (EvaluateRecvNonFunc(end_exp, 1, end_size,
+																		outer_table + outer_tuple_idx * outer_cols,
+																		tmp_inner + tmp_inner_idx * inner_cols)) : GNValue::getTrue();
+					end_check = (end_check.isTrue() && post_size > 0) ? (EvaluateRecvNonFunc(post_exp, 1, post_size,
+																								outer_table + outer_tuple_idx * outer_cols,
+																								tmp_inner + tmp_inner_idx * inner_cols)) : end_check;
 #endif
 #endif
 
-					result[write_location].lkey = (end_check.isTrue()) ? (outerTupleIdx + baseOuterIdx) : (-1);
-					result[write_location].rkey = (end_check.isTrue()) ? (innerTupleIdx + baseInnerIdx) : (-1);
+					result[write_location].lkey = (end_check.isTrue()) ? (outer_tuple_idx + base_outer_idx) : (-1);
+					result[write_location].rkey = (end_check.isTrue()) ? (inner_tuple_idx + base_inner_idx) : (-1);
 					write_location++;
 				}
 			}
@@ -1506,36 +351,15 @@ __global__ void hashJoinShared2(GNValue *outer_table, GNValue *inner_table,
 	}
 }
 
-
-__global__ void hashIndexCountLegacy(uint64_t *outer_key, int outer_rows, GHashNode innerHash, ulong *indexCount, int size)
-{
-	int outerIdx;
-	//int innerIdx;
-	ulong count_res = 0;
-	int keySize = innerHash.keySize;
-	int maxNumberOfBuckets = innerHash.bucketNum;
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-
-	if (index < outer_rows) {
-		for (outerIdx = threadIdx.x + blockIdx.x * blockDim.x; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
-			uint64_t hashVal = hasher(outer_key + outerIdx * keySize, keySize);
-			uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
-
-			count_res += innerHash.bucketLocation[bucketOffset + 1] - innerHash.bucketLocation[bucketOffset];
-		}
-		indexCount[index] = count_res;
-	}
-}
-
-__global__ void hashJoinLegacy(GNValue *outer_table, GNValue *inner_table,
+__global__ void HashJoinLegacy(GNValue *outer_table, GNValue *inner_table,
 								int outer_cols, int inner_cols,
-								int outer_rows,
-								uint64_t *outerKey,
-								GTreeNode *end_expression, int end_size,
-								GTreeNode *post_expression,	int post_size,
-								GHashNode innerHash,
-								int baseOuterIdx, int baseInnerIdx,
-								ulong *indexCount, int size,
+								int size,
+								GTreeNode *end_exp, int end_size,
+								GTreeNode *post_exp, int post_size,
+								GHashNode inner_hash,
+								int base_outer_idx, int base_inner_idx,
+								ulong *write_location,
+								ResBound *index_bound,
 #if defined(FUNC_CALL_) && defined(POST_EXP_)
 								GNValue *stack,
 #elif defined(POST_EXP_)
@@ -1544,492 +368,219 @@ __global__ void hashJoinLegacy(GNValue *outer_table, GNValue *inner_table,
 #endif
 								RESULT *result)
 {
-	bool end_check;
+	GNValue res;
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int offset = blockDim.x * gridDim.x;
 
-	int keySize = innerHash.keySize;
-	int maxNumberOfBuckets = innerHash.bucketNum;
-	int stackIdx = threadIdx.x + blockDim.x * blockIdx.x;
-	int index = threadIdx.x + blockDim.x * blockIdx.x;
-	int innerIdx;
+	for (int i = index; i < size; i += offset) {
+		ulong location = write_location[i];
+		int outer_idx = index_bound[i].outer;
 
-	if (index < outer_rows) {
-		ulong write_location = indexCount[index];
+		for (int left = index_bound[i].left, right = index_bound[i].right; left < right; left++) {
+			int inner_idx = inner_hash.hashed_idx[left];
 
-		for (int outerIdx = index; outerIdx < outer_rows; outerIdx += blockDim.x * gridDim.x) {
-			uint64_t hashVal = hasher(outerKey + outerIdx * keySize, keySize);
-			uint64_t bucketOffset = hashVal % maxNumberOfBuckets;
+			res = GNValue::getTrue();
 
-			for (int bucketIdx = innerHash.bucketLocation[bucketOffset], endBucketIdx = innerHash.bucketLocation[bucketOffset + 1]; bucketIdx < endBucketIdx; bucketIdx++) {
-				innerIdx = innerHash.hashedIdx[bucketIdx];
 #ifdef POST_EXP_
 #ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_func(end_expression, end_size,
-																			outer_table + outerIdx * outer_cols,
-																			inner_table + innerIdx * inner_cols,
-																			stack + stackIdx, gridDim.x * blockDim.x).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_func(post_expression, post_size,
-																							outer_table + outerIdx * outer_cols,
-																							inner_table + innerIdx * inner_cols,
-																							stack + stackIdx, gridDim.x * blockDim.x).getValue()) : end_check;
+			res = (end_size > 0) ? EvaluateItrFunc(end_exp, end_size,
+													outer_table + outer_idx * outer_cols,
+													inner_table + inner_idx * inner_cols,
+													stack + index, offset) : res;
+			res = (res.isTrue() && post_size > 0) ? EvaluateItrFunc(post_exp, post_size,
+																	outer_table + outer_idx * outer_cols,
+																	inner_table + inner_idx * inner_cols,
+																	stack + index, offset) : res;
 #else
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(end_expression, end_size,
-																				outer_table + outerIdx * outer_cols,
-																				inner_table + innerIdx * inner_cols,
-																				val_stack + stackIdx, type_stack + stackIdx, gridDim.x * blockDim.x).getValue()) : true;
+			res = (end_size > 0) ? EvaluateItrNonFunc(end_exp, end_size,
+														outer_table + outer_idx * outer_cols,
+														inner_table + inner_idx * inner_cols,
+														val_stack + index, type_stack + index, offset) : res;
 
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_itr_nonfunc(post_expression, post_size,
-																							outer_table + outerIdx * outer_cols,
-																							inner_table + innerIdx * inner_cols,
-																							val_stack + stackIdx, type_stack + stackIdx, gridDim.x * blockDim.x).getValue()) : end_check;
+			res = (res.isTrue() && post_size > 0) ? EvaluateItrNonFunc(post_exp, post_size,
+																		outer_table + outer_idx * outer_cols,
+																		inner_table + inner_idx * inner_cols,
+																		val_stack + index, type_stack + index, offset) : res;
 #endif
 #else
 #ifdef FUNC_CALL_
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_func(end_expression, 1, end_size,
-																			outer_table + outerIdx * outer_cols,
-																			inner_table + innerIdx * inner_cols).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_func(post_expression, 1, post_size,
-																							outer_table + outerIdx * outer_cols,
-																							inner_table + innerIdx * inner_cols).getValue()) : end_check;
+			res = (end_size > 0) ? EvaluateRecvFunc(end_exp, 1, end_size,
+													outer_table + outer_idx * outer_cols,
+													inner_table + inner_idx * inner_cols) : res;
+			res = (res.isTrue() && post_size > 0) ? EvaluateRecvFunc(post_exp, 1, post_size,
+																		outer_table + outer_idx * outer_cols,
+																		inner_table + inner_idx * inner_cols) : res;
 #else
-				end_check = (end_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(end_expression, 1, end_size,
-																				outer_table + outerIdx * outer_cols,
-																				inner_table + innerIdx * inner_cols).getValue()) : true;
-				end_check = (end_check && post_size > 0) ? (bool)(hashEvaluate_recv_nonfunc(post_expression, 1, post_size,
-																								outer_table + outerIdx * outer_cols,
-																								inner_table + innerIdx * inner_cols).getValue()) : end_check;
+			res = (end_size > 0) ? EvaluateRecvNonFunc(end_exp, 1, end_size,
+														outer_table + outer_idx * outer_cols,
+														inner_table + inner_idx * inner_cols) : res;
+			res = (res.isTrue() && post_size > 0) ? EvaluateRecvNonFunc(post_exp, 1, post_size,
+																		outer_table + outer_idx * outer_cols,
+																		inner_table + inner_idx * inner_cols) : res;
 #endif
 #endif
 
-				result[write_location].lkey = (end_check) ? (outerIdx + baseOuterIdx) : (-1);
-				result[write_location].rkey = (end_check) ? (innerIdx + baseInnerIdx) : (-1);
-				write_location++;
-			}
+			result[location].lkey = (res.isTrue()) ? (outer_idx + base_outer_idx) : (-1);
+			result[location].rkey = (res.isTrue()) ? (inner_idx + base_inner_idx) : (-1);
+			location++;
 		}
+		__syncthreads();
 	}
 }
 
 
-void packKeyWrapper(int block_x, int block_y,
-					int grid_x, int grid_y,
-					GNValue *index_table,
-					int tuple_num,
-					int col_num,
-					int *indices,
-					int index_num,
-					uint64_t *packedKey,
-					int keySize)
+void GhashWrapper(uint64_t *packed_key, GHashNode hash_table)
 {
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
+	int block_x, grid_x;
 
-	packKey<<<gridSize, blockSize>>>(index_table, tuple_num, col_num, indices, index_num, packedKey, keySize);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (packKey) error: %s\n", cudaGetErrorString(err));
-		exit(1);
+	block_x = (hash_table.size < BLOCK_SIZE_X) ? hash_table.size : BLOCK_SIZE_X;
+	grid_x = 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	ulong *histogram;
+	ulong sum;
+
+	checkCudaErrors(cudaMalloc(&histogram, sizeof(ulong) * (block_x * grid_x * hash_table.bucket_num + 1)));
+	checkCudaErrors(cudaMemset(histogram, 0, sizeof(ulong) * (block_x * grid_x * hash_table.bucket_num + 1)));
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	GhashCount<<<grid_size, block_size>>>(packed_key, hash_table.size, hash_table.key_size, histogram, hash_table.bucket_num);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	ExclusiveScanWrapper(histogram, block_x * grid_x * hash_table.bucket_num + 1, &sum);
+
+	Ghash<<<grid_size, block_size>>>(packed_key, histogram, hash_table);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	checkCudaErrors(cudaFree(histogram));
+}
+
+void GhashAsyncWrapper(uint64_t *packed_key, GHashNode hash_table, cudaStream_t stream)
+{
+	int block_x, grid_x;
+
+	block_x = (hash_table.size < BLOCK_SIZE_X) ? hash_table.size : BLOCK_SIZE_X;
+	grid_x = 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	ulong *histogram;
+	ulong sum;
+
+	checkCudaErrors(cudaMalloc(&histogram, sizeof(ulong) * (block_x * grid_x * hash_table.bucket_num + 1)));
+	checkCudaErrors(cudaMemsetAsync(histogram, 0, sizeof(ulong) * (block_x * grid_x * hash_table.bucket_num + 1), stream));
+
+	GhashCount<<<grid_size, block_size, 0, stream>>>(packed_key, hash_table.size, hash_table.key_size, histogram, hash_table.bucket_num);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
+
+	ExclusiveScanAsyncWrapper(histogram, block_x * grid_x * hash_table.bucket_num + 1, &sum, stream);
+
+	Ghash<<<grid_size, block_size, 0, stream>>>(packed_key, histogram, hash_table);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
+
+	checkCudaErrors(cudaFree(histogram));
+}
+
+__global__ void HashIndexCount(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, int size)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x + blockIdx.y * blockDim.x * gridDim.x;
+	int bucket_idx = blockIdx.x + blockIdx.y * gridDim.x;
+
+	if (blockIdx.x < outer_hash.bucket_num && index < size) {
+		int left_bound = outer_hash.bucket_location[bucket_idx];
+		int right_bound = outer_hash.bucket_location[bucket_idx + 1];
+		int bucket_size = inner_hash.bucket_location[bucket_idx + 1] - inner_hash.bucket_location[bucket_idx];
+		ulong count = 0;
+
+		for (int i = threadIdx.x + left_bound; i < right_bound; i += blockDim.x) {
+			count += bucket_size;
+		}
+		index_count[index] = count;
 	}
+}
 
+void IndexCountWrapper(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, int size)
+{
+	int block_x, grid_x, grid_y;
+
+	grid_x = (outer_hash.bucket_num < size) ? outer_hash.bucket_num : size;
+	grid_y = (outer_hash.bucket_num - 1)/grid_x + 1;
+	block_x = (outer_hash.size/grid_x < BLOCK_SIZE_X) ? outer_hash.size/grid_x : BLOCK_SIZE_X;
+
+	checkCudaErrors(cudaMemset(index_count, 0, sizeof(ulong) * size));
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	HashIndexCount<<<grid_size, block_size>>>(outer_hash, inner_hash, index_count, size);
+	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void ghashCountWrapper(int block_x, int block_y,
-						int grid_x, int grid_y,
-						uint64_t *packedKey,
-						int keyNum,
-						int keySize,
-						ulong *hashCount,
-						uint64_t maxNumberOfBuckets
-						)
+void IndexCountAsyncWrapper(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, int size, cudaStream_t stream)
 {
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
+	int block_x, grid_x, grid_y;
 
-	ghashCount<<<gridSize, blockSize>>>(packedKey, keyNum, keySize, hashCount, maxNumberOfBuckets);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (ghashCount) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
+	grid_x = (outer_hash.bucket_num < size) ? outer_hash.bucket_num : size;
+	grid_y = (outer_hash.bucket_num - 1)/grid_x + 1;
+	block_x = (outer_hash.size/grid_x < BLOCK_SIZE_X) ? outer_hash.size/grid_x : BLOCK_SIZE_X;
 
-	checkCudaErrors(cudaDeviceSynchronize());
+	checkCudaErrors(cudaMemsetAsync(index_count, 0, sizeof(ulong) * size, stream));
+
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	HashIndexCount<<<grid_size, block_size, 0, stream>>>(outer_hash, inner_hash, index_count, size);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
 }
 
-void ghashWrapper(int block_x, int block_y,
-					int grid_x, int grid_y,
-					uint64_t *packedKey,
-					ulong *hashCount,
-					GHashNode hashTable
-					)
-{
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
-
-	ghash<<<gridSize, blockSize>>>(packedKey, hashCount, hashTable);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (ghash) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-void ghashPhysicalWrapper(int block_x, int block_y, int grid_x, int grid_y,
-							GNValue *inputTable, GNValue *outputTable,
-							int colNum, int rowNum, GHashNode hashTable)
-{
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
-
-	ghashPhysical<<<gridSize, blockSize>>>(inputTable, outputTable, colNum, rowNum, hashTable);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (ghashPhysical) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-void packSearchKeyWrapper(int block_x, int block_y,
-							int grid_x, int grid_y,
-							GNValue *outer_table, int outer_rows, int outer_cols,
-							uint64_t *searchPackedKey, GTreeNode *searchKeyExp,
-							int *searchKeySize, int searchExpNum,
-							int keySize
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-							,GNValue *stack
-#elif defined(POST_EXP_)
-							,int64_t *val_stack,
-							ValueType *type_stack
-#endif
-							)
-{
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
-
-	packSearchKey<<<gridSize, blockSize>>>(outer_table, outer_rows, outer_cols, searchPackedKey, searchKeyExp, searchKeySize, searchExpNum, keySize
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-											,stack
-#elif defined(POST_EXP_)
-											,val_stack,
-											type_stack
-#endif
-											);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (ghash) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-
-}
-
-void indexCountWrapper(int block_x, int block_y,
-						int grid_x, int grid_y,
-						GHashNode outerHash,
-						GHashNode innerHash,
-						int lowerBound,
-						int upperBound,
-						ulong *indexCount,
-						int size
-						)
-{
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
-
-//#ifndef SHARED_
-	hashIndexCount<<<gridSize, blockSize>>>(outerHash, innerHash, lowerBound, upperBound, indexCount, size);
-//#else
-//	hashIndexCountShared<<<gridSize, blockSize>>>(outerHash, innerHash, lowerBound, upperBound, indexCount, size);
-//#endif
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashIndexCount) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-void hashJoinWrapper(int block_x, int block_y,
-						int grid_x, int grid_y,
-						GNValue *outer_table,
-						GNValue *inner_table,
-						int outer_cols,
-						int inner_cols,
-						GTreeNode *end_expression,
-						int end_size,
-						GTreeNode *post_expression,
-						int post_size,
-						GHashNode outerHash,
-						GHashNode innerHash,
-						int lowerBound,
-						int upperBound,
-						ulong *indexCount,
-						int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-						GNValue *stack,
-#elif defined(POST_EXP_)
-						int64_t *val_stack,
-						ValueType *type_stack,
-#endif
-						RESULT *result
-						)
-{
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
-
-#ifndef SHARED_
-	hashJoin<<<gridSize, blockSize>>>(outer_table, inner_table,
-										outer_cols, inner_cols,
-										end_expression, end_size,
-										post_expression, post_size,
-										outerHash, innerHash,
-										lowerBound, upperBound,
-										indexCount, size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-										stack,
-#elif defined(POST_EXP_)
-										val_stack,
-										type_stack,
-#endif
-										result);
-#else
-	hashJoinShared<<<gridSize, blockSize>>>(outer_table, inner_table,
-													outer_cols, inner_cols,
-													end_expression, end_size,
-													post_expression, post_size,
-													outerHash, innerHash,
-													lowerBound, upperBound,
-													indexCount, size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-													stack,
-#elif defined(POST_EXP_)
-													val_stack,
-													type_stack,
-#endif
-													result);
-#endif
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashJoin) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-
-
-void hashPhysicalJoinWrapper(int block_x, int block_y,
-								int grid_x, int grid_y,
-								GNValue *outer_table,
-								GNValue *inner_table,
-								int outer_cols,
-								int inner_cols,
-								GTreeNode *end_expression,
-								int end_size,
-								GTreeNode *post_expression,
-								int post_size,
-								GHashNode outerHash,
-								GHashNode innerHash,
-								int lowerBound,
-								int upperBound,
-								ulong *indexCount,
-								int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-								GNValue *stack,
-#elif defined(POST_EXP_)
-								int64_t *val_stack,
-								ValueType *type_stack,
-#endif
-								RESULT *result
-								)
-{
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
-
-	hashPhysicalJoin<<<gridSize, blockSize>>>(outer_table, inner_table,
-												outer_cols, inner_cols,
-												end_expression, end_size,
-												post_expression, post_size,
-												outerHash, innerHash,
-												lowerBound, upperBound,
-												indexCount, size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-												stack,
-#elif defined(POST_EXP_)
-												val_stack,
-												type_stack,
-#endif
-												result);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashPhysicalJoin) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-void hashJoinWrapper2(int block_x, int block_y, int grid_x, int grid_y,
-						GNValue *outer_table, GNValue *inner_table,
+void HashJoinWrapper(GNValue *outer_table, GNValue *inner_table,
 						int outer_cols, int inner_cols,
-						GTreeNode *end_expression, int end_size,
-						GTreeNode *post_expression, int post_size,
-						GHashNode outerHash, GHashNode innerHash,
-						int baseOuterIdx, int baseInnerIdx,
-						ulong *indexCount, int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-						GNValue *stack,
-#elif defined(POST_EXP_)
-						int64_t *val_stack,
-						ValueType *type_stack,
-#endif
+						GTreeNode *end_exp, int end_size,
+						GTreeNode *post_exp, int post_size,
+						GHashNode outer_hash, GHashNode inner_hash,
+						int base_outer_idx, int base_inner_idx,
+						ulong *index_count, int size,
 						RESULT *result)
 {
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
+	int block_x, grid_x, grid_y;
+
+	grid_x = (outer_hash.bucket_num < size) ? outer_hash.bucket_num : size;
+	grid_y = (outer_hash.bucket_num - 1)/grid_x + 1;
+	block_x = (outer_hash.size/grid_x < BLOCK_SIZE_X) ? outer_hash.size/grid_x : BLOCK_SIZE_X;
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	GNValue *stack;
+
+	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * block_x * grid_x * MAX_STACK_SIZE));
+#elif defined(POST_EXP_)
+	int64_t *val_stack;
+	ValueType *type_stack;
+
+	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * block_x * grid_x * MAX_STACK_SIZE));
+	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * block_x * grid_x * MAX_STACK_SIZE));
+#endif
+
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, 1, 1);
 
 #ifndef SHARED_
-	hashJoin2<<<gridSize, blockSize>>>(outer_table, inner_table,
-												outer_cols, inner_cols,
-												end_expression, end_size,
-												post_expression, post_size,
-												outerHash, innerHash,
-												baseOuterIdx, baseInnerIdx,
-												indexCount, size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-												stack,
-#elif defined(POST_EXP_)
-												val_stack,
-												type_stack,
-#endif
-												result);
-#else
-	hashJoinShared2<<<gridSize, blockSize>>>(outer_table, inner_table,
-													outer_cols, inner_cols,
-													end_expression, end_size,
-													post_expression, post_size,
-													outerHash, innerHash,
-													baseOuterIdx, baseInnerIdx,
-													indexCount, size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-													stack,
-#elif defined(POST_EXP_)
-													val_stack,
-													type_stack,
-#endif
-													result);
-#endif
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashPhysicalJoin) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-void indexCountLegacyWrapper(int block_x, int block_y,
-								int grid_x, int grid_y,
-								uint64_t *outerKey,
-								int outer_rows,
-								GHashNode innerHash,
-								ulong *indexCount,
-								int size)
-{
-	dim3 blockSize(block_x, block_y, 1);
-	dim3 gridSize(grid_x, grid_y, 1);
-
-	hashIndexCountLegacy<<<gridSize, blockSize>>>(outerKey, outer_rows, innerHash, indexCount, size);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashIndexCountLegacy) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-void hashJoinLegacyWrapper(int block_x, int block_y, int grid_x, int grid_y,
-							GNValue *outer_table, GNValue *inner_table,
-							int outer_cols, int inner_cols,
-							int outer_rows,
-							uint64_t *outerKey,
-							GTreeNode *end_expression, int end_size,
-							GTreeNode *post_expression,	int post_size,
-							GHashNode innerHash,
-							int baseOuterIdx, int baseInnerIdx,
-							ulong *indexCount, int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-							GNValue *stack,
-#elif defined(POST_EXP_)
-							int64_t *val_stack,
-							ValueType *type_stack,
-#endif
-							RESULT *result)
-{
-	dim3 blockSize(block_x, block_y, 1);
-	dim3 gridSize(grid_x, grid_y, 1);
-
-	hashJoinLegacy<<<gridSize, blockSize>>>(outer_table, inner_table,
-												outer_cols, inner_cols,
-												outer_rows, outerKey,
-												end_expression, end_size,
-												post_expression, post_size,
-												innerHash,
-												baseOuterIdx, baseInnerIdx,
-												indexCount, size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-												stack,
-#elif defined(POST_EXP_)
-												val_stack,
-												type_stack,
-#endif
-												result);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashJoinLegacy) error: %s\n", cudaGetErrorString(err));
-		exit(1);
-	}
-
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-
-void hashJoinWrapper3(int block_x, int block_y,
-						int grid_x, int grid_y,
-						GNValue *outer_table, GNValue *inner_table,
-						int outer_cols, int inner_cols,
-						GTreeNode *end_expression, int end_size,
-						GTreeNode *post_expression, int post_size,
-						GHashNode outerHash, GHashNode innerHash,
-						int lowerBound, int upperBound,
-						int outerBaseIdx, int innerBaseIdx,
-						ulong *indexCount, int size,
-#if defined(FUNC_CALL_) && defined(POST_EXP_)
-						GNValue *stack,
-#elif defined(POST_EXP_)
-						int64_t *val_stack,
-						ValueType *type_stack,
-#endif
-						RESULT *result
-						)
-{
-	dim3 gridSize(grid_x, grid_y, 1);
-	dim3 blockSize(block_x, block_y, 1);
-
-	hashJoin3<<<gridSize, blockSize>>>(outer_table, inner_table,
+	HashJoin<<<grid_size, block_size>>>(outer_table, inner_table,
 										outer_cols, inner_cols,
-										end_expression, end_size,
-										post_expression, post_size,
-										outerHash, innerHash,
-										lowerBound, upperBound,
-										outerBaseIdx, innerBaseIdx,
-										indexCount, size,
+										end_exp, end_size,
+										post_exp, post_size,
+										outer_hash, inner_hash,
+										base_outer_idx, base_inner_idx,
+										index_count, size,
 #if defined(FUNC_CALL_) && defined(POST_EXP_)
 										stack,
 #elif defined(POST_EXP_)
@@ -2037,31 +588,391 @@ void hashJoinWrapper3(int block_x, int block_y,
 										type_stack,
 #endif
 										result);
-	cudaError_t err = cudaGetLastError();
-	if (err != cudaSuccess) {
-		printf("Error: Async kernel (hashJoin3) error: %s\n", cudaGetErrorString(err));
-		exit(1);
+#else
+	HashJoinShared<<<grid_size, block_size>>>(outer_table, inner_table,
+												outer_cols, inner_cols,
+												end_exp, end_size,
+												post_exp, post_size,
+												outer_hash, inner_hash,
+												base_outer_idx, base_inner_idx,
+												index_count, size,
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+												stack,
+#elif defined(POST_EXP_)
+												val_stack,
+												type_stack,
+#endif
+												result);
+#endif
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaDeviceSynchronize());
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	checkCudaErrors(cudaFree(stack));
+#elif defined(POST_EXP_)
+	checkCudaErrors(cudaFree(val_stack));
+	checkCudaErrors(cudaFree(type_stack));
+#endif
+}
+
+void HashJoinAsyncWrapper(GNValue *outer_table, GNValue *inner_table,
+							int outer_cols, int inner_cols,
+							GTreeNode *end_exp, int end_size,
+							GTreeNode *post_exp, int post_size,
+							GHashNode outer_hash, GHashNode inner_hash,
+							int base_outer_idx, int base_inner_idx,
+							ulong *index_count, int size,
+							RESULT *result, cudaStream_t stream)
+{
+	int block_x, grid_x, grid_y;
+
+	grid_x = (outer_hash.bucket_num < size) ? outer_hash.bucket_num : size;
+	grid_y = (outer_hash.bucket_num - 1)/grid_x + 1;
+	block_x = (outer_hash.size/grid_x < BLOCK_SIZE_X) ? outer_hash.size/grid_x : BLOCK_SIZE_X;
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	GNValue *stack;
+
+	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * block_x * grid_x * MAX_STACK_SIZE));
+#elif defined(POST_EXP_)
+	int64_t *val_stack;
+	ValueType *type_stack;
+
+	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * block_x * grid_x * MAX_STACK_SIZE));
+	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * block_x * grid_x * MAX_STACK_SIZE));
+#endif
+
+	dim3 grid_size(grid_x, grid_y, 1);
+	dim3 block_size(block_x, 1, 1);
+
+#ifndef SHARED_
+	HashJoin<<<grid_size, block_size, 0, stream>>>(outer_table, inner_table,
+													outer_cols, inner_cols,
+													end_exp, end_size,
+													post_exp, post_size,
+													outer_hash, inner_hash,
+													base_outer_idx, base_inner_idx,
+													index_count, size,
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+													stack,
+#elif defined(POST_EXP_)
+													val_stack,
+													type_stack,
+#endif
+													result);
+#else
+	HashJoinShared<<<grid_size, block_size, SHARED_MEM * sizeof(GNValue), stream>>>(outer_table, inner_table,
+																						outer_cols, inner_cols,
+																						end_exp, end_size,
+																						post_exp, post_size,
+																						outer_hash, inner_hash,
+																						base_outer_idx, base_inner_idx,
+																						index_count, size,
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+																						stack,
+#elif defined(POST_EXP_)
+																						val_stack,
+																						type_stack,
+#endif
+																						result);
+#endif
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
+
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	checkCudaErrors(cudaFree(stack));
+#elif defined(POST_EXP_)
+	checkCudaErrors(cudaFree(val_stack));
+	checkCudaErrors(cudaFree(type_stack));
+#endif
+}
+
+void HashJoinLegacyWrapper(GNValue *outer_table, GNValue *inner_table,
+							int outer_cols, int inner_cols,
+							int size,
+							GTreeNode *end_expression, int end_size,
+							GTreeNode *post_expression,	int post_size,
+							GHashNode inner_hash,
+							int base_outer_idx, int base_inner_idx,
+							ulong *index_count,
+							ResBound *index_bound,
+							RESULT *result)
+{
+	int partition_size = DEFAULT_PART_SIZE_;
+	int block_x, grid_x;
+
+	block_x = (size < BLOCK_SIZE_X) ? size : BLOCK_SIZE_X;
+	grid_x = (size < partition_size) ? (size - 1)/block_x + 1 : (partition_size - 1)/block_x + 1;
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	GNValue *stack;
+
+	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * block_x * grid_x * MAX_STACK_SIZE));
+#elif defined(POST_EXP_)
+	int64_t *val_stack;
+	ValueType *type_stack;
+
+	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * block_x * grid_x * MAX_STACK_SIZE));
+	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * block_x * grid_x * MAX_STACK_SIZE));
+#endif
+
+	dim3 block_size(block_x, 1, 1);
+	dim3 grid_size(grid_x, 1, 1);
+
+	HashJoinLegacy<<<grid_size, block_size>>>(outer_table, inner_table,
+												outer_cols, inner_cols,
+												size,
+												end_expression, end_size,
+												post_expression, post_size,
+												inner_hash,
+												base_outer_idx, base_inner_idx,
+												index_count, index_bound,
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+												stack,
+#elif defined(POST_EXP_)
+												val_stack,
+												type_stack,
+#endif
+												result);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaDeviceSynchronize());
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	checkCudaErrors(cudaFree(stack));
+#elif defined(POST_EXP_)
+	checkCudaErrors(cudaFree(val_stack));
+	checkCudaErrors(cudaFree(type_stack));
+#endif
+}
+
+void HashJoinLegacyAsyncWrapper(GNValue *outer_table, GNValue *inner_table,
+								int outer_cols, int inner_cols,
+								int size,
+								GTreeNode *end_expression, int end_size,
+								GTreeNode *post_expression,	int post_size,
+								GHashNode inner_hash,
+								int base_outer_idx, int base_inner_idx,
+								ulong *index_count,
+								ResBound *index_bound,
+								RESULT *result, cudaStream_t stream)
+{
+	int partition_size = DEFAULT_PART_SIZE_;
+	int block_x, grid_x;
+
+	block_x = (size < BLOCK_SIZE_X) ? size : BLOCK_SIZE_X;
+	grid_x = (size < partition_size) ? (size - 1)/block_x + 1 : (partition_size - 1)/block_x + 1;
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	GNValue *stack;
+
+	checkCudaErrors(cudaMalloc(&stack, sizeof(GNValue) * block_x * grid_x * MAX_STACK_SIZE));
+#elif defined(POST_EXP_)
+	int64_t *val_stack;
+	ValueType *type_stack;
+
+	checkCudaErrors(cudaMalloc(&val_stack, sizeof(int64_t) * block_x * grid_x * MAX_STACK_SIZE));
+	checkCudaErrors(cudaMalloc(&type_stack, sizeof(ValueType) * block_x * grid_x * MAX_STACK_SIZE));
+#endif
+
+	dim3 block_size(block_x, 1, 1);
+	dim3 grid_size(grid_x, 1, 1);
+
+	HashJoinLegacy<<<grid_size, block_size, 0, stream>>>(outer_table, inner_table,
+															outer_cols, inner_cols,
+															size,
+															end_expression, end_size,
+															post_expression, post_size,
+															inner_hash,
+															base_outer_idx, base_inner_idx,
+															index_count, index_bound,
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+															stack,
+#elif defined(POST_EXP_)
+															val_stack,
+															type_stack,
+#endif
+															result);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
+
+#if defined(FUNC_CALL_) && defined(POST_EXP_)
+	checkCudaErrors(cudaFree(stack));
+#elif defined(POST_EXP_)
+	checkCudaErrors(cudaFree(val_stack));
+	checkCudaErrors(cudaFree(type_stack));
+#endif
+}
+
+__global__ void HashIndexCountLegacy(uint64_t *outer_key, int outer_rows, GHashNode inner_hash, ulong *index_count, ResBound *out_bound)
+{
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	int key_size = inner_hash.key_size;
+	int bucket_number = inner_hash.bucket_num;
+	uint64_t hash_val;
+	uint64_t bucket_offset;
+
+	for (int i = index; i < outer_rows - 1; i += blockDim.x * gridDim.x) {
+		hash_val = Hasher(outer_key + i * key_size, key_size);
+		bucket_offset = hash_val % bucket_number;
+
+		out_bound[i].outer = i;
+		out_bound[i].left = inner_hash.bucket_location[bucket_offset];
+		out_bound[i].right = inner_hash.bucket_location[bucket_offset + 1];
+		index_count[i] = inner_hash.bucket_location[bucket_offset + 1] - inner_hash.bucket_location[bucket_offset];
 	}
 
+	__syncthreads();
+
+	if (index == 0)
+		index_count[outer_rows - 1] = 0;
+}
+
+void IndexCountLegacyAsyncWrapper(uint64_t *outer_key, int outer_rows, GHashNode inner_hash, ulong *index_count, ResBound *out_bound, cudaStream_t stream)
+{
+	int block_x, grid_x;
+
+	block_x = (outer_rows < BLOCK_SIZE_X) ? outer_rows : BLOCK_SIZE_X;
+	grid_x = (outer_rows - 1)/block_x + 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	HashIndexCountLegacy<<<grid_size, block_size, 0, stream>>>(outer_key, outer_rows, inner_hash, index_count, out_bound);
+
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
+}
+
+void IndexCountLegacyWrapper(uint64_t *outer_key, int outer_rows, GHashNode inner_hash, ulong *index_count, ResBound *out_bound)
+{
+	int block_x, grid_x;
+
+	block_x = (outer_rows < BLOCK_SIZE_X) ? outer_rows : BLOCK_SIZE_X;
+	grid_x = (outer_rows - 1)/block_x + 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	HashIndexCountLegacy<<<grid_size, block_size>>>(outer_key, outer_rows, inner_hash, index_count, out_bound);
+
+	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-
-void hprefixSumWrapper(ulong *input, int ele_num, ulong *sum)
+__global__ void HDecompose(RESULT *output, ResBound *in_bound, GHashNode in_hash, ulong *in_location, ulong *local_offset, int size)
 {
-	thrust::device_ptr<ulong> dev_ptr(input);
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
-	thrust::exclusive_scan(dev_ptr, dev_ptr + ele_num, dev_ptr);
-	checkCudaErrors(cudaDeviceSynchronize());
-
-	*sum = *(dev_ptr + ele_num - 1);
+	for (int i = index; i < size; i += blockDim.x * gridDim.x) {
+		output[i].lkey = in_bound[in_location[i]].outer;
+		output[i].rkey = in_hash.hashed_idx[in_bound[in_location[i]].left + local_offset[i]];
+	}
 }
 
-void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size)
+void HDecomposeWrapper(RESULT *output, ResBound *in_bound, GHashNode in_hash, ulong *in_location, ulong *local_offset, int size)
 {
-	// Remove Zeros
-	dim3 grid_size(grid_x, grid_y, 1);
-	dim3 block_size(block_x, block_y, 1);
+	int block_x, grid_x;
+
+	block_x = (size < BLOCK_SIZE_X) ? size : BLOCK_SIZE_X;
+	grid_x = (size - 1)/block_x + 1;
+
+	dim3 block_size(block_x, 1, 1);
+	dim3 grid_size(grid_x, 1, 1);
+
+	HDecompose<<<grid_size, block_size>>>(output, in_bound, in_hash, in_location, local_offset, size);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void HDecomposeAsyncWrapper(RESULT *output, ResBound *in_bound, GHashNode in_hash, ulong *in_location, ulong *local_offset, int size, cudaStream_t stream)
+{
+	int block_x, grid_x;
+
+	block_x = (size < BLOCK_SIZE_X) ? size : BLOCK_SIZE_X;
+	grid_x = (size - 1)/block_x + 1;
+
+	dim3 block_size(block_x, 1, 1);
+	dim3 grid_size(grid_x, 1, 1);
+
+	HDecompose<<<grid_size, block_size, 0, stream>>>(output, in_bound, in_hash, in_location, local_offset, size);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
+}
+
+void HRebalance2(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size)
+{
+	ExclusiveScanWrapper(index_count, in_size, out_size);
+
+	if (*out_size == 0) {
+		return;
+	}
+
+	ulong *location;
+
+	checkCudaErrors(cudaMalloc(&location, sizeof(ulong) * (*out_size)));
+	checkCudaErrors(cudaMemset(location, 0, sizeof(ulong) * (*out_size)));
+	checkCudaErrors(cudaDeviceSynchronize());
+
+
+	MarkLocationWrapper(location, index_count, in_size);
+
+
+	InclusiveScanWrapper(location, *out_size);
+
+	ulong *local_offset;
+
+	checkCudaErrors(cudaMalloc(&local_offset, *out_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(out_bound, *out_size * sizeof(RESULT)));
+
+	ComputeOffsetWrapper(index_count, location, local_offset, *out_size);
+
+	HDecomposeWrapper(*out_bound, in_bound, inner_hash, location, local_offset, *out_size);
+
+	checkCudaErrors(cudaFree(local_offset));
+	checkCudaErrors(cudaFree(location));
+}
+
+void HRebalanceAsync2(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream)
+{
+	ExclusiveScanAsyncWrapper(index_count, in_size, out_size, stream);
+
+	if (*out_size == 0) {
+		return;
+	}
+
+	ulong *location;
+
+	checkCudaErrors(cudaMalloc(&location, sizeof(ulong) * (*out_size)));
+	checkCudaErrors(cudaMemsetAsync(location, 0, sizeof(ulong) * (*out_size), stream));
+
+	MarkLocationAsyncWrapper(location, index_count, in_size, stream);
+
+	InclusiveScanAsyncWrapper(location, *out_size, stream);
+
+	ulong *local_offset;
+
+	checkCudaErrors(cudaMalloc(&local_offset, *out_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(out_bound, *out_size * sizeof(RESULT)));
+
+	ComputeOffsetAsyncWrapper(index_count, location, local_offset, *out_size, stream);
+
+	HDecomposeAsyncWrapper(*out_bound, in_bound, inner_hash, location, local_offset, *out_size, stream);
+
+	checkCudaErrors(cudaFree(local_offset));
+	checkCudaErrors(cudaFree(location));
+}
+
+void HRebalance(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size)
+{
+
+	int block_x, grid_x;
+
+	block_x = (in_size < BLOCK_SIZE_X) ? in_size : BLOCK_SIZE_X;
+	grid_x = (in_size - 1)/block_x + 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
 
 	ulong *mark;
 	ulong size_no_zeros;
@@ -2073,8 +984,7 @@ void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResB
 
 	checkCudaErrors(cudaMalloc(&mark, (in_size + 1) * sizeof(ulong)));
 
-	MarkNonZeros<<<grid_size, block_size>>>(in, in_size, mark);
-	checkCudaErrors(cudaDeviceSynchronize());
+	MarkNonZerosWrapper(index_count, in_size, mark);
 
 	ExclusiveScanWrapper(mark, in_size + 1, &size_no_zeros);
 
@@ -2088,8 +998,7 @@ void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResB
 	checkCudaErrors(cudaMalloc(&no_zeros, (size_no_zeros + 1) * sizeof(ulong)));
 	checkCudaErrors(cudaMalloc(&tmp_bound, size_no_zeros * sizeof(ResBound)));
 
-	RemoveZeros<<<grid_size, block_size>>>(in, no_zeros, in_bound, tmp_bound, mark, in_size);
-	checkCudaErrors(cudaDeviceSynchronize());
+	RemoveZerosWrapper(index_count, in_bound, no_zeros, tmp_bound, mark, in_size);
 
 	ExclusiveScanWrapper(no_zeros, size_no_zeros + 1, &sum);
 
@@ -2108,17 +1017,15 @@ void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResB
 	checkCudaErrors(cudaMemset(tmp_location, 0, sizeof(ulong) * sum));
 	checkCudaErrors(cudaDeviceSynchronize());
 
-	MarkTmpLocation<<<grid_size, block_size>>>(tmp_location, no_zeros, size_no_zeros);
-	checkCudaErrors(cudaDeviceSynchronize());
+	MarkTmpLocationWrapper(tmp_location, no_zeros, size_no_zeros);
 
 	InclusiveScanWrapper(tmp_location, sum);
 
 	checkCudaErrors(cudaMalloc(&local_offset, sum * sizeof(ulong)));
 	checkCudaErrors(cudaMalloc(out_bound, sum * sizeof(RESULT)));
 
-	ComputeOffset<<<grid_size, block_size>>>(no_zeros, tmp_location, local_offset, sum);
-	Decompose<<<grid_size, block_size>>>(tmp_bound, *out_bound, tmp_location, local_offset, sum);
-	checkCudaErrors(cudaDeviceSynchronize());
+	ComputeOffsetWrapper(no_zeros, tmp_location, local_offset, sum);
+	HDecomposeWrapper(*out_bound, tmp_bound, inner_hash, tmp_location, local_offset, sum);
 
 	*out_size = sum;
 
@@ -2126,6 +1033,133 @@ void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResB
 	checkCudaErrors(cudaFree(tmp_location));
 	checkCudaErrors(cudaFree(no_zeros));
 	checkCudaErrors(cudaFree(mark));
+	checkCudaErrors(cudaFree(tmp_bound));
 
 }
+
+void HRebalanceAsync(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream)
+{
+
+	int block_x, grid_x;
+
+	block_x = (in_size < BLOCK_SIZE_X) ? in_size : BLOCK_SIZE_X;
+	grid_x = (in_size - 1)/block_x + 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	ulong *mark;
+	ulong size_no_zeros;
+	ResBound *tmp_bound;
+	ulong sum;
+
+	/* Remove zeros elements */
+	ulong *no_zeros;
+
+	checkCudaErrors(cudaMalloc(&mark, (in_size + 1) * sizeof(ulong)));
+
+	MarkNonZerosAsyncWrapper(index_count, in_size, mark, stream);
+
+	ExclusiveScanAsyncWrapper(mark, in_size + 1, &size_no_zeros, stream);
+
+	if (size_no_zeros == 0) {
+		*out_size = 0;
+		checkCudaErrors(cudaFree(mark));
+
+		return;
+	}
+
+	checkCudaErrors(cudaMalloc(&no_zeros, (size_no_zeros + 1) * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&tmp_bound, size_no_zeros * sizeof(ResBound)));
+
+	RemoveZerosAsyncWrapper(index_count, in_bound, no_zeros, tmp_bound, mark, in_size, stream);
+
+	ExclusiveScanAsyncWrapper(no_zeros, size_no_zeros + 1, &sum, stream);
+
+	if (sum == 0) {
+		*out_size = 0;
+		checkCudaErrors(cudaFree(mark));
+		checkCudaErrors(cudaFree(no_zeros));
+		checkCudaErrors(cudaFree(tmp_bound));
+
+		return;
+	}
+
+	ulong *tmp_location, *local_offset;
+
+	checkCudaErrors(cudaMalloc(&tmp_location, sum * sizeof(ulong)));
+	checkCudaErrors(cudaMemset(tmp_location, 0, sizeof(ulong) * sum));
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	MarkTmpLocationAsyncWrapper(tmp_location, no_zeros, size_no_zeros, stream);
+
+	InclusiveScanAsyncWrapper(tmp_location, sum, stream);
+
+	checkCudaErrors(cudaMalloc(&local_offset, sum * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(out_bound, sum * sizeof(RESULT)));
+
+	ComputeOffsetAsyncWrapper(no_zeros, tmp_location, local_offset, sum, stream);
+	HDecomposeAsyncWrapper(*out_bound, tmp_bound, inner_hash, tmp_location, local_offset, sum, stream);
+
+	*out_size = sum;
+
+	checkCudaErrors(cudaFree(local_offset));
+	checkCudaErrors(cudaFree(tmp_location));
+	checkCudaErrors(cudaFree(no_zeros));
+	checkCudaErrors(cudaFree(mark));
+	checkCudaErrors(cudaFree(tmp_bound));
+
+}
+
+__global__ void HashIndexCount2(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, ResBound *out_bound)
+{
+	int max_buckets = outer_hash.bucket_num;
+	int size = outer_hash.size;
+
+	for (int bucket_idx = blockIdx.x; bucket_idx < max_buckets; bucket_idx += gridDim.x) {
+		int size_of_bucket = inner_hash.bucket_location[bucket_idx + 1] - inner_hash.bucket_location[bucket_idx];
+
+		for (int outer_idx = threadIdx.x + outer_hash.bucket_location[bucket_idx], end_outer_idx = outer_hash.bucket_location[bucket_idx + 1]; outer_idx < end_outer_idx; outer_idx += blockDim.x) {
+			index_count[outer_idx] = size_of_bucket;
+			out_bound[outer_idx].outer = outer_hash.hashed_idx[outer_idx];
+			out_bound[outer_idx].left = inner_hash.bucket_location[bucket_idx];
+			out_bound[outer_idx].right = inner_hash.bucket_location[bucket_idx + 1];
+		}
+		__syncthreads();
+	}
+
+	if (threadIdx.x + blockIdx.x * blockDim.x == 0)
+		index_count[size] = 0;
+}
+
+void IndexCountWrapper2(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, ResBound *out_bound)
+{
+	int block_x, grid_x;
+
+	block_x = (outer_hash.bucket_num < BLOCK_SIZE_X) ? outer_hash.bucket_num : BLOCK_SIZE_X;
+	grid_x = (outer_hash.bucket_num - 1)/block_x + 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	HashIndexCount2<<<grid_size, block_size>>>(outer_hash, inner_hash, index_count, out_bound);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+void IndexCountAsyncWrapper2(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, ResBound *out_bound, cudaStream_t stream)
+{
+	int block_x, grid_x;
+
+	block_x = (outer_hash.bucket_num < BLOCK_SIZE_X) ? outer_hash.bucket_num : BLOCK_SIZE_X;
+	grid_x = (outer_hash.bucket_num - 1)/block_x + 1;
+
+	dim3 grid_size(grid_x, 1, 1);
+	dim3 block_size(block_x, 1, 1);
+
+	HashIndexCount2<<<grid_size, block_size, 0, stream>>>(outer_hash, inner_hash, index_count, out_bound);
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaStreamSynchronize(stream));
+}
+
 }

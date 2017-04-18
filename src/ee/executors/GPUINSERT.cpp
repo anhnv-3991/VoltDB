@@ -9,7 +9,7 @@
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 #include <helper_functions.h>
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUINSERT.h"
 #include "scan_common.h"
 #include "common/types.h"

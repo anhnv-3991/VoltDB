@@ -1,72 +1,43 @@
 #ifndef INDEX_JOIN_GPU_H_
 #define INDEX_JOIN_GPU_H_
 
-
-#include <iostream>
-#include <stdio.h>
-#include <stdint.h>
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <helper_cuda.h>
-#include <helper_functions.h>
-#include <sys/time.h>
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "common/types.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/cudaheader.h"
-#include "GPUetc/expressions/nodedata.h"
-#include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
-#include <thrust/copy.h>
-#include <thrust/scan.h>
-#include <thrust/fill.h>
+#include "GPUetc/common/nodedata.h"
 
 namespace voltdb {
 
 extern "C" {
-void PrejoinFilterWrapper(int grid_x, int grid_y,
-							int block_x, int block_y,
-							GNValue *outer_dev,
-							uint outer_part_size,
-							uint outer_cols,
-							GTreeNode *prejoin_dev,
-							uint prejoin_size,
-							bool *result
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							, GNValue *stack
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							, int64_t *val_stack
-							, ValueType *type_stack
-#endif
-							);
+void PrejoinFilterWrapper(GNValue *outer_table, uint outer_rows, uint outer_cols, GTreeNode *prejoin_exp, uint prejoin_size, bool *result);
+void PrejoinFilterAsyncWrapper(GNValue *outer_table, uint outer_rows, uint outer_cols, GTreeNode *prejoin_exp, uint prejoin_size, bool *result, cudaStream_t stream);
 
-void IndexFilterWrapper(int grid_x, int grid_y,
-							int block_x, int block_y,
-							GNValue *outer_dev, GNValue *inner_dev,
-							ulong *index_psum,
-							ResBound *res_bound,
-							uint outer_part_size, uint outer_cols,
-							uint inner_part_size, uint inner_cols,
+void IndexFilterWrapper(GNValue *outer_dev, GNValue *inner_dev,
+							ulong *index_psum, ResBound *res_bound,
+							uint outer_rows, uint outer_cols,
+							uint inner_rows, uint inner_cols,
 							GTreeNode *search_exp_dev,
 							int *search_exp_size, int search_exp_num,
 							int *key_indices, int key_index_size,
 							IndexLookupType lookup_type,
-							bool *prejoin_res_dev
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-							, GNValue *stack
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-							, int64_t *val_stack
-							, ValueType *type_stack
-#endif
-							);
+							bool *prejoin_res_dev);
 
-void ExpressionFilterWrapper(int grid_x, int grid_y,
-								int block_x, int block_y,
-								GNValue *outer_dev, GNValue *inner_dev,
-								RESULT *result_dev,
-								ulong *index_psum,
+void IndexFilterAsyncWrapper(GNValue *outer_dev, GNValue *inner_dev,
+								ulong *index_psum, ResBound *res_bound,
+								uint outer_rows, uint outer_cols,
+								uint inner_rows, uint inner_cols,
+								GTreeNode *search_exp_dev,
+								int *search_exp_size, int search_exp_num,
+								int *key_indices, int key_index_size,
+								IndexLookupType lookup_type,
+								bool *prejoin_res_dev,
+								cudaStream_t stream);
+
+void ExpressionFilterWrapper(GNValue *outer_dev, GNValue *inner_dev,
+								RESULT *result_dev, ulong *index_psum,
 								ulong *exp_psum,
-								uint outer_part_size,
+								uint outer_rows,
 								uint outer_cols, uint inner_cols,
 								uint jr_size,
 								GTreeNode *end_dev, int end_size,
@@ -74,47 +45,34 @@ void ExpressionFilterWrapper(int grid_x, int grid_y,
 								GTreeNode *where_dev, int where_size,
 								ResBound *res_bound,
 								int outer_base_idx, int inner_base_idx,
-								bool *prejoin_res_dev
-#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-								, GNValue *stack
-#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-								, int64_t *val_stack
-								, ValueType *type_stack
-#endif
-						);
+								bool *prejoin_res_dev);
 
-void ExpressionFilterWrapper2(int grid_x, int grid_y,
-								int block_x, int block_y,
-								GNValue *outer_dev, GNValue *inner_dev,
-								RESULT *in_index, RESULT *out_index,
-								ulong *exp_psum, int size,
-								uint outer_cols, uint inner_cols,
-								GTreeNode *end_dev, int end_size,
-								GTreeNode *post_dev, int post_size,
-								GTreeNode *where_dev, int where_size,
-								int outer_base_idx, int inner_base_idx
-	#if (defined(POST_EXP_) && defined(FUNC_CALL_))
-								, GNValue *stack
-	#elif (defined(POST_EXP_) && !defined(FUNC_CALL_))
-								, int64_t *val_stack, ValueType *type_stack
-	#endif
-								);
+void ExpressionFilterAsyncWrapper(GNValue *outer_dev, GNValue *inner_dev,
+									RESULT *result_dev, ulong *index_psum,
+									ulong *exp_psum,
+									uint outer_rows,
+									uint outer_cols, uint inner_cols,
+									uint jr_size,
+									GTreeNode *end_dev, int end_size,
+									GTreeNode *post_dev, int post_size,
+									GTreeNode *where_dev, int where_size,
+									ResBound *res_bound,
+									int outer_base_idx, int inner_base_idx,
+									bool *prejoin_res_dev,
+									cudaStream_t stream);
 
-void RemoveEmptyResultWrapper(int grid_x, int grid_y,
-								int block_x, int block_y,
-								RESULT *out,
-								RESULT *in,
-								ulong *count_dev,
-								ulong *count_dev2,
-								uint outer_part_size,
-								uint out_size,
-								uint in_size
-								);
 
-void RemoveEmptyResultWrapper2(int grid_x, int grid_y, int block_x, int block_y, RESULT *out, RESULT *in, ulong *location, int size);
-void ExclusiveScanWrapper(ulong *input, int ele_num, ulong *sum);
-void InclusiveScanWrapper(ulong *input, int ele_num);
-void Rebalance(int grid_x, int grid_y, int block_x, int block_y, ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
+void DecomposeWrapper(ResBound *in, RESULT *out, ulong *in_location, ulong *local_offset, int size);
+void DecomposeAsyncWrapper(ResBound *in, RESULT *out, ulong *in_location, ulong *local_offset, int size, cudaStream_t stream);
+
+void Rebalance(ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
+void RebalanceAsync(ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream);
+
+void Rebalance2(ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
+void RebalanceAsync2(ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream);
+
+void Rebalance3(ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
+void RebalanceAsync3(ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream);
 
 }
 }
