@@ -1,4 +1,3 @@
-
 #ifndef GPUTUPLE_H
 #define GPUTUPLE_H
 

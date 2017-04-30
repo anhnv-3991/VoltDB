@@ -1,701 +1,692 @@
-/* This file is part of VoltDB.
- * Copyright (C) 2008-2014 VoltDB Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with VoltDB.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-#ifndef GNVALUE_HPP_
-#define GNVALUE_HPP_
-
-#ifndef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS
-#endif
-
-
-#include <cassert>
-#include <cfloat>
-#include <climits>
-#include <math.h>
-#include <cstdlib>
-#include <stdint.h>
-#include <limits.h>
-#include <string>
-#include <algorithm>
-#include <vector>
-#include <stdio.h>
+#ifndef GNVALUE_H_
+#define GNVALUE_H_
 
 #include <cuda.h>
-#include "boost/scoped_ptr.hpp"
-#include "boost/functional/hash.hpp"
-#include "ttmath/ttmathint.h"
+#include <cuda_runtime.h>
 #include "common/types.h"
-#include "common/value_defs.h"
-#include "common/StringRef.h"
-#include "GPUetc/common/Gvalue_defs.h"
-#include "GPUetc/cudaheader.h"
 
 namespace voltdb {
 
-/*
- * Objects are length preceded with a short length value or a long length value
- * depending on how many bytes are needed to represent the length. These
- * define how many bytes are used for the short value vs. the long value.
- */
-#define SHORT_OBJECT_LENGTHLENGTH static_cast<char>(1)
-#define LONG_OBJECT_LENGTHLENGTH static_cast<char>(4)
-#define OBJECT_NULL_BIT static_cast<char>(1 << 6)
-#define OBJECT_CONTINUATION_BIT static_cast<char>(1 << 7)
-#define OBJECT_MAX_LENGTH_SHORT_LENGTH 63
-
-#define FULL_STRING_IN_MESSAGE_THRESHOLD 100
-
-//The int used for storage and return values
-typedef ttmath::Int<2> TTInt;
-//Long integer with space for multiplication and division without carry/overflow
-//typedef ttmath::Int<4> TTLInt;
-
-
-/**
- * A class to wrap all scalar values regardless of type and
- * storage. An NValue is not the representation used in the
- * serialization of VoltTables nor is it the representation of how
- * scalar values are stored in tables. NValue does have serialization
- * and deserialization mechanisms for both those storage formats.
- * NValues are designed to be immutable and for the most part not
- * constructable from raw data types. Access to the raw data is
- * restricted so that all operations have to go through the member
- * functions that can perform the correct casting and error
- * checking. ValueFactory can be used to construct new NValues, but
- * that should be avoided if possible.
- */
 class GNValue {
+public:
+	__device__ GNValue();
+	__device__ GNValue(ValueType type);
+	__device__ GNValue(ValueType type, int64_t mdata);
+	__device__ GNValue(ValueType type, const char *input);
 
-  public:
-    /* Create a default NValue */
-	__forceinline__ CUDAH GNValue();
-    __forceinline__ CUDAH GNValue(const ValueType type) {
-		m_data = 0;
-		m_valueType = type;
-//		m_sourceInlined = false;
-    }
+	__forceinline__ __device__ bool isNull() const;
+	__forceinline__ __device__ bool isTrue() const;
+	__forceinline__ __device__ bool isFalse() const;
 
-	__forceinline__ CUDAH GNValue(const ValueType type, int64_t mdata) {
-		m_data = mdata;
-		m_valueType = type;
-//		m_sourceInlined = false;
-	}
+	__forceinline__ __device__ int64_t getValue();
+	__forceinline__ __device__ ValueType getValueType();
 
+	__forceinline__ __device__ GNValue opNegate(void) const;
+	__forceinline__ __device__ GNValue opAnd(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opOr(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opEqual(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opNotEqual(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opLessThan(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opLessThanOrEqual(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opGreaterThan(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opGreaterThanOrEqual(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opAdd(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opMultiply(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opSubtract(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue opDivide(const GNValue rhs) const;
 
-    /* Check if the value represents SQL NULL */
-    __forceinline__ CUDAH bool isNull() const;
-
-    __forceinline__ CUDAH void setNull();
-
-//    CUDAH bool getSourceInlined() const {
-//    	return m_sourceInlined;
-//    }
-
-    __forceinline__ CUDAH int64_t getMdata() const {
-    	return m_data;
-    }
-
-    __forceinline__ CUDAH int compare_withoutNull(const GNValue rhs) const;
-
-    /* Boolean operations */
-    __forceinline__ CUDAH GNValue op_negate(void) const;
-    __forceinline__ CUDAH GNValue op_and(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_or(const GNValue rhs) const;
-    /* Return a boolean NValue with the comparison result */
-
-    __forceinline__ CUDAH GNValue op_equal(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_notEqual(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_lessThan(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_lessThanOrEqual(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_greaterThan(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_greaterThanOrEqual(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_add(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_multiply(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_subtract(const GNValue rhs) const;
-    __forceinline__ CUDAH GNValue op_divide(const GNValue rhs) const;
+	__forceinline__ __device__ static GNValue getTrue();
+	__forceinline__ __device__ static GNValue getFalse();
+	__forceinline__ __device__ static GNValue getInvalid();
+	__forceinline__ __device__ static GNValue getNullValue();
 
 
-/**
- * Retrieve a boolean NValue that is true
- */
-    __forceinline__ CUDAH static GNValue getTrue() {
-    	int64_t tmp = true;
-        GNValue retval(VALUE_TYPE_BOOLEAN, tmp);
-        return retval;
-    }
+	__forceinline__ __device__ void setNull();
+	__forceinline__ __device__ void setValueType(ValueType type);
+	__forceinline__ __device__ void debug() const;
 
-/**
- * Retrieve a boolean NValue that is false
- */
-    __forceinline__ CUDAH static GNValue getFalse() {
-    	int64_t tmp = false;
-        GNValue retval(VALUE_TYPE_BOOLEAN, tmp);
-        return retval;
-    }
+	__forceinline__ __device__ GNValue operator~() const;
+	__forceinline__ __device__ GNValue operator&&(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator||(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator==(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator!=(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator<(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator<=(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator>(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator>=(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator+(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator*(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator-(const GNValue rhs) const;
+	__forceinline__ __device__ GNValue operator/(const GNValue rhs) const;
 
-    __forceinline__ CUDAH static GNValue getInvalid() {
-    	GNValue retval(VALUE_TYPE_INVALID);
-    	return retval;
-    }
-
-/**
- * Returns C++ true if this NValue is a boolean and is true
- * If it is NULL, return false.
- */
-    __forceinline__ CUDAH bool isTrue() const {
-        return (bool)getValue();
-    }
-
-/**
- * Returns C++ false if this NValue is a boolean and is true
- * If it is NULL, return false.
- */
-    __forceinline__ CUDAH bool isFalse() const {
-    	return !((bool)getValue());
-    }
-
-
-    __forceinline__ CUDAH static void getNullValueByPointer(GNValue *retval,ValueType type) {
-        retval->setValueType(type);
-        retval->setNull();
-    }
-
-    __forceinline__ CUDAH static GNValue getNullValue(){
-        GNValue retval(VALUE_TYPE_NULL);
-        //retval.tagAsNull();
-        retval.setNull();
-        return retval;
-    }
-
-    __forceinline__ CUDAH static GNValue getNullValue(ValueType type) {
-        GNValue retval(type);
-        retval.setNull();
-        return retval;
-    }
-
-
-    __forceinline__ CUDAH void setMdata(ValueType type, const char *input){
-
-    	switch (type) {
-    	case VALUE_TYPE_BOOLEAN:
-    	case VALUE_TYPE_TINYINT: {
-    		m_data = *reinterpret_cast<const int8_t *>(input);
-    		break;
-    	}
-    	case VALUE_TYPE_SMALLINT: {
-    		m_data = *reinterpret_cast<const int16_t *>(input);
-    		break;
-    	}
-    	case VALUE_TYPE_INTEGER: {
-    		m_data = *reinterpret_cast<const int32_t *>(input);
-			break;
-    	}
-    	case VALUE_TYPE_BIGINT:
-    	case VALUE_TYPE_DOUBLE:
-    	case VALUE_TYPE_TIMESTAMP: {
-    		m_data = *reinterpret_cast<const int64_t *>(input);
-			break;
-    	}
-    	default: {
-    		break;
-    	}
-    	}
-    }
-
-//    __forceinline__ CUDAH void setSourceInlined(bool sourceInlined)
-//    {
-//        m_sourceInlined = sourceInlined;
-//    }
-
-    /**
-     * Set the type of the value that will be stored in this instance.
-     * The last of the 16 bytes of storage allocated in an NValue
-     * is used to store the type
-     */
-    __forceinline__ CUDAH void setValueType(ValueType type) {
-        m_valueType = type;
-    }
-
-    /**
-     * Get the type of the value. This information is private
-     * to prevent code outside of NValue from branching based on the type of a value.
-     */
-    __forceinline__ CUDAH ValueType getValueType() const {
-        return m_valueType;
-    }
-
-    __forceinline__ CUDAH void debug() const {
-    	switch (m_valueType) {
-			case VALUE_TYPE_INVALID: {
-				printf("VALUE TYPE INVALID");
-				break;
-			}
-			case VALUE_TYPE_NULL: {
-				printf("VALUE TYPE NULL");
-				break;
-			}
-			case VALUE_TYPE_FOR_DIAGNOSTICS_ONLY_NUMERIC: {
-				printf("VALUE TYPE FOR DIAGNOSTICS ONLY NUMERIC");
-				break;
-			}
-			case VALUE_TYPE_TINYINT: {
-				printf("VALUE TYPE TINYINT: %d", (int)getValue());
-				break;
-			}
-			case VALUE_TYPE_SMALLINT: {
-				printf("VALUE TYPE SMALLINT: %d", (int)getValue());
-				break;
-			}
-			case VALUE_TYPE_INTEGER: {
-				printf("VALUE TYPE INTEGER: %d", (int)getValue());
-				break;
-			}
-			case VALUE_TYPE_BIGINT: {
-				printf("VALUE TYPE BIGINT: %d", (int)getValue());
-				break;
-			}
-			case VALUE_TYPE_DOUBLE: {
-				int64_t tmp = getValue();
-				printf("VALUE TYPE DOUBLE: %lf", *reinterpret_cast<double *>(&tmp));
-				break;
-			}
-			case VALUE_TYPE_VARCHAR: {
-				printf("VALUE TYPE VARCHAR");
-				break;
-			}
-			case VALUE_TYPE_TIMESTAMP: {
-				printf("VALUE TYPE TIMESTAMP");
-				break;
-			}
-			case VALUE_TYPE_DECIMAL: {
-				printf("VALUE TYPE DECIMAL");
-				break;
-			}
-			case VALUE_TYPE_BOOLEAN: {
-				printf("VALUE TYPE BOOLEAN");
-				break;
-			}
-			case VALUE_TYPE_ADDRESS: {
-				printf("VALUE TYPE ADDRESS");
-				break;
-			}
-			case VALUE_TYPE_VARBINARY: {
-				printf("VALUE TYPE VARBINARY");
-				break;
-			}
-			case VALUE_TYPE_ARRAY: {
-				printf("VALUE TYPE VARBINARY");
-				break;
-			}
-			default: {
-				printf("UNDETECTED TYPE");
-				break;
-			}
-    	}
-    }
-
-	std::string debug2() const {
-		std::stringstream output;
-		switch (m_valueType) {
-			case VALUE_TYPE_INVALID: {
-				output << "VALUE TYPE INVALID";
-
-				break;
-			}
-			case VALUE_TYPE_NULL: {
-				output<< "VALUE TYPE NULL";
-
-				break;
-			}
-			case VALUE_TYPE_FOR_DIAGNOSTICS_ONLY_NUMERIC: {
-				output << "VALUE TYPE FOR DIAGNOSTICS ONLY NUMERIC";
-
-				break;
-			}
-			case VALUE_TYPE_TINYINT: {
-				output << "VALUE TYPE TINYINT: " <<  (int)getValue();
-
-				break;
-			}
-			case VALUE_TYPE_SMALLINT: {
-				output << "VALUE TYPE SMALLINT: " << (int)getValue();
-
-				break;
-			}
-			case VALUE_TYPE_INTEGER: {
-				output << "VALUE TYPE INTEGER: " << (int)getValue();
-
-				break;
-			}
-			case VALUE_TYPE_BIGINT: {
-				output << "VALUE TYPE BIGINT: " << (int)getValue();
-
-				break;
-			}
-			case VALUE_TYPE_DOUBLE: {
-				int64_t tmp = getValue();
-				output << "VALUE TYPE DOUBLE: " << (*reinterpret_cast<double *>(&tmp));
-
-				break;
-			}
-			case VALUE_TYPE_VARCHAR: {
-				output << "VALUE TYPE VARCHAR";
-
-				break;
-			}
-			case VALUE_TYPE_TIMESTAMP: {
-				output << "VALUE TYPE TIMESTAMP";
-
-				break;
-			}
-			case VALUE_TYPE_DECIMAL: {
-				output << "VALUE TYPE DECIMAL";
-
-				break;
-			}
-			case VALUE_TYPE_BOOLEAN: {
-				output << "VALUE TYPE BOOLEAN";
-
-				break;
-			}
-			case VALUE_TYPE_ADDRESS: {
-				output << "VALUE TYPE ADDRESS";
-
-				break;
-			}
-			case VALUE_TYPE_VARBINARY: {
-				output << "VALUE TYPE VARBINARY";
-
-				break;
-			}
-			case VALUE_TYPE_ARRAY: {
-				output << "VALUE TYPE VARBINARY";
-
-				break;
-			}
-			default: {
-				output << "UNDETECTED TYPE";
-
-				break;
-			}
-		}
-		return output.str();
-
-    }
-
-    __forceinline__ CUDAH int64_t getValue() const {
-    	return m_data;
-    }
-  private:
-    int64_t m_data;
-    ValueType m_valueType;
-//    bool m_sourceInlined;
-
-    /**
-     * Private constructor that initializes storage and the specifies the type of value
-     * that will be stored in this instance
-     */
-
-    template<typename T>
-    __forceinline__ CUDAH int compareValue (const T lhsValue, const T rhsValue) const {
-		if (lhsValue == rhsValue)
-			return VALUE_COMPARE_EQUAL;
-
-		if (lhsValue > rhsValue)
-
-			return VALUE_COMPARE_GREATERTHAN;
-		return VALUE_COMPARE_LESSTHAN;
-    }
-
-    __forceinline__ CUDAH int compareDoubleValue (const double lhsValue, const double rhsValue) const {
-		if (lhsValue == rhsValue)
-			return VALUE_COMPARE_EQUAL;
-
-		if (lhsValue > rhsValue)
-			return VALUE_COMPARE_GREATERTHAN;
-
-		return VALUE_COMPARE_LESSTHAN;
-    }
-
+private:
+	int64_t m_data_;
+	ValueType type_;
 };
 
-/**
- * Public constructor that initializes to an NValue that is unusable
- * with other NValues.  Useful for declaring storage for an NValue.
- */
-__forceinline__ CUDAH GNValue::GNValue() {
-    m_data = 0;
-    m_valueType = VALUE_TYPE_INVALID;
-//    m_sourceInlined = false;
+__device__ GNValue::GNValue()
+{
+	m_data_ = 0;
+	type_ = VALUE_TYPE_INVALID;
 }
 
-
-
-/**
- * Set this NValue to null.
- */
-//__forceinline__ CUDAH void GNValue::setNull() {
-//    tagAsNull(); // This gets overwritten for DECIMAL -- but that's OK.
-//    switch (getValueType())
-//    {
-//    case VALUE_TYPE_BOOLEAN:
-//        // HACK BOOL NULL
-//        *reinterpret_cast<int8_t*>(m_data) = GINT8_NULL;
-//        break;
-//    case VALUE_TYPE_NULL:
-//    case VALUE_TYPE_INVALID:
-//        return;
-//    case VALUE_TYPE_TINYINT:
-//        getTinyInt() = GINT8_NULL;
-//        break;
-//    case VALUE_TYPE_SMALLINT:
-//        getSmallInt() = GINT16_NULL;
-//        break;
-//    case VALUE_TYPE_INTEGER:
-//        getInteger() = GINT32_NULL;
-//        break;
-//    case VALUE_TYPE_TIMESTAMP:
-//        getTimestamp() = GINT64_NULL;
-//        break;
-//    case VALUE_TYPE_BIGINT:
-//        getBigInt() = GINT64_NULL;
-//        break;
-//    case VALUE_TYPE_DOUBLE:
-//        getDouble() = GDOUBLE_MIN;
-//        break;
-//    case VALUE_TYPE_VARCHAR:
-//    case VALUE_TYPE_VARBINARY:
-//    case VALUE_TYPE_DECIMAL:
-//        break;
-//    default: {
-//        break;
-//    }
-//    }
-//}
-
-__forceinline__ CUDAH void GNValue::setNull() {
-	m_valueType = VALUE_TYPE_NULL;
+__device__ GNValue::GNValue(ValueType type)
+{
+	m_data_ = 0;
+	type_ = type;
 }
 
-
-__forceinline__ CUDAH int GNValue::compare_withoutNull(const GNValue rhs) const {
-    ValueType ltype = getValueType(), rtype = rhs.getValueType();
-
-    if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-		int64_t left_i = getValue(), right_i = rhs.getValue();
-		double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-		double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-
-		if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-			return (left_d > right_d) ? VALUE_COMPARE_GREATERTHAN : ((left_d < right_d) ? VALUE_COMPARE_LESSTHAN : VALUE_COMPARE_EQUAL);
-		} else {
-			return (left_i > right_i) ? VALUE_COMPARE_GREATERTHAN : ((left_i < right_i) ? VALUE_COMPARE_LESSTHAN : VALUE_COMPARE_EQUAL);
-		}
-    }
-
-	return VALUE_COMPARE_INVALID;
+__device__ GNValue::GNValue(ValueType type, int64_t mdata)
+{
+	m_data_ = 0;
+	type_ = type;
 }
 
+__device__ GNValue::GNValue(ValueType type, const char *input)
+{
+	type_ = type;
 
-__forceinline__ CUDAH bool GNValue::isNull() const {
-
-    //assert(m_valueType != VALUE_TYPE_VARCHAR && m_valueType != VALUE_TYPE_VARBINARY && m_valueType != VALUE_TYPE_DECIMAL);
-/*
-    if (getValueType() == VALUE_TYPE_DECIMAL) {
-        TTInt min;
-        min.SetMin();
-        return getDecimal() == min;
-    }
-*/
-    //return m_data[13] == OBJECT_NULL_BIT;
-	return m_valueType == VALUE_TYPE_NULL;
+	switch (type) {
+	case VALUE_TYPE_BOOLEAN:
+	case VALUE_TYPE_TINYINT: {
+		m_data_ = *reinterpret_cast<const int8_t *>(input);
+		break;
+	}
+	case VALUE_TYPE_SMALLINT: {
+		m_data_ = *reinterpret_cast<const int16_t *>(input);
+		break;
+	}
+	case VALUE_TYPE_INTEGER: {
+		m_data_ = *reinterpret_cast<const int32_t *>(input);
+		break;
+	}
+	case VALUE_TYPE_BIGINT:
+	case VALUE_TYPE_DOUBLE:
+	case VALUE_TYPE_TIMESTAMP: {
+		m_data_ = *reinterpret_cast<const int64_t *>(input);
+		break;
+	}
+	default:
+		m_data_ = 0;
+		type_ = VALUE_TYPE_INVALID;
+		break;
+	}
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_negate(void) const {
-	if (getValueType() == VALUE_TYPE_BOOLEAN) {
-		bool tmp = (bool)(getValue());
-		return (tmp) ? getFalse() : getTrue();
+__forceinline__ __device__ bool GNValue::isNull() const
+{
+	return (type_ == VALUE_TYPE_NULL);
+}
+
+__forceinline__ __device__ bool GNValue::isTrue() const
+{
+	return (type_ == VALUE_TYPE_BOOLEAN && (bool)m_data_);
+}
+
+__forceinline__ __device__ bool GNValue::isFalse() const
+{
+	return (type_ == VALUE_TYPE_BOOLEAN && !(bool)m_data_);
+}
+
+__forceinline__ __device__ int64_t GNValue::getValue()
+{
+	return m_data_;
+}
+
+__forceinline__ __device__ ValueType GNValue::getValueType()
+{
+	return type_;
+}
+
+__forceinline__ __device__ GNValue GNValue::opNegate() const
+{
+	if (type_ == VALUE_TYPE_BOOLEAN) {
+		return ((bool)m_data_) ? GNValue::getFalse() : GNValue::getTrue();
+	}
+
+	return GNValue::getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::opAnd(const GNValue rhs) const
+{
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
+
+		return (left && right) ? getTrue() : getFalse();
 	}
 
 	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_and(const GNValue rhs) const {
-//	if (getValueType() == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
-		bool left = (bool)(getValue()), right = (bool)(rhs.getValue());
-		return (left && right) ? getTrue() : getFalse();
-//	}
+__forceinline__ __device__ GNValue GNValue::opOr(const GNValue rhs) const
+{
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
 
-//	return getInvalid();
-}
-
-__forceinline__ CUDAH GNValue GNValue::op_or(const GNValue rhs) const {
-	if (getValueType() == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
-		bool left = (bool)(getValue()), right = (bool)(rhs.getValue());
 		return (left || right) ? getTrue() : getFalse();
 	}
 
 	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_equal(const GNValue rhs) const {
-	int res = compare_withoutNull(rhs);
-	return (res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
+__forceinline__ __device__ GNValue GNValue::opEqual(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d == right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ == rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_notEqual(const GNValue rhs) const {
-	int res = compare_withoutNull(rhs);
-	return (res != VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
+__forceinline__ __device__ GNValue GNValue::opNotEqual(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d != right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ != rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_lessThan(const GNValue rhs) const{
-	int res = compare_withoutNull(rhs);
-	return (res == VALUE_COMPARE_LESSTHAN) ? getTrue() : getFalse();
+__forceinline__ __device__ GNValue GNValue::opLessThan(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d < right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ < rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_lessThanOrEqual(const GNValue rhs) const {
-	int res = compare_withoutNull(rhs);
-	return (res == VALUE_COMPARE_LESSTHAN || res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
+__forceinline__ __device__ GNValue GNValue::opLessThanOrEqual(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d <= right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ <= rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_greaterThan(const GNValue rhs) const {
-	int res = compare_withoutNull(rhs);
-	return (res == VALUE_COMPARE_GREATERTHAN) ? getTrue() : getFalse();
+__forceinline__ __device__ GNValue GNValue::opGreaterThan(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d > right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ > rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_greaterThanOrEqual(const GNValue rhs) const {
-	int res = compare_withoutNull(rhs);
-	return (res == VALUE_COMPARE_GREATERTHAN || res == VALUE_COMPARE_EQUAL) ? getTrue() : getFalse();
+__forceinline__ __device__ GNValue GNValue::opGreaterThanOrEqual(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d >= right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ >= rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_add(const GNValue rhs) const {
-	ValueType ltype = getValueType(), rtype = rhs.getValueType();
-
-	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-		int64_t left_i = getValue(), right_i = rhs.getValue();
-
-		double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-		double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+__forceinline__ __device__ GNValue GNValue::opAdd(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
-		ValueType res_type;
 
-		if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			res_d = left_d + right_d;
-			res_i = *reinterpret_cast<int64_t *>(&res_d);
-			res_type = VALUE_TYPE_DOUBLE;
-		} else {
-			res_i = left_i + right_i;
-			res_d = 0;
-			res_type = (ltype > rtype) ? ltype : rtype;
-		}
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
 
-		return GNValue(res_type, res_i);
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = m_data_ + rhs.m_data_;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
 	}
 
 	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_multiply(const GNValue rhs) const {
-	ValueType ltype = getValueType(), rtype = rhs.getValueType();
-
-	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-		int64_t left_i = getValue(), right_i = rhs.getValue();
-
-		double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-		double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+__forceinline__ __device__ GNValue GNValue::opMultiply(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
-		ValueType res_type;
 
-		if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			res_d = left_d * right_d;
-			res_i = *reinterpret_cast<int64_t *>(&res_d);
-			res_type = VALUE_TYPE_DOUBLE;
-		} else {
-			res_i = left_i * right_i;
-			res_d = 0;
-			res_type = (ltype > rtype) ? ltype : rtype;
-		}
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
 
-		return GNValue(res_type, res_i);
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = m_data_ * rhs.m_data_;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
 	}
 
 	return getInvalid();
 }
 
-__forceinline__ CUDAH GNValue GNValue::op_divide(const GNValue rhs) const {
-	ValueType ltype = getValueType(), rtype = rhs.getValueType();
-
-	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-		int64_t left_i = getValue(), right_i = rhs.getValue();
-
-		double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-		double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+__forceinline__ __device__ GNValue GNValue::opSubtract(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
-		ValueType res_type;
 
-		if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
-			res_d = (right_d != 0) ? left_d / right_d : 0;
-			res_i = *reinterpret_cast<int64_t *>(&res_d);
-			res_type = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
-		} else {
-			res_i = (right_i != 0) ? left_i / right_i : 0;
-			res_d = 0;
-			res_type = (ltype > rtype) ? ltype : rtype;
-			res_type = (right_i != 0) ? res_type  : VALUE_TYPE_INVALID;
-		}
-
-		return GNValue(res_type, res_i);
-	}
-
-	return getInvalid();
-}
-
-__forceinline__ CUDAH GNValue GNValue::op_subtract(const GNValue rhs) const {
-	ValueType ltype = getValueType(), rtype = rhs.getValueType();
-
-	if (ltype != VALUE_TYPE_NULL && ltype != VALUE_TYPE_INVALID && rtype != VALUE_TYPE_NULL && rtype != VALUE_TYPE_INVALID) {
-		int64_t left_i = getValue(), right_i = rhs.getValue();
-
-		double left_d = (ltype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-		double right_d = (rtype == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-		int64_t res_i;
-		double res_d;
-		ValueType res_type;
-
-		if (ltype == VALUE_TYPE_DOUBLE || rtype == VALUE_TYPE_DOUBLE) {
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			res_d = left_d - right_d;
-			res_i = *reinterpret_cast<int64_t *>(&res_d);
-			res_type = VALUE_TYPE_DOUBLE;
-		} else {
-			res_i = left_i - right_i;
-			res_d = 0;
-			res_type = (ltype > rtype) ? ltype : rtype;
-		}
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
 
-		return GNValue(res_type, res_i);
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = m_data_ - rhs.m_data_;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
 	}
 
 	return getInvalid();
 }
 
-} // namespace voltdb
+__forceinline__ __device__ GNValue GNValue::opDivide(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		int64_t res_i;
+		double res_d;
 
-#endif /* GNVALUE_HPP_ */
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			res_d = (right_d != 0) ? left_d / right_d : 0;
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
+
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = (rhs.m_data_ != 0) ? m_data_ / rhs.m_data_ : 0;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ static GNValue GNValue::getTrue()
+{
+	return GNValue(VALUE_TYPE_BOOLEAN, true);
+}
+
+__forceinline__ __device__ static GNValue GNValue::getFalse()
+{
+	return GNValue(VALUE_TYPE_BOOLEAN, false);
+}
+
+__forceinline__ __device__ static GNValue GNValue::getInvalid()
+{
+	return GNValue(VALUE_TYPE_INVALID);
+}
+
+__forceinline__ __device__ static GNValue GNValue::getNullValue()
+{
+	return GNValue(VALUE_TYPE_NULL);
+}
+
+
+__forceinline__ __device__ void GNValue::setNull()
+{
+	m_data_ = 0;
+	type_ = VALUE_TYPE_NULL;
+}
+
+__forceinline__ __device__ void GNValue::setValueType(ValueType type)
+{
+	type_ = type;
+}
+
+__forceinline__ __device__ void GNValue::debug() const
+{
+	switch (type_) {
+	case VALUE_TYPE_INVALID: {
+		printf("VALUE TYPE INVALID");
+		break;
+	}
+	case VALUE_TYPE_NULL: {
+		printf("VALUE TYPE NULL");
+		break;
+	}
+	case VALUE_TYPE_FOR_DIAGNOSTICS_ONLY_NUMERIC: {
+		printf("VALUE TYPE FOR DIAGNOSTICS ONLY NUMERIC");
+		break;
+	}
+	case VALUE_TYPE_TINYINT: {
+		printf("VALUE TYPE TINYINT: %d", (int)getValue());
+		break;
+	}
+	case VALUE_TYPE_SMALLINT: {
+		printf("VALUE TYPE SMALLINT: %d", (int)getValue());
+		break;
+	}
+	case VALUE_TYPE_INTEGER: {
+		printf("VALUE TYPE INTEGER: %d", (int)getValue());
+		break;
+	}
+	case VALUE_TYPE_BIGINT: {
+		printf("VALUE TYPE BIGINT: %d", (int)getValue());
+		break;
+	}
+	case VALUE_TYPE_DOUBLE: {
+		int64_t tmp = getValue();
+		printf("VALUE TYPE DOUBLE: %lf", *reinterpret_cast<double *>(&tmp));
+		break;
+	}
+	case VALUE_TYPE_VARCHAR: {
+		printf("VALUE TYPE VARCHAR");
+		break;
+	}
+	case VALUE_TYPE_TIMESTAMP: {
+		printf("VALUE TYPE TIMESTAMP");
+		break;
+	}
+	case VALUE_TYPE_DECIMAL: {
+		printf("VALUE TYPE DECIMAL");
+		break;
+	}
+	case VALUE_TYPE_BOOLEAN: {
+		printf("VALUE TYPE BOOLEAN");
+		break;
+	}
+	case VALUE_TYPE_ADDRESS: {
+		printf("VALUE TYPE ADDRESS");
+		break;
+	}
+	case VALUE_TYPE_VARBINARY: {
+		printf("VALUE TYPE VARBINARY");
+		break;
+	}
+	case VALUE_TYPE_ARRAY: {
+		printf("VALUE TYPE VARBINARY");
+		break;
+	}
+	default: {
+		printf("UNDETECTED TYPE");
+		break;
+	}
+	}
+}
+
+__forceinline__ __device__ GNValue GNValue::operator~() const
+{
+	if (type_ == VALUE_TYPE_BOOLEAN) {
+		return ((bool)m_data_) ? GNValue::getFalse() : GNValue::getTrue();
+	}
+
+	return GNValue::getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator&&(const GNValue rhs) const
+{
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
+
+		return (left && right) ? getTrue() : getFalse();
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator||(const GNValue rhs) const
+{
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
+
+		return (left || right) ? getTrue() : getFalse();
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator==(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d == right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ == rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator!=(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d != right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ != rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator<(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d < right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ < rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator<=(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d <= right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ <= rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator>(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d > right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ > rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator>=(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			return (left_d >= right_d) ? getTrue() : getFalse();
+		} else {
+			return (m_data_ >= rhs.m_data_) ? getTrue() : getFalse();
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator+(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		int64_t res_i;
+		double res_d;
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			res_d = left_d + right_d;
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
+
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = m_data_ + rhs.m_data_;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator*(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		int64_t res_i;
+		double res_d;
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			res_d = left_d * right_d;
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
+
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = m_data_ * rhs.m_data_;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator-(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		int64_t res_i;
+		double res_d;
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			res_d = left_d - right_d;
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
+
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = m_data_ - rhs.m_data_;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
+	}
+
+	return getInvalid();
+}
+
+__forceinline__ __device__ GNValue GNValue::operator/(const GNValue rhs) const
+{
+	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		int64_t res_i;
+		double res_d;
+
+		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
+			res_d = (right_d != 0) ? left_d / right_d : 0;
+			res_i = *reinterpret_cast<int64_t*>(&res_d);
+
+			return GNValue(VALUE_TYPE_DOUBLE, res_i);
+		} else {
+			res_i = (rhs.m_data_ != 0) ? m_data_ / rhs.m_data_ : 0;
+			ValueType res_type = (type_ > rhs.type_) ? type_ : rhs.type_;
+
+			return GNValue(res_type, res_i);
+		}
+	}
+
+	return getInvalid();
+}
+
+
+}
+#endif

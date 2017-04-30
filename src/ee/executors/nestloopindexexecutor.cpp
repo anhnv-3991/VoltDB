@@ -73,7 +73,6 @@
 #include "GPUIJ.h"
 #include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
-#include "GPUetc/expressions/Gcomparisonexpression.h"
 #include "expressions/comparisonexpression.h"
 #include "GPUetc/expressions/treeexpression.h"
 #include <sys/time.h>
@@ -158,33 +157,6 @@ bool NestLoopIndexExecutor::p_init(AbstractPlanNode* abstractNode,
     m_indexValues.init(index->getKeySchema());
     return true;
 }
-
-void setGNValue(GNValue *column_data, NValue &value)
-{
-	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
-	//column_data->setSourceInlined(value.getSourceInlinedForGPU());
-	column_data->setValueType(value.getValueTypeForGPU());
-}
-
-//Test the value of IndexData
-void GNValueDebug(GNValue &column_data)
-{
-	NValue value;
-	long double gtmp = column_data.getMdata();
-	char tmp[16];
-	memcpy(tmp, &gtmp, sizeof(long double));
-	value.setMdataFromGPU(tmp);
-	//value.setSourceInlinedFromGPU(column_data.getSourceInlined());
-	value.setValueTypeFromGPU(column_data.getValueType());
-
-	std::cout << value.debug();
-}
-
-unsigned long timeDiff(struct timeval start, struct timeval end)
-{
-	return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
-}
-
 
 bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 {
@@ -305,49 +277,18 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 
 	/************ Build Expression Tree *****************************/
-    struct timeval tree_start, tree_end;
-    gettimeofday(&tree_start, NULL);
 	TreeExpression end_ex_tree(end_expression);
-	gettimeofday(&tree_end, NULL);
-	//printf("End ex tree:::");
-	//end_ex_tree.debug();
-	printf("Timediff of end_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
-
-	gettimeofday(&tree_start, NULL);
 	TreeExpression post_ex_tree(post_expression);
-	gettimeofday(&tree_end, NULL);
-	//printf("Post ex tree:::");
-	//post_ex_tree.debug();
-	printf("Timediff of post_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
-	gettimeofday(&tree_start, NULL);
 	TreeExpression initial_ex_tree(initial_expression);
-	gettimeofday(&tree_end, NULL);
-	//printf("Initial ex tree:::");
-	//initial_ex_tree.debug();
-	printf("Timediff of initial_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
-	gettimeofday(&tree_start, NULL);
 	TreeExpression skipNull_ex_tree(skipNullExpr);
-	gettimeofday(&tree_end, NULL);
-	//printf("skipNull ex tree:::");
-	//skipNull_ex_tree.debug();
-	printf("Timediff of skipNull_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
-	gettimeofday(&tree_start, NULL);
 	TreeExpression prejoin_ex_tree(prejoin_expression);
-	gettimeofday(&tree_end, NULL);
-	//printf("Prejoin ex tree:::");
-	//prejoin_ex_tree.debug();
-	printf("Timediff of prejoin_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
-	gettimeofday(&tree_start, NULL);
 	TreeExpression where_ex_tree(where_expression);
-	gettimeofday(&tree_end, NULL);
-	//printf("Where ex tree:::");
-	//where_ex_tree.debug();
-	printf("Timediff of where_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
+
 
 	/******************** Add for GPU join **************************/
 
@@ -358,13 +299,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	NValue inner_nv_tmp;
 
 	/********** Get column data for end_expression (search keys) & post_expression from outer table ***************/
-	TableIterator search_it_out = outer_table->iterator(), search_it_in = inner_table->iterator();
-	GNValue *index_data_out = (GNValue *)malloc(sizeof(GNValue) * outer_size * outer_tuple.sizeInValues());
-	GNValue *index_data_in = (GNValue *)malloc(sizeof(GNValue) * inner_size * inner_tuple.sizeInValues());
-	TableTuple *tmp_outer_tuple = (TableTuple *)malloc(sizeof(TableTuple) * outer_size);
-	TableTuple *tmp_inner_tuple = (TableTuple *)malloc(sizeof(TableTuple) * inner_size);
 	std::vector<int> search_keys(0);
-	int idx;
 
 	struct timeval join_start, join_end, write_start, write_end;
 
@@ -380,58 +315,19 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	for (int ctr = 0; ctr < inner_indices.size(); ctr++) {
 		std::cout << "Inner index " << ctr << " = " << inner_indices[ctr] << std::endl;
 	}
-	idx = 0;
 
 	int col_outer = outer_tuple.sizeInValues();
 	printf("Number of outer_columns: %d and %d\n", col_outer, num_of_outer_cols);
 
-	while (search_it_out.next(outer_tuple)) {
-		tmp_outer_tuple[idx] = outer_tuple;
-		for (int i = 0; i < col_outer; i++) {
-			NValue tmp_value = outer_tuple.getNValue(i);
-			setGNValue(&index_data_out[idx * col_outer + i], tmp_value);
-		}
-		idx++;
-	}
+	GTable outer, inner;
 
-//	printf("Number of inner column\n");
-//	/* Get column data of inner table
-//	 * for HJ
-//	 */
-//	idx = 0;
-//	int col_inner = inner_tuple.sizeInValues();
-//	while (search_it_in.next(inner_tuple)) {
-//		tmp_inner_tuple[idx] = inner_tuple;
-//		for (int i = 0; i < col_inner; i++) {
-//			NValue tmp_value = inner_tuple.getNValue(i);
-//			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
-//		}
-//		idx++;
-//	}
-//
-//	int m_sizeIndex = index->getMSizeIndex() - 2;
-//	printf("m_sizeIndex = %d\n", m_sizeIndex);
+    outer.block_list = &(outer_table->getGBlockList()[0]);
+    outer.column_num = (int)(outer_table->activeTupleCount());
+    outer.schema = &(outer_table->getGSchema()[0]);
 
-	/* Get column data of inner table
-	 * for INLJ
-	 */
-	IndexCursor index_cursor2(index->getTupleSchema());
-
-	bool begin = true;
-
-	index->moveToEnd(begin, index_cursor2);
-
-
-	idx = 0;
-	int col_inner = inner_tuple.sizeInValues();
-	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
-		tmp_inner_tuple[idx] = inner_tuple;
-		for (int i = 0; i < col_inner; i++) {
-			NValue tmp_value = inner_tuple.getNValue(i);
-			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
-		}
-		idx++;
-	}
+    inner.block_list = &(inner_table->getGBlockList()[0]);
+    inner.column_num = (int)(inner_table->activeTupleCount());
+    inner.schema = &(inner_table->getGSchema()[0]);
 
 	bool ret = true;
 	RESULT *join_result = NULL;
@@ -442,7 +338,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	if (outer_size != 0 && inner_size != 0) {
 
 		gettimeofday(&join_start, NULL);
-		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
+		GPUIJ gn(outer, inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
 					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
 //		GPUHJ gn(index_data_out,
 //					index_data_in,
@@ -482,11 +378,10 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 				int l = join_result[i].lkey;
 				int r = join_result[i].rkey;
 
-
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
 					real_result_size++;
 					//printf("Index of output outer = %d and inner = %d\n", l, r);
-					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
+					//join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
@@ -530,16 +425,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
     cleanupInputTempTable(inner_table);
     cleanupInputTempTable(outer_table);
-
-    //printf("End of JOIN\n");
-    if (outer_size != 0) {
-    	free(index_data_out);
-    	free(tmp_outer_tuple);
-    }
-    if (inner_size != 0) {
-    	free(index_data_in);
-    	free(tmp_inner_tuple);
-    }
 
     if (outer_size != 0 && inner_size != 0 && result_size != 0) {
     	free(join_result);

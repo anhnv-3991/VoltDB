@@ -1,5 +1,5 @@
-#ifndef tree__
-#define tree__
+#ifndef GTREE_EXPRESSION_H_
+#define GTREE_EXPRESSION_H_
 
 #include <stdio.h>
 #include <cmath>
@@ -166,6 +166,10 @@ public:
 		for (int i = 0; i < tree_.size(); i++) {
 			output[i] = tree_[i];
 		}
+	}
+
+	const GTreeNode *getNodesArray2() const {
+		return &tree_[0];
 	}
 
 private:

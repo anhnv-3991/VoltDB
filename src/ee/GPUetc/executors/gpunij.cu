@@ -12,103 +12,91 @@
 #include "GPUetc/common/GPUTUPLE.h"
 #include "GPUNIJ.h"
 #include "join_gpu.h"
-#include "scan_common.h"
-#include "common/types.h"
-//#include "GPUetc/common/GNValue.h"
-#include "GPUetc/expressions/Gcomparisonexpression.h"
+#include "GPUetc/common/GNValue.h"
 
 
 using namespace voltdb;
 
 GPUNIJ::GPUNIJ()
 {
-		outer_table_ = inner_table_ = NULL;
-		outer_size_ = inner_size_ = 0;
-		outer_rows_ = inner_rows_ = 0;
-		outer_cols_ = inner_cols_ = 0;
 		join_result_ = NULL;
 		result_size_ = 0;
-		preJoin_size_ = 0;
-		join_size_ = 0;
-		where_size_ = 0;
 
-		preJoinPredicate_ = NULL;
-		joinPredicate_ = NULL;
-		wherePredicate_ = NULL;
+		outer_table_.block_list = NULL;
+		outer_table_.block_num = 0;
+		outer_table_.column_num = 0;
+		outer_table_.schema = NULL;
+
+		inner_table_.block_list = NULL;
+		inner_table_.block_num = 0;
+		inner_table_.column_num = 0;
+		inner_table_.schema = NULL;
+
+		pre_join_predicate_.exp = NULL;
+		pre_join_predicate_.size = 0;
+		join_predicate_.exp = NULL;
+		join_predicate_.size = 0;
+		where_predicate_.exp = NULL;
+		where_predicate_.size = 0;
 }
 
-GPUNIJ::GPUNIJ(GNValue *outer_table,
-				GNValue *inner_table,
-				int outer_rows,
-				int outer_cols,
-				int inner_rows,
-				int inner_cols,
-				TreeExpression preJoinPredicate,
-				TreeExpression joinPredicate,
-				TreeExpression wherePredicate)
+GPUNIJ::GPUNIJ(GTable outer_table,
+				GTable inner_table,
+				TreeExpression pre_join_predicate,
+				TreeExpression join_predicate,
+				TreeExpression where_predicate)
 {
 	/**** Table data *********/
 	outer_table_ = outer_table;
 	inner_table_ = inner_table;
-	outer_size_ = outer_rows_ = outer_rows;
-	inner_size_ = inner_rows_ = inner_rows;
-	outer_cols_ = outer_cols;
-	inner_cols_ = inner_cols;
 	join_result_ = NULL;
 	result_size_ = 0;
-	preJoin_size_ = preJoinPredicate.getSize();
-	join_size_ = joinPredicate.getSize();
-	where_size_ = wherePredicate.getSize();
 
 	/**** Expression data ****/
 	bool ret;
 
-	ret = getTreeNodes(&preJoinPredicate_, preJoinPredicate);
-	assert(ret == true);
+	assert(getTreeNodes(&(pre_join_predicate_.exp), pre_join_predicate));
+	pre_join_predicate_.size = pre_join_predicate.getSize();
 
-	ret = getTreeNodes(&joinPredicate_, joinPredicate);
-	assert(ret == true);
 
-	ret = getTreeNodes(&wherePredicate_, wherePredicate);
-	assert(ret == true);
+	assert(getTreeNodes(&(join_predicate_.exp), join_predicate));
+	join_predicate_.size = join_predicate.getSize();
+
+	assert(getTreeNodes(&(where_predicate_.exp), where_predicate));
+	where_predicate_.size = where_predicate.getSize();
 }
 
 GPUNIJ::~GPUNIJ()
 {
 	freeArrays<RESULT>(join_result_);
-	freeArrays<GTreeNode>(preJoinPredicate_);
-	freeArrays<GTreeNode>(joinPredicate_);
-	freeArrays<GTreeNode>(wherePredicate_);
+	freeArrays<GTreeNode>(pre_join_predicate_.exp);
+	freeArrays<GTreeNode>(join_predicate_.exp);
+	freeArrays<GTreeNode>(where_predicate_.exp);
 }
 
 bool GPUNIJ::join(){
-	CUresult res;
-	CUdevice dev;
-	CUcontext ctx;
-	CUfunction count, join;
-	CUmodule module;
-	char fname[256];
-	char *vd;
-	char path[256];
 
 	struct timeval all_start, all_end;
 	gettimeofday(&all_start, NULL);
-	if (outer_size_ == 0 || inner_size_ == 0) {
+	if (outer_table_.block_list->rows == 0 || inner_table_.block_list->rows == 0) {
 		return true;
 	}
-
 
 	/******** Calculate size of blocks, grids, and GPU buffers *********/
 	uint gpu_size = 0, part_size = 0;
 	ulong jr_size = 0, jr_size2 = 0;
-	GNValue *outer_dev, *inner_dev;
 	RESULT *jresult_dev;
-	GTreeNode *preJoinPred_dev, *joinPred_dev, *where_dev;
+	GTree pre_join_pred, join_pred, where_pred;
 	ulong *count_psum;
 	uint block_x = 0, block_y = 0, grid_x = 0, grid_y = 0;
 	std::vector<unsigned long> allocation, count_time, scan_time, join_time, joins_only;
-	int64_t *val_stack;
-	ValueType *type_stack;
+
+	GTable outer_chunk, inner_chunk;
+
+	outer_chunk.column_num = outer_table_.column_num;
+	outer_chunk.schema = outer_table_.schema;
+	inner_chunk.column_num = inner_table_.column_num;
+	inner_chunk.schema = outer_table_.schema;
 
 	part_size = getPartitionSize();
 	block_x = BLOCK_SIZE_X;
@@ -118,72 +106,39 @@ bool GPUNIJ::join(){
 	block_y = 1;
 
 	gpu_size = grid_x * grid_y * block_x * block_y + 1;
-	if (gpu_size > MAX_LARGE_ARRAY_SIZE) {
-		gpu_size = MAX_LARGE_ARRAY_SIZE * divUtility(gpu_size, MAX_LARGE_ARRAY_SIZE);
-	} else if (gpu_size > MAX_SHORT_ARRAY_SIZE) {
-		gpu_size = MAX_SHORT_ARRAY_SIZE * divUtility(gpu_size, MAX_SHORT_ARRAY_SIZE);
-	} else {
-		gpu_size = MAX_SHORT_ARRAY_SIZE;
-	}
-
-	printf("part_size = %d, outer_cols = %d, inner_cols = %d\n", part_size, outer_cols_, inner_cols_);
 
 	/******** Allocate GPU buffer for table data and counting data *****/
-	//res = cuMemAlloc(&outer_dev, part_size * sizeof(IndexData));
-	checkCudaErrors(cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue)));
-	checkCudaErrors(cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue)));
 	checkCudaErrors(cudaMalloc(&count_psum, gpu_size * sizeof(ulong)));
-	checkCudaErrors(cudaMalloc(&val_stack, block_x * grid_x * MAX_STACK_SIZE * sizeof(int64_t)));
-	checkCudaErrors(cudaMalloc(&type_stack, block_x * grid_x * MAX_STACK_SIZE * sizeof(ValueType)));
 
 	/******* Allocate GPU buffer for join condition *********/
-	if (preJoin_size_ >= 1) {
-		checkCudaErrors(cudaMalloc(&preJoinPred_dev, preJoin_size_ * sizeof(GTreeNode)));
-		checkCudaErrors(cudaMemcpy(preJoinPred_dev, preJoinPredicate_, preJoin_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
+	if (pre_join_predicate_.size >= 1) {
+		checkCudaErrors(cudaMalloc(&(pre_join_pred.exp), pre_join_predicate_.size * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(pre_join_pred.exp, pre_join_predicate_.exp, pre_join_predicate_.size * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
-	if (join_size_ >= 1) {
-		checkCudaErrors(cudaMalloc(&joinPred_dev, join_size_ * sizeof(GTreeNode)));
-		checkCudaErrors(cudaMemcpy(joinPred_dev, joinPredicate_, join_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
+	if (join_predicate_.size >= 1) {
+		checkCudaErrors(cudaMalloc(&(join_pred.exp), join_predicate_.size * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(join_pred.exp, join_predicate_.exp, join_predicate_.size * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
-	if (where_size_ >= 1) {
-		checkCudaErrors(cudaMalloc(&where_dev, where_size_ * sizeof(GTreeNode)));
-		checkCudaErrors(cudaMemcpy(where_dev, wherePredicate_, where_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
+	if (where_predicate_.size >= 1) {
+		checkCudaErrors(cudaMalloc(&(where_pred.exp), where_predicate_.size * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(where_pred.exp, where_predicate_.exp, where_predicate_.size * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	struct timeval cstart, cend, pcstart, pcend, jstart, jend, end_join;
 
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
-	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
-		//Size of outer small table
-		uint outer_part_size = (outer_idx + part_size < outer_size_) ? part_size : (outer_size_ - outer_idx);
+	for (uint outer_idx = 0; outer_idx < outer_table_.block_num; outer_idx++) {
+		outer_chunk.block_list = outer_table_.block_list + outer_idx;
 
-		block_x = (outer_part_size < BLOCK_SIZE_X) ? outer_part_size : BLOCK_SIZE_X;
-		grid_x = divUtility(outer_part_size, block_x);
-
-		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
-
-		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size) {
-			//Size of inner small table
-			uint inner_part_size = (inner_idx + part_size < inner_size_) ? part_size : (inner_size_ - inner_idx);
-
-			block_y = (inner_part_size < BLOCK_SIZE_Y) ? inner_part_size : BLOCK_SIZE_Y;
-			grid_y = divUtility(inner_part_size, block_y);
-			block_y = 1;
-			gpu_size = block_x * block_y * grid_x * grid_y + 1;
+		for (uint inner_idx = 0; inner_idx < inner_table_.block_num; inner_idx++) {
+			inner_chunk.block_list = inner_table_.block_list + inner_idx;
 
 			/**** Copy IndexData to GPU memory ****/
-			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
 			gettimeofday(&cstart, NULL);
-			prefixSumFilterWrapper(grid_x, grid_y, block_x, block_y,
-									outer_dev, inner_dev,
-									count_psum,
-									outer_part_size, inner_part_size,
-									preJoinPred_dev, preJoin_size_,
-									joinPred_dev, join_size_,
-									where_dev, where_size_,
-									val_stack, type_stack);
+			prefixSumFilterWrapper(outer_chunk, inner_chunk, count_psum,
+									pre_join_pred, join_pred, where_pred);
 
 			gettimeofday(&cend, NULL);
 
@@ -208,17 +163,9 @@ bool GPUNIJ::join(){
 
 			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
 			gettimeofday(&jstart, NULL);
-			expFilterWrapper(grid_x, grid_y, block_x, block_y,
-								outer_dev, inner_dev,
-								jresult_dev,
-								count_psum,
-								outer_part_size, inner_part_size,
-								jr_size,
-								outer_idx, inner_idx,
-								preJoinPred_dev, preJoin_size_,
-								joinPred_dev, join_size_,
-								where_dev, where_size_,
-								val_stack, type_stack);
+			expFilterWrapper(outer_chunk, inner_chunk,
+								jresult_dev, count_psum,
+								pre_join_pred, join_pred, where_pred);
 			gettimeofday(&jend, NULL);
 
 			join_time.push_back((jend.tv_sec - jstart.tv_sec) * 1000000 + (jend.tv_usec - jstart.tv_usec));
@@ -237,11 +184,7 @@ bool GPUNIJ::join(){
 
 
 	/******** Free GPU memory, unload module, end session **************/
-	checkCudaErrors(cudaFree(outer_dev));
-	checkCudaErrors(cudaFree(inner_dev));
 	checkCudaErrors(cudaFree(count_psum));
-	checkCudaErrors(cudaFree(val_stack));
-	checkCudaErrors(cudaFree(type_stack));
 	gettimeofday(&all_end, NULL);
 
 	unsigned long allocation_time = 0, count_t = 0, join_t = 0, ipsum_time = 0, scan_t = 0, joins_only_time = 0, all_time = 0;
@@ -291,22 +234,22 @@ uint GPUNIJ::getPartitionSize() const
 {
 //	return PART_SIZE_;
 	uint part_size = DEFAULT_PART_SIZE_;
-	uint outer_size = outer_rows_;
-	uint inner_size = inner_rows_;
-	uint bigger_tuple_size = (outer_size_ > inner_size_) ? outer_size_ : inner_size_;
-
-	if (bigger_tuple_size < part_size) {
-		return bigger_tuple_size;
-	}
-
-	for (uint i = 32768; i <= DEFAULT_PART_SIZE_; i = i * 2) {
-		if (bigger_tuple_size < i) {
-			part_size = i;
-			break;
-		}
-	}
-
-	printf("getPartitionSize: PART SIZE = %d\n", part_size);
+//	uint outer_size = outer_table_.;
+//	uint inner_size = inner_rows_;
+//	uint bigger_tuple_size = (outer_size_ > inner_size_) ? outer_size_ : inner_size_;
+//
+//	if (bigger_tuple_size < part_size) {
+//		return bigger_tuple_size;
+//	}
+//
+//	for (uint i = 32768; i <= DEFAULT_PART_SIZE_; i = i * 2) {
+//		if (bigger_tuple_size < i) {
+//			part_size = i;
+//			break;
+//		}
+//	}
+//
+//	printf("getPartitionSize: PART SIZE = %d\n", part_size);
 	return part_size;
 }
 
@@ -351,49 +294,55 @@ template <typename T> void GPUNIJ::freeArrays(T *expression)
 
 void GPUNIJ::debug(void)
 {
-	std::cout << "Size of outer table = " << outer_size_ << std::endl;
-	if (outer_size_ != 0) {
-		std::cout << "Outer table" << std::endl;
-		for (int i = 0; i < outer_size_; i++) {
-			for (int j = 0; j < MAX_GNVALUE; j++) {
-				NValue tmp;
-				setNValue(&tmp, outer_table_[i * outer_cols_ + j]);
-				std::cout << tmp.debug().c_str() << std::endl;
-			}
-		}
-	} else
-		std::cout << "Empty outer table" << std::endl;
+//	int outer_size = 0;
+//
+//	for (int i = 0; i < outer_table_.block_num; i++) {
+//		outer_size += outer_table_.block_list[i].rows;
+//	}
+//
+//	std::cout << "Size of outer table = " << outer_size << std::endl;
+//	if (outer_size != 0) {
+//		std::cout << "Outer table" << std::endl;
+//		for (int i = 0; i < outer_tabler_.block_list->rows; i++) {
+//			for (int j = 0; j < MAX_GNVALUE; j++) {
+//				NValue tmp;
+//				setNValue(&tmp, outer_table_.[i * outer_cols_ + j]);
+//				std::cout << tmp.debug().c_str() << std::endl;
+//			}
+//		}
+//	} else
+//		std::cout << "Empty outer table" << std::endl;
+//
+//	std::cout << "Size of inner table =" << inner_size_ << std::endl;
+//	if (inner_size_ != 0) {
+//		for (int i = 0; i < inner_size_; i++) {
+//			for (int j = 0; j < MAX_GNVALUE; j++) {
+//				NValue tmp;
+//				setNValue(&tmp, inner_table_[i * inner_cols_ + j]);
+//				std::cout << tmp.debug().c_str() << std::endl;
+//			}
+//		}
+//	} else
+//		std::cout << "Empty inner table" << std::endl;
 
-	std::cout << "Size of inner table =" << inner_size_ << std::endl;
-	if (inner_size_ != 0) {
-		for (int i = 0; i < inner_size_; i++) {
-			for (int j = 0; j < MAX_GNVALUE; j++) {
-				NValue tmp;
-				setNValue(&tmp, inner_table_[i * inner_cols_ + j]);
-				std::cout << tmp.debug().c_str() << std::endl;
-			}
-		}
-	} else
-		std::cout << "Empty inner table" << std::endl;
-
-	std::cout << "Size of preJoinPredicate = " << preJoin_size_ << std::endl;
-	if (preJoin_size_ != 0) {
+	std::cout << "Size of preJoinPredicate = " << pre_join_predicate_.size << std::endl;
+	if (pre_join_predicate_.size != 0) {
 		std::cout << "Content of preJoinPredicate" << std::endl;
-		debugGTrees(preJoinPredicate_, preJoin_size_);
+		debugGTrees(pre_join_predicate_);
 	} else
 		std::cout << "Empty preJoinPredicate" << std::endl;
 
-	std::cout << "Size of joinPredicate = " << join_size_ << std::endl;
-	if (join_size_ != 0) {
+	std::cout << "Size of joinPredicate = " << join_predicate_.size << std::endl;
+	if (join_predicate_.size != 0) {
 		std::cout << "Content of joinPredicate" << std::endl;
-		debugGTrees(joinPredicate_, join_size_);
+		debugGTrees(join_predicate_);
 	} else
 		std::cout << "Empty joinPredicate" << std::endl;
 
-	std::cout << "Size of wherePredicate = " << where_size_ << std::endl;
-	if (where_size_ != 0) {
+	std::cout << "Size of wherePredicate = " << where_predicate_.size << std::endl;
+	if (where_predicate_.size != 0) {
 		std::cout << "Content of wherePredicate" << std::endl;
-		debugGTrees(wherePredicate_, where_size_);
+		debugGTrees(where_predicate_);
 	} else
 		std::cout << "Empty wherePredicate" << std::endl;
 }
@@ -408,8 +357,11 @@ void GPUNIJ::setNValue(NValue *nvalue, GNValue &gnvalue)
 	nvalue->setValueTypeFromGPU(gnvalue.getValueType());
 }
 
-void GPUNIJ::debugGTrees(const GTreeNode *expression, int size)
+void GPUNIJ::debugGTrees(const GTree tree)
 {
+	GTreeNode *expression = tree.exp;
+	int size = tree.size;
+
 	std::cout << "DEBUGGING INFORMATION..." << std::endl;
 	for (int index = 0; index < size; index++) {
 		switch (expression[index].type) {
@@ -476,3 +428,5 @@ void GPUNIJ::debugGTrees(const GTreeNode *expression, int size)
 		}
 	}
 }
+
+

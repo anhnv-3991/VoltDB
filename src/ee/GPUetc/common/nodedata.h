@@ -1,4 +1,3 @@
-
 #ifndef NODEDATA_H
 #define NODEDATA_H
 
@@ -21,6 +20,11 @@ typedef struct _TreeNode {
 	GNValue value;		// Value of const, = NULL if not const
 } GTreeNode;
 
+typedef struct _GTree {
+	GTreeNode *exp;
+	int size;
+} GTree;
+
 typedef struct _HashNode {
 	int *hashed_idx;
 	uint64_t *hashed_key;
@@ -42,16 +46,14 @@ typedef struct _HashNode {
 //#define ASYNC_ 1
 
 typedef struct {
-	int64_t *gdata;
-	int rows;
-	int columns;
-	int block_size;
-} GBlock;
-
-typedef struct {
-	int column_idx;
 	ValueType data_type;
 } GColumnInfo;
+
+typedef struct {
+	int64_t *tuple;
+	GColumnInfo *schema;
+	int column;
+} GTableTuple;
 
 }
 

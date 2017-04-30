@@ -68,6 +68,7 @@
 // Added for GPUs
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/common/nodedata.h"
+#include "GPUetc/indexes/TreeIndex.h"
 
 namespace voltdb {
 
@@ -210,6 +211,14 @@ class Table {
 
     inline int tupleCount() const {
     	return m_tupleCount;
+    }
+
+    inline std::vector<GColumnInfo> getGSchema() const {
+    	return m_gschema;
+    }
+
+    inline std::vector<GBlock> getGBlockList() const {
+    	return m_gdata;
     }
     // ------------------------------------------------------------------
     // INDEXES
@@ -451,7 +460,7 @@ protected:
     // Added for GPUs
     std::vector<GBlock> m_gdata;
     GColumnInfo *m_gschema;
-    std::vector<int32_t*> m_gIndexes;
+    std::vector<GTreeIndex*> m_gIndexes;
 
   private:
     int32_t m_refcount;

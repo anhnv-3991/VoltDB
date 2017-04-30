@@ -10,10 +10,11 @@ GPUで動かすため配列のほうが向いていると思ったので
 #define GPUNIJ_H
 
 #include <cuda.h>
+#include <cuda_runtime.h>
 #include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/treeexpression.h"
-#include "GPUetc/expressions/Gcomparisonexpression.h"
+#include "GPUetc/storage/gtable.h"
 
 using namespace voltdb;
 
@@ -21,15 +22,11 @@ class GPUNIJ{
 public:
 	GPUNIJ();
 
-	GPUNIJ(GNValue *outer_table,
-			GNValue *inner_table,
-			int outer_rows,
-			int outer_cols,
-			int inner_rows,
-			int inner_cols,
-			TreeExpression preJoinPredicate,
-			TreeExpression joinPredicate,
-			TreeExpression wherePredicate);
+	GPUNIJ(GTable outer_table,
+			GTable inner_table,
+			TreeExpression pre_join_predicate,
+			TreeExpression join_predicate,
+			TreeExpression where_predicate);
 
 	~GPUNIJ();
 
@@ -42,15 +39,13 @@ public:
 	void debug();
 
 private:
-	GNValue *outer_table_, *inner_table_;
-	int outer_rows_, inner_rows_, outer_cols_, inner_cols_, outer_size_, inner_size_;
+	GTable outer_table_, inner_table_;
 	RESULT *join_result_;
 	int result_size_;
-	int preJoin_size_, join_size_, where_size_;
 
-	GTreeNode *preJoinPredicate_;
-	GTreeNode *joinPredicate_;
-	GTreeNode *wherePredicate_;
+	GTree pre_join_predicate_;
+	GTree join_predicate_;
+	GTree where_predicate_;
 
 	uint getPartitionSize() const;
 	uint divUtility(uint divident, uint divisor) const;
@@ -58,7 +53,7 @@ private:
 	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);
 	void setNValue(NValue *nvalue, GNValue &gnvalue);
-	void debugGTrees(const GTreeNode *expression, int size);
+	void debugGTrees(const GTree tree);
 
 	void GNValueDebug(GNValue &column_data)	{
 		NValue value;

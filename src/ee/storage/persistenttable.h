@@ -488,6 +488,8 @@ class PersistentTable : public Table, public UndoQuantumReleaseInterest,
     //Added for GPUs
     void nextFreeGTuple(int *block_idx, int *tuple_idx);
     bool insertGTuple(TableTuple &tuple);
+    void insertIntoAllGIndexes(TableTuple *tuple);
+
     bool doCompactionWithinSubset(TBBucketMap *bucketMap);
     void doForcedCompaction();
 
