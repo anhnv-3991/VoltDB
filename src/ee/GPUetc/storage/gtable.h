@@ -7,6 +7,7 @@
 #include "GPUetc/common/nodedata.h"
 #include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/indexes/TreeIndex.h"
+#include "GPUetc/indexes/HashIndex.h"
 #include "GPUetc/indexes/KeyIndex.h"
 
 
@@ -18,6 +19,8 @@ class GTuple {
 	friend class GKeyIndex;
 	friend class GTreeIndexKey;
 	friend class GHashIndexKey;
+	friend class GTreeIndex;
+	friend class GExpression;
 public:
 	__forceinline__ __device__ GTuple();
 	__forceinline__ __device__ GTuple(int64_t *tuple, GColumnInfo *schema_buff, int max_columns);
@@ -40,6 +43,7 @@ __forceinline__ __device__ GTuple::GTuple()
 	columns_ = 0;
 	max_columns_ = 0;
 }
+
 
 __forceinline__ __device__ GTuple::GTuple(int64_t *tuple, GColumnInfo *schema_buff, int max_columns)
 {
@@ -73,15 +77,10 @@ __forceinline__ __device__ bool GTuple::attachColumn(GNValue new_value)
 
 class GTable {
 	friend class GTuple;
+	friend class GTreeIndex;
+	friend class GHashIndex;
 
 public:
-	typedef struct {
-		GTreeIndex *block_indexes;
-		int *key_idx;
-		int key_size;
-		int block_num;
-	} GIndex;
-
 	typedef struct {
 		int64_t *data;
 		int rows;
@@ -92,6 +91,7 @@ public:
 	GTable();
 
 	GTable(int database_id, char *name, GColumnInfo *schema, int column_num);
+	GTable(int database_id, char *name, GColumnInfo *schema, int column_num, int rows);
 
 	/********************************
 	 * Device-side functions
@@ -100,11 +100,11 @@ public:
 		return schema_;
 	}
 
-	__forceinline__ __host__ __device__ GBlock getBlock() {
+	__forceinline__ __device__ GBlock getBlock() {
 		return block_dev_;
 	}
 
-	__forceinline__ __device__ GTreeIndex getIndex() {
+	GIndex getIndex() {
 		return index_;
 	}
 
@@ -172,6 +172,9 @@ public:
 		return (block_list_host_[block_id].rows >= block_list_host_[block_id].block_size/(columns_ * sizeof(int64_t)));
 	}
 
+	int getCurrentRowNum() {
+		return block_dev_.rows;
+	}
 
 	void deleteAllTuples();
 	void deleteTuple(int blockId, int tupleId);
@@ -181,13 +184,12 @@ public:
 	void addIndex(int *key_idx, int key_size);
 	void removeIndex();
 
-	GTable operator[](int idx) {
+	void moveToIndex(int idx) {
 		assert(idx < block_num_);
 		block_dev_ = block_list_host_[idx];
 		index_ = indexes_[0].block_indexes[idx];
-
-		return *this;
 	}
+
 
 private:
 	void nextFreeTuple(int *blockId, int *tupleId);
@@ -207,7 +209,7 @@ private:
 protected:
 	GColumnInfo *schema_;
 	GBlock block_dev_;
-	GTreeIndex index_;
+	GIndex index_;
 };
 }
 

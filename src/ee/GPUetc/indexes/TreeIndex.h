@@ -32,6 +32,11 @@ public:
 	 */
 	__forceinline__ __device__ GTreeIndexKey(GTuple tuple, int *key_idx, int key_size, int64_t *packed_key, GColumnInfo *packed_schema);
 
+
+	/* Get key values at index key_idx from a list of key 'index'.
+	 */
+	__forceinline__ __device__ GTreeIndexKey(GTreeIndex index, int key_idx);
+
 	/* Constructing object from a tuple without index schema.
 	 * Iterate over columns of the tuple and copy the value of columns to the
 	 * corresponding key.
@@ -59,9 +64,7 @@ public:
 	 */
 	__forceinline__ __device__ void insertKeyValue(int64_t value, int key_col);
 
-	/* Insert key values of a tuple.
-	 */
-	__forceinline__ __device__ void insertKeyTuple(GTuple tuple, int *key_schema, int key_schema_size);
+	__forceinline__ __device__ void setKey(GTreeIndex key_list, int index);
 
 private:
 	GColumnInfo *schema_;
@@ -97,6 +100,14 @@ __forceinline__ __device__ GTreeIndexKey::GTreeIndexKey(GTuple tuple, int *key_i
 		schema_[i] = tuple.schema_[key_idx[i]];
 	}
 }
+
+__forceinline__ __device__ GTreeIndexKey::GTreeIndexKey(GTreeIndex index, int key_idx)
+{
+	schema_ = index.key_schema_;
+	size_ = index.key_size_;
+	packed_key_ = index.packed_key_ + size_ * index.sorted_idx_[key_idx];
+}
+
 
 __forceinline__ __device__ GTreeIndexKey::GTreeIndexKey(GTuple tuple, int64_t *packed_key, GColumnInfo *packed_schema)
 {
@@ -153,18 +164,26 @@ __forceinline__ __device__ void GTreeIndexKey::insertKeyValue(int64_t value, int
 	packed_key_[key_col] = value;
 }
 
+
+__forceinline__ __device__ void GTreeIndexKey::setKey(GTreeIndex key_list, int index)
+{
+	packed_key_ = key_list + index * key_list.key_size_;
+	schema_ = key_list.key_schema_;
+}
+
 /* Class for tree index.
  * Each index contains a list of key values and a sorted index array.
  * A schema array indicate the type of each key value.
  */
 class GTreeIndex: public GIndex {
+	friend class GTreeIndexKey;
 public:
 	GTreeIndex();
-	GTreeIndex(GTable table, int block_id, int *key_idx, int key_size);
+	GTreeIndex(GTable table, int *key_schema, int key_size);
 
-	void addEntry(int new_tuple_idx);
+	void addEntry(GTuple new_tuple);
 
-	void addBatchEntry(int base_idx, int size);
+	void addBatchEntry(GTable table, int start_idx, int size);
 
 	void merge(int old_left, int old_right, int new_left, int new_right);
 
@@ -181,8 +200,15 @@ public:
 	__forceinline__ __device__ int lowerBound(GTreeIndexKey key, int left, int right);
 
 	__forceinline__ __device__ int upperBound(GTreeIndexKey key, int left, int right);
-private:
-	GColumnInfo *schema_;
+
+	/* Insert key values of a tuple to the 'location' of the key list 'packed_key_'.
+	 */
+	__forceinline__ __device__ void insertKeyTupleNoSort(GTuple tuple, int location);
+	__forceinline__ __device__ void swap(int left, int right);
+
+protected:
+	int64_t *packed_key_;
+	GColumnInfo *key_schema_;	// Schemas of columns selected as keys
 };
 
 
@@ -216,7 +242,7 @@ __forceinline__ __device__ int GTreeIndex::lowerBound(GTreeIndexKey key, int lef
 		middle = (left + right) >> 1;
 
 		//Form the middle key
-		GTreeIndexKey middle_key(packed_key_ + sorted_idx_[middle] * key_size_, schema_, key_size_);
+		GTreeIndexKey middle_key(*this, middle);
 
 		compare_res = GTreeIndexKey::KeyComparator(key, middle_key);
 
@@ -237,7 +263,7 @@ __forceinline__ __device__ int GTreeIndex::upperBound(GTreeIndexKey key, int lef
 		middle = (left + right) >> 1;
 
 		//Form the middle key
-		GTreeIndexKey middle_key(packed_key_ + sorted_idx_[middle] * key_size_, schema_, key_size_);
+		GTreeIndexKey middle_key(*this, middle);
 
 		compare_res = GTreeIndexKey::KeyComparator(key, middle_key);
 
@@ -248,6 +274,23 @@ __forceinline__ __device__ int GTreeIndex::upperBound(GTreeIndexKey key, int lef
 
 	return result;
 }
+
+__forceinline__ __device__ void GTreeIndex::insertKeyTupleNoSort(GTuple tuple, int location)
+{
+	for (int i = 0; i < key_size_; i++) {
+		packed_key_[location * key_size_ + i] = tuple.tuple_[key_idx_[i]];
+	}
+	sorted_idx_[location] = location;
+}
+
+__forceinline__ __device__ void GTreeIndex::swap(int left, int right)
+{
+	int tmp = sorted_idx_[left];
+
+	sorted_idx_[left] = sorted_idx_[right];
+	sorted_idx_[right] = tmp;
+}
+
 }
 
 #endif

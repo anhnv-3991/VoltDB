@@ -42,10 +42,10 @@ public:
 	static const uint64_t MAX_BUCKETS[];
 private:
 	GTable outer_table_, inner_table_;
+	GTable outer_chunk_, inner_chunk_;
 	RESULT *join_result_;
-	int *indices_;
 	int result_size_;
-	int indices_size_, *search_exp_size_, search_exp_num_;
+	int *search_exp_size_, search_exp_num_;
 	IndexLookupType lookup_type_;
 	uint64_t maxNumberOfBuckets_;
 	int keySize_;
@@ -64,66 +64,22 @@ private:
 	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);
 	void freeArrays2(GTree expression);
-	void setNValue(NValue *nvalue, GNValue &gnvalue)
-	{
-		int64_t tmp = gnvalue.getMdata();
-		char gtmp[16];
 
-		memcpy(gtmp, &tmp, sizeof(int64_t));
-		nvalue->setMdataFromGPU(gtmp);
-		nvalue->setValueTypeFromGPU(gnvalue.getValueType());
-	}
+	void IndexCount(ulong *index_count, ResBound *out_bound);
+	void IndexCount(ulong *index_count, ResBound *out_bound, cudaStream_t stream);
 
-	void PackKey(GTable index_table, int *indices, int index_num, uint64_t *packedKey, int keySize);
-	void PackKey(GTable index_table, int *indices, int index_num, uint64_t *packedKey, int keySize, cudaStream_t stream);
+	void HashJoinLegacy(RESULT *in_bound, RESULT *out_bound, ulong *mark_location, int size);
+	void HashJoinLegacy(RESULT *in_bound, RESULT *out_bound, ulong *mark_location, int size, cudaStream_t stream);
 
-	void GhashWrapper(uint64_t *packedKey, GHashNode hashTable);
-	void GhashAsyncWrapper(uint64_t *packedKey, GHashNode hashTable, cudaStream_t stream);
 
-	void PackSearchKeyWrapper(GTable outer_table, uint64_t *packed_key, GTreeNode *search_key_exp,
-								int *search_key_size, int search_exp_num, int key_size);
-	void PackSearchKeyAsyncWrapper(GTable outer_table, uint64_t *packed_key, GTreeNode *search_key_exp,
-									int *search_key_size, int search_exp_num,
-									int key_size, cudaStream_t stream);
+	void decompose(RESULT *output, ResBound *in_bound, ulong *in_location, ulong *local_offset, int size);
+	void decompose(RESULT *output, ResBound *in_bound, ulong *in_location, ulong *local_offset, int size, cudaStream_t stream);
 
-	void IndexCountWrapper(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, int size);
-	void IndexCountAsyncWrapper(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, int size, cudaStream_t stream);
+	void Rebalance(ulong *index_count, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
+	void Rebalance(ulong *index_count, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream);
 
-	void IndexCountLegacyWrapper(uint64_t *outer_key, int outer_rows, GHashNode inner_hash, ulong *index_count, ResBound *out_bound);
-	void IndexCountLegacyAsyncWrapper(uint64_t *outer_key, int outer_rows, GHashNode inner_hash, ulong *index_count, ResBound *out_bound, cudaStream_t stream);
-
-	void IndexCountWrapper2(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, ResBound *out_bound);
-	void IndexCountAsyncWrapper2(GHashNode outer_hash, GHashNode inner_hash, ulong *index_count, ResBound *out_bound, cudaStream_t stream);
-
-	void HashJoinWrapper(GTable outer_table, GTable inner_table,
-							GTree end_exp, GTree post_exp,
-							GHashNode outer_hash, GHashNode inner_hash,
-							ulong *index_count, int size,
-							RESULT *result);
-	void HashJoinAsyncWrapper(GTable outer_table, GTable inner_table,
-								GTree end_exp, GTree post_exp,
-								GHashNode outer_hash, GHashNode inner_hash,
-								ulong *index_count, int size,
-								RESULT *result, cudaStream_t stream);
-
-	void HashJoinLegacyWrapper(GTable outer_table, GTable inner_table,
-								GTree end_exp, GTree post_exp,
-								GHashNode inner_hash,
-								ulong *index_count,
-								ResBound *index_bound,
-								RESULT *result);
-	void HashJoinLegacyAsyncWrapper(GTable outer_table, GTable inner_table,
-									GTree end_exp, GTree post_exp,
-									GHashNode inner_hash,
-									ulong *index_count,
-									ResBound *index_bound,
-									RESULT *result, cudaStream_t stream);
-
-	void HRebalance(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size);
-	void HRebalanceAsync(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream);
-
-	void HRebalance2(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size);
-	void HRebalanceAsync2(ulong *index_count, ResBound *in_bound, GHashNode inner_hash, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream);
+	void Rebalance2(ulong *index_count, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
+	void Rebalance2(ulong *index_count, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size, cudaStream_t stream);
 };
 
 }

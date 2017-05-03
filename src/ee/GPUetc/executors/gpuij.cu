@@ -729,10 +729,7 @@ extern "C" __global__ void IndexFilterLowerBound(GTable search_table, GTable inn
 										  )
 
 {
-	int64_t *outer_dev = search_table.getBlock().data;
-	int outer_cols = outer.getColumnCount();
-	GColumnInfo *outer_schema = outer.getSchema();
-	int outer_rows = outer.getBlock().rows, inner_rows = inner.getBlock().rows;
+	int outer_rows = search_table.getBlock().rows, inner_rows = inner.getBlock().rows;
 	GTreeIndex inner_idx = inner.getIndex();
 
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -745,9 +742,8 @@ extern "C" __global__ void IndexFilterLowerBound(GTable search_table, GTable inn
 		if (prejoin_res_dev[i]) {
 			res_bound[i].outer = i;
 
-			GTreeIndexKey outer_key(search_exp_dev, search_exp_size, search_exp_num,
-								outer_dev + i * outer_cols, outer_schema,
-								val_stack + index, type_stack + index, offset);
+			GTuple tuple(search_table, i);
+			GKeyIndex outer_key(tuple);
 
 			switch (lookup_type) {
 			case INDEX_LOOKUP_TYPE_EQ:

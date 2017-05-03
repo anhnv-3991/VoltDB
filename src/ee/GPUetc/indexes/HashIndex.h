@@ -35,6 +35,8 @@ public:
 	 */
 	__forceinline__ __device__ GHashIndexKey(GTuple tuple, uint64_t *packed_key);
 
+	__forceinline__ __device__ GHashIndexKey(GHashIndex index, int key_idx);
+
 	__forceinline__ __device__ uint64_t KeyHasher();
 
 private:
@@ -72,6 +74,43 @@ __forceinline__ __device__ GHashIndexKey::GHashIndexKey(int64_t *tuple, GColumnI
 			}
 			case VALUE_TYPE_BIGINT: {
 				uint64_t key_value = convertSignedToUnsigned<int64_t, uint64_t, INT64_MAX>(tuple[key_indices[i]]);
+				insertKey<uint64_t>(&key_offset, &intra_key_offset, key_value);
+				break;
+			}
+			default: {
+				return;
+			}
+		}
+	}
+}
+
+__forceinline__ __device__ GHashIndexKey::GHashIndexKey(GTuple tuple, int *key_idx, int size, uint64_t *packed_key)
+{
+	size_ = size;
+	packed_key_ = packed_key;
+
+	int key_offset = 0;
+	int intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+
+	for (int i = 0; i < size; i++) {
+		switch (tuple.schema_[key_idx[i]].data_type) {
+			case VALUE_TYPE_TINYINT: {
+				uint64_t key_value = convertSignedToUnsigned<int8_t, uint8_t, INT8_MAX>(tuple.tuple_[key_idx[i]]);
+				insertKey<uint8_t>(&key_offset, &intra_key_offset, key_value);
+				break;
+			}
+			case VALUE_TYPE_SMALLINT: {
+				uint64_t key_value = convertSignedToUnsigned<int16_t, uint16_t, INT16_MAX>(tuple.tuple_[key_idx[i]]);
+				insertKey<uint16_t>(&key_offset, &intra_key_offset, key_value);
+				break;
+			}
+			case VALUE_TYPE_INTEGER: {
+				uint64_t key_value = convertSignedToUnsigned<int32_t, uint32_t, INT32_MAX>(tuple.tuple_[key_idx[i]]);
+				insertKey<uint32_t>(&key_offset, &intra_key_offset, key_value);
+				break;
+			}
+			case VALUE_TYPE_BIGINT: {
+				uint64_t key_value = convertSignedToUnsigned<int64_t, uint64_t, INT64_MAX>(tuple.tuple_[key_idx[i]]);
 				insertKey<uint64_t>(&key_offset, &intra_key_offset, key_value);
 				break;
 			}
@@ -156,6 +195,12 @@ __forceinline__ __device__ GHashIndexKey::GHashIndexKey(GTuple tuple, uint64_t *
 	}
 }
 
+__forceinline__ __device__ GHashIndexKey::GHashIndexKey(GHashIndex index, int key_idx)
+{
+	packed_key_ = index.packed_key_ + key_idx * index.key_size_;
+	size_ = index.key_size_;
+}
+
 __forceinline__ __device__ uint64_t GHashIndexKey::KeyHasher()
 {
 	uint64_t seed = 0;
@@ -187,34 +232,77 @@ __forceinline__ __device__ void GHashIndexKey::insertKey(int *key_offset, int *i
 }
 
 class GHashIndex: public GIndex {
+	friend class GHashIndexKey;
 public:
 	GHashIndex();
-	GHashIndex(GTable table, int block_id, int *key_idx, int key_size);
+	GHashIndex(int key_num, int key_size);
+	GHashIndex(GTable table, int *key_idx, int key_size, int block_num);
+	~GHashIndex();
 
-	void addEntry(int new_tuple_idx);
+	void addEntry(GTuple new_tuple);
 
-	void addBatchEntry(int base_idx, int size);
+	void addBatchEntry(GTable table, int base_idx, int size);
 
-	void merge(int old_left, int old_right, int new_left, int new_right);
+	void merge(int old_left, int old_right, int new_left, int new_right, int *new_bucket_locations);
 
-	__forceinline__ __device__ int64_t *getTable();
+	int getBucketNum();
 
-	__forceinline__ __device__ GColumnInfo *getSchema();
-
-	__forceinline__ __device__ int getColumns();
-
-	__forceinline__ __device__ int getRows();
+	__forceinline__ __device__ int getKeyRows();
 
 	__forceinline__ __device__ int *getSortedIdx();
 
 	__forceinline__ __device__ int *getKeyIdx();
 
 	__forceinline__ __device__ int getKeySize();
-private:
 
-	int *bucket_location;
-	int bucket_num;
+	__forceinline__ __device__ int *getBucketLocations();
+
+	__forceinline__ __device__ void insertKeyTupleNoSort(GTuple new_key, int location);
+
+	__forceinline__ __device__ int getBucketLocation(int bucket_idx);
+protected:
+	uint64_t *packed_key_;
+	int *bucket_locations_;
+	int bucket_num_;
 };
+
+
+__forceinline__ __device__ int GHashIndex::getKeyRows()
+{
+	return key_num_;
+}
+
+__forceinline__ __device__ int *GHashIndex::getSortedIdx()
+{
+	return sorted_idx_;
+}
+
+__forceinline__ __device__ int *GHashIndex::getKeyIdx()
+{
+	return key_idx_;
+}
+
+__forceinline__ __device__ int GHashIndex::getKeySize()
+{
+	return key_size_;
+}
+
+
+__forceinline__ __device__ int *GHashIndex::getBucketLocations()
+{
+	return bucket_locations_;
+}
+
+__forceinline__ __device__ void GHashIndex::insertKeyTupleNoSort(GTuple tuple, int location)
+{
+	GHashIndexKey key(tuple, packed_key_ + location * key_size_);
+	sorted_idx_[location] = location;
+}
+
+__forceinline__ __device__ int GHashIndex::getBucketLocation(int bucket_idx)
+{
+	return bucket_locations_[bucket_idx];
+}
 
 }
 

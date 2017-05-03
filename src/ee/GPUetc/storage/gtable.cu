@@ -3,6 +3,7 @@
 #include <helper_cuda.h>
 #include <helper_functions.h>
 #include "gtable.h"
+#include "GPUetc/common/GPUTUPLE.h"
 
 namespace voltdb {
 
@@ -18,7 +19,8 @@ GTable::GTable() {
 	index_num_ = 0;
 }
 
-GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num) {
+GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num)
+{
 	database_id_ = database_idx;
 	name_ = name;
 	block_list_host_ = NULL;
@@ -28,6 +30,30 @@ GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num)
 	block_num_ = 0;
 	indexes_ = NULL;
 	index_num_ = 0;
+
+	block_list_host_ = (GBlock *)malloc(sizeof(GBlock));
+	checkCudaErrors(cudaMalloc(&block_list_host_[0].data, sizeof(int64_t) * MAX_BLOCK_SIZE));
+	block_list_host_[0].rows = 0;
+	block_list_host_[0].columns = column_num;
+	block_list_host_[0].block_size = MAX_BLOCK_SIZE;
+}
+
+GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num, int rows) {
+	database_id_ = database_idx;
+	name_ = name;
+	block_list_host_ = NULL;
+	schema_ = schema;
+	columns_ = column_num;
+	rows_ = rows;
+	block_num_ = 0;
+	indexes_ = NULL;
+	index_num_ = 0;
+
+	block_list_host_ = (GBlock *)malloc(sizeof(GBlock));
+	checkCudaErrors(cudaMalloc(&block_list_host_[0].data, sizeof(int64_t) * MAX_BLOCK_SIZE));
+	block_list_host_[0].rows = rows;
+	block_list_host_[0].columns = column_num;
+	block_list_host_[0].block_size = MAX_BLOCK_SIZE;
 }
 
 void GTable::deleteAllTuples()
