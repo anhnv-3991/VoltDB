@@ -1,14 +1,15 @@
 #ifndef GPUHJ_H_
 #define GPUHJ_H_
 
+#include "common/types.h"
 #include <cuda.h>
+#include <sys/time.h>
 #include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/common/nodedata.h"
 #include "GPUetc/common/GPUTUPLE.h"
-#include "common/types.h"
 #include "GPUetc/common/GNValue.h"
-#include <sys/time.h>
 #include "GPUetc/storage/gtable.h"
+#include "GPUetc/expressions/gexpression.h"
 
 namespace voltdb {
 
@@ -48,7 +49,6 @@ private:
 	int *search_exp_size_, search_exp_num_;
 	IndexLookupType lookup_type_;
 	uint64_t maxNumberOfBuckets_;
-	int keySize_;
 	int m_sizeIndex_;
 
 	GTreeNode *search_exp_;
@@ -59,11 +59,14 @@ private:
 	GExpression prejoin_expression_;
 	GExpression where_expression_;
 
+	/* For profiling */
+	std::vector<unsigned long> index_hcount_, prefix_sum_, join_time_, rebalance_cost_, remove_empty_;
+	unsigned long total_;
+
+	void profiling();
 	uint getPartitionSize() const;
-	bool getTreeNodes(GTree *expression, const TreeExpression tree_expression);
-	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
+	bool getTreeNodes(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);
-	void freeArrays2(GTree expression);
 
 	void IndexCount(ulong *index_count, ResBound *out_bound);
 	void IndexCount(ulong *index_count, ResBound *out_bound, cudaStream_t stream);

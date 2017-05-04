@@ -169,6 +169,9 @@ def buildMakefile(CTX):
     os.system("mkdir -p %s" % (OUTPUT_PREFIX + "/prod"))
 #Added for GPU
     os.system("mkdir -p %s" % (OUTPUT_PREFIX + "/objects/GPUetc/indexes"))
+    os.system("mkdir -p %s" % (OUTPUT_PREFIX + "/objects/GPUetc/executors"))
+    os.system("mkdir -p %s" % (OUTPUT_PREFIX + "/objects/GPUetc/expressions"))
+    os.system("mkdir -p %s" % (OUTPUT_PREFIX + "/objects/GPUetc/storage"))
 #End
 
     input_paths = []
@@ -241,7 +244,7 @@ def buildMakefile(CTX):
 
     makefile.write("# main jnilib target\n")
 #    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + "\n")  # add part
-    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/executors/scan.co objects/executors/GPUNIJ.co objects/executors/GPUSHJ.co objects/executors/GPUIJ.co objects/executors/GPUHJ.co objects/executors/GPUINSERT.co objects/executors/index_join_gpu.co objects/executors/join_gpu.co objects/executors/ghash.co objects/executors/gcommon.co objects/GPUetc/indexes/TreeIndex.co objects/GPUetc/storage/gtable.co" + "\n")  # add part
+    makefile.write("nativelibs/libvoltdb-%s.$(JNIEXT): " % version + " ".join(jni_objects) + " objects/GPUetc/executors/gpunij.co objects/GPUetc/executors/gpuij.co objects/GPUetc/executors/gpuhj.co objects/GPUetc/executors/utilities.co objects/GPUetc/indexes/TreeIndex.co objects/GPUetc/indexes/HashIndex.co objects/GPUetc/expressions/gexpression.co objects/GPUetc/storage/gtable.co" + "\n")  # add part
     makefile.write("\t$(LINK.cpp) $(JNILIBFLAGS) $(GPUFLAGS) -o $@ $^\n") #add part
     makefile.write("\n")
 
@@ -275,8 +278,8 @@ def buildMakefile(CTX):
 
 
 #add part
-    GPUPATH = "../../src/ee/executors/"
-    GPUINC = " ../../src/ee/executors/GPUNIJ.h ../../src/ee/executors/GPUSHJ.h ../../src/ee/executors/GPUIJ.h ../../src/ee/executors/GPUINSERT.h ../../src/ee/executors/GPUHJ.h ../../src/ee/GPUetc/common/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/common/GTupleSchema.h ../../src/ee/GPUetc/expressions/Gcomparisonexpression.h ../../src/ee/GPUetc/expressions/makeexpressiontree.h ../../src/ee/GPUetc/common/nodedata.h ../../src/ee/GPUetc/expressions/treeexpression.h ../../src/ee/executors/index_join_gpu.h ../../src/ee/executors/join_gpu.h ../../src/ee/executors/ghash.h ../../src/ee/executors/gcommon/gpu_common.h ../../src/ee/GPUetc/storage/gtable.h ../../src/ee/GPUetc/indexes/TreeIndex.h ../../src/ee/GPUetc/indexes/KeyIndex.h ../../src/ee/GPUetc/storage/gtable.h"
+    GPUPATH = "../../src/ee/GPUetc/"
+    GPUINC = " ../../src/ee/GPUetc/executors/gpunij.h ../../src/ee/GPUetc/executors/gpuij.h ../../src/ee/GPUetc/executors/gpuhj.h ../../src/ee/GPUetc/common/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/gexpression.h ../../src/ee/GPUetc/expressions/treeexpression.h ../../src/ee/GPUetc/common/nodedata.h ../../src/ee/GPUetc/executors/utilities.h ../../src/ee/GPUetc/storage/gtable.h ../../src/ee/GPUetc/indexes/TreeIndex.h ../../src/ee/GPUetc/indexes/KeyIndex.h ../../src/ee/GPUetc/indexes/HashIndex.h ../../src/ee/GPUetc/executors/gpuhj.h ../../src/ee/GPUetc/executors/gpuij.h ../../src/ee/GPUetc/executors/gpunij.h ../../src/ee/GPUetc/storage/gtuple.h"
     
 #scan.cu ,join_gpu.cu ,hjoin_gpu.cu ,partitioning.cu, index_join_gpu.cu
 #build library objects TreeIndex.co, gcommon.co, gtable.co
@@ -284,43 +287,28 @@ def buildMakefile(CTX):
     makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v  -o objects/GPUetc/indexes/TreeIndex.o -dc ../../src/ee/GPUetc/indexes/TreeIndex.cu\n")
     makefile.write("objects/GPUetc/indexes/TreeIndex.co: objects/GPUetc/indexes/TreeIndex.o %s\n"%GPUINC)
     makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v -o objects/GPUetc/indexes/TreeIndex.co --device-link objects/GPUetc/indexes/TreeIndex.o\n")
+
     makefile.write("objects/GPUetc/storage/gtable.co: ../../src/ee/GPUetc/storage/gtable.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/storage/gtable.co -c ../../src/ee/GPUetc/indexes/gtable.cu\n")
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/storage/gtable.co -c ../../src/ee/GPUetc/storage/gtable.cu\n")
 
-#build join_gpu.co, index_join_gpu.co, hash_join.co    
-    makefile.write("objects/executors/index_join_gpu.co:../../src/ee/executors/index_join_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v -o objects/executors/index_join_gpu.co -c %sindex_join_gpu.cu\n"%(GPUPATH))
-    makefile.write("objects/executors/join_gpu.co:../../src/ee/executors/join_gpu.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v -o objects/executors/join_gpu.co -c %sjoin_gpu.cu\n"%(GPUPATH))
-    makefile.write("objects/executors/ghash.co:../../src/ee/executors/ghash.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v -o objects/executors/ghash.co -c %sghash.cu\n"%(GPUPATH))
-    makefile.write("objects/executors/gcommon.co:../../src/ee/executors/gcommon/gpu_common.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v -o objects/executors/gcommon.co -c %s/gcommon/gpu_common.cu\n"%(GPUPATH))
+    makefile.write("objects/GPUetc/indexes/HashIndex.co: ../../src/ee/GPUetc/indexes/HashIndex.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/indexes/HashIndex.co -c ../../src/ee/GPUetc/indexes/HashIndex.cu\n")
 
+    makefile.write("objects/GPUetc/executors/utilities.co: ../../src/ee/GPUetc/executors/utilities.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/utilities.co -c ../../src/ee/GPUetc/executors/utilities.cu\n")
 
+    makefile.write("objects/GPUetc/executors/gpunij.co: ../../src/ee/GPUetc/executors/gpunij.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/gpunij.co -c ../../src/ee/GPUetc/executors/gpunij.cu\n")
 
+    makefile.write("objects/GPUetc/executors/gpuij.co: ../../src/ee/GPUetc/executors/gpuij.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/gpuij.co -c ../../src/ee/GPUetc/executors/gpuij.cu\n")
 
-#    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -cubin --ptxas-options=-preserve-relocs -o /home/anh/VoltDBdebug/index_join_gpu.cubin %sindex_join_gpu.cu\n"%(GPUPATH))
-#    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -G --source-in-ptx -ptx -o /home/anh/VoltDBdebug/mix_index_join_gpu.txt %sindex_join_gpu.cu\n"%(GPUPATH))
+    makefile.write("objects/GPUetc/executors/gpuhj.co: ../../src/ee/GPUetc/executors/gpuhj.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/gpuhj.co -c ../../src/ee/GPUetc/executors/gpuhj.cu\n")
 
+    makefile.write("objects/GPUetc/expressions/gexpression.co: ../../src/ee/GPUetc/expressions/gexpression.cu %s\n"%GPUINC)
+    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/expressions/gexpression.co -c ../../src/ee/GPUetc/expressions/gexpression.cu\n")
 
-
-#scan_main.cpp ,GPUNIJ.cpp ,GPUSHJ.cpp, GPUIJ.cpp
-    #makefile.write("objects/executors/scan_main.co:../../src/ee/executors/scan_main.cpp %s\n"%GPUINC)    
-    #makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/scan_main.co -c %sscan_main.cpp\n"%(GPUPATH))
-#makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.cubin objects/executors/scan.co %s\n"%GPUINC)
-    makefile.write("objects/executors/GPUNIJ.co:../../src/ee/executors/GPUNIJ.cpp objects/executors/join_gpu.co %s\n"%GPUINC)
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUNIJ.co -c %sGPUNIJ.cpp\n"%(GPUPATH))
-    makefile.write("objects/executors/GPUSHJ.co:../../src/ee/executors/GPUSHJ.cpp objects/executors/hjoin_gpu.cubin objects/executors/partitioning.cubin objects/executors/scan.co %s\n"%GPUINC)
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUSHJ.co -c %sGPUSHJ.cpp\n"%(GPUPATH))
-    makefile.write("objects/executors/GPUIJ.co:../../src/ee/executors/GPUIJ.cpp objects/executors/index_join_gpu.co objects/executors/gcommon.co objects/GPUetc/indexes/TreeIndex.co%s\n"%GPUINC)
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUIJ.co -c %sGPUIJ.cpp\n"%(GPUPATH))
-    makefile.write("objects/executors/GPUINSERT.co:../../src/ee/executors/GPUINSERT.cpp %s\n"%GPUINC)
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUINSERT.co -c %sGPUINSERT.cpp\n"%(GPUPATH))    
-    makefile.write("objects/executors/GPUHJ.co:../../src/ee/executors/GPUHJ.cpp objects/executors/ghash.co objects/executors/gcommon.co %s\n"%GPUINC)
-    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUHJ.co -c %sGPUHJ.cpp\n"%(GPUPATH))
-#    makefile.write("objects/executors/GPUIJ.co: objects/executors/GPUIJ.o objects/executors/index_join_gpu.co %s\n"%GPUINC)
-#    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC -o objects/executors/GPUIJ.co objects/executors/index_join_gpu.co objects/executors/GPUIJ.o\n")
 
 #add part end
 

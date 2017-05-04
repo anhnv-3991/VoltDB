@@ -82,11 +82,11 @@
 #include "storage/DRTupleStream.h"
 
 //Added for GPUs
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "GPUetc/common/GNValue.h"
-#include "GPUetc/common/nodedata.h"
-#include "GPUetc/storage/gtable.h"
+//#include <cuda.h>
+//#include <cuda_runtime.h>
+//#include "GPUetc/common/GNValue.h"
+//#include "GPUetc/common/nodedata.h"
+//#include "GPUetc/storage/gtable.h"
 
 namespace voltdb {
 
@@ -216,134 +216,134 @@ void PersistentTable::nextFreeTuple(TableTuple *tuple) {
 }
 
 //Added for GPUs
-void PersistentTable::nextFreeGTuple(int *block_idx, int *tuple_idx) {
-	int i;
-
-	for (i = 0; i < m_gdata.size(); i++) {
-		if (m_gdata[i].rows < (m_gdata[i].block_size/(m_gdata[i].columns * sizeof(int64_t)))) {
-			*block_idx = i;
-			*tuple_idx = m_gdata[i].rows;
-			return;
-		}
-	}
-
-	//No space left
-	if (i == m_gdata.size()) {
-		printf("NEW BLOCK ALLOCATE\n");
-		GBlock new_block;
-
-		blockAllocator(&new_block);
-		new_block.columns = m_columnCount;
-
-		m_gdata.push_back(new_block);
-		*block_idx = (int)(m_gdata.size() - 1);
-		*tuple_idx = 0;
-
-		//Add one new block per index
-		GTable new_table;
-
-		new_table.block_list = &new_block;
-		new_table.schema = &m_gschema[0];
-		new_table.
-		GColumnInfo *schema;
-			int column_num;
-			int block_num;
-		for (int i = 0; i < m_gIndexes.size(); i++) {
-			GTreeIndex new_index();
-
-			GTreeIndex(GTable table, int *key_idx, int key_size);
-		}
-	}
-}
+//void PersistentTable::nextFreeGTuple(int *block_idx, int *tuple_idx) {
+//	int i;
+//
+//	for (i = 0; i < m_gdata.size(); i++) {
+//		if (m_gdata[i].rows < (m_gdata[i].block_size/(m_gdata[i].columns * sizeof(int64_t)))) {
+//			*block_idx = i;
+//			*tuple_idx = m_gdata[i].rows;
+//			return;
+//		}
+//	}
+//
+//	//No space left
+//	if (i == m_gdata.size()) {
+//		printf("NEW BLOCK ALLOCATE\n");
+//		GBlock new_block;
+//
+//		blockAllocator(&new_block);
+//		new_block.columns = m_columnCount;
+//
+//		m_gdata.push_back(new_block);
+//		*block_idx = (int)(m_gdata.size() - 1);
+//		*tuple_idx = 0;
+//
+//		//Add one new block per index
+//		GTable new_table;
+//
+//		new_table.block_list = &new_block;
+//		new_table.schema = &m_gschema[0];
+//		new_table.
+//		GColumnInfo *schema;
+//			int column_num;
+//			int block_num;
+//		for (int i = 0; i < m_gIndexes.size(); i++) {
+//			GTreeIndex new_index();
+//
+//			GTreeIndex(GTable table, int *key_idx, int key_size);
+//		}
+//	}
+//}
 
 //Added for GPUs
-bool PersistentTable::insertGTuple(TableTuple &source)
-{
-	int block_idx, tuple_idx;
+//bool PersistentTable::insertGTuple(TableTuple &source)
+//{
+//	int block_idx, tuple_idx;
+//
+//	nextFreeGTuple(&block_idx, &tuple_idx);
+//	int64_t *tmp_buff = (int64_t *)malloc(sizeof(int64_t) * m_columnCount);
+//
+//	for (int i = 0; i < m_columnCount; i++) {
+//		NValue tmp = source.getNValue(i);
+//		const char *buff = tmp.getMdataForGPU();
+//
+//    	switch (tmp.getValueTypeForGPU()) {
+//    	case VALUE_TYPE_BOOLEAN:
+//    	case VALUE_TYPE_TINYINT: {
+//    		tmp_buff[i] = *reinterpret_cast<const int8_t *>(buff);
+//    		break;
+//    	}
+//    	case VALUE_TYPE_SMALLINT: {
+//    		tmp_buff[i] = *reinterpret_cast<const int16_t *>(buff);
+//    		break;
+//    	}
+//    	case VALUE_TYPE_INTEGER: {
+//    		tmp_buff[i] = *reinterpret_cast<const int32_t *>(buff);
+//			break;
+//    	}
+//    	case VALUE_TYPE_BIGINT:
+//    	case VALUE_TYPE_DOUBLE:
+//    	case VALUE_TYPE_TIMESTAMP: {
+//    		tmp_buff[i] = *reinterpret_cast<const int64_t *>(buff);
+//			break;
+//    	}
+//    	case VALUE_TYPE_VARCHAR:
+//    		tmp_buff[i] = 0;
+//    		break;
+//    	default: {
+//    		return false;
+//    	}
+//    	}
+//	}
+//
+//	cudaMemcpy(m_gdata[block_idx].gdata + tuple_idx * m_columnCount, tmp_buff, m_columnCount * sizeof(int64_t), cudaMemcpyHostToDevice);
+//	m_gdata[block_idx].rows += 1;
+//
+//	insertGIndex();
+//
+//	return true;
+//}
 
-	nextFreeGTuple(&block_idx, &tuple_idx);
-	int64_t *tmp_buff = (int64_t *)malloc(sizeof(int64_t) * m_columnCount);
-
-	for (int i = 0; i < m_columnCount; i++) {
-		NValue tmp = source.getNValue(i);
-		const char *buff = tmp.getMdataForGPU();
-
-    	switch (tmp.getValueTypeForGPU()) {
-    	case VALUE_TYPE_BOOLEAN:
-    	case VALUE_TYPE_TINYINT: {
-    		tmp_buff[i] = *reinterpret_cast<const int8_t *>(buff);
-    		break;
-    	}
-    	case VALUE_TYPE_SMALLINT: {
-    		tmp_buff[i] = *reinterpret_cast<const int16_t *>(buff);
-    		break;
-    	}
-    	case VALUE_TYPE_INTEGER: {
-    		tmp_buff[i] = *reinterpret_cast<const int32_t *>(buff);
-			break;
-    	}
-    	case VALUE_TYPE_BIGINT:
-    	case VALUE_TYPE_DOUBLE:
-    	case VALUE_TYPE_TIMESTAMP: {
-    		tmp_buff[i] = *reinterpret_cast<const int64_t *>(buff);
-			break;
-    	}
-    	case VALUE_TYPE_VARCHAR:
-    		tmp_buff[i] = 0;
-    		break;
-    	default: {
-    		return false;
-    	}
-    	}
-	}
-
-	cudaMemcpy(m_gdata[block_idx].gdata + tuple_idx * m_columnCount, tmp_buff, m_columnCount * sizeof(int64_t), cudaMemcpyHostToDevice);
-	m_gdata[block_idx].rows += 1;
-
-	insertGIndex();
-
-	return true;
-}
-
-bool PersistentTable::insertIntoAllGIndexes(TableTuple *tuple)
-{
-
-}
-
-
-void PersistentTable::testGPU()
-{
-	int64_t *test = (int64_t *)malloc(sizeof(int64_t) * m_columnCount * m_tupleCount);
-
-	cudaMemcpy(test, m_gdata[0].gdata, sizeof(int64_t) * m_columnCount * m_tupleCount, cudaMemcpyDeviceToHost);
-
-	for (int i = 0; i < m_tupleCount; i++) {
-		for (int j = 0; j < m_columnCount; j++) {
-
-			switch (m_schema[0].getColumnInfo(j)->getVoltType()) {
-		   	case VALUE_TYPE_BOOLEAN:
-		    case VALUE_TYPE_TINYINT:
-		    case VALUE_TYPE_BIGINT:
-		    case VALUE_TYPE_INTEGER: {
-				int val = (int)(test[i * m_columnCount + j]);
-				printf("%d;", val);
-				break;
-		    }
-		    case VALUE_TYPE_DOUBLE: {
-		    	double val = *(reinterpret_cast<double *>(test + i * m_columnCount + j));
-		    	printf("%lf;", val);
-		    	break;
-		    }
-		    default: {
-		    	printf("ValueTYPe = %d\n", m_schema[0].getColumnInfo(j)->getVoltType());
-		    	break;
-		    }
-			}
-		}
-
-		printf("\n");
-	}
-}
+//bool PersistentTable::insertIntoAllGIndexes(TableTuple *tuple)
+//{
+//
+//}
+//
+//
+//void PersistentTable::testGPU()
+//{
+//	int64_t *test = (int64_t *)malloc(sizeof(int64_t) * m_columnCount * m_tupleCount);
+//
+//	cudaMemcpy(test, m_gdata[0].gdata, sizeof(int64_t) * m_columnCount * m_tupleCount, cudaMemcpyDeviceToHost);
+//
+//	for (int i = 0; i < m_tupleCount; i++) {
+//		for (int j = 0; j < m_columnCount; j++) {
+//
+//			switch (m_schema[0].getColumnInfo(j)->getVoltType()) {
+//		   	case VALUE_TYPE_BOOLEAN:
+//		    case VALUE_TYPE_TINYINT:
+//		    case VALUE_TYPE_BIGINT:
+//		    case VALUE_TYPE_INTEGER: {
+//				int val = (int)(test[i * m_columnCount + j]);
+//				printf("%d;", val);
+//				break;
+//		    }
+//		    case VALUE_TYPE_DOUBLE: {
+//		    	double val = *(reinterpret_cast<double *>(test + i * m_columnCount + j));
+//		    	printf("%lf;", val);
+//		    	break;
+//		    }
+//		    default: {
+//		    	printf("ValueTYPe = %d\n", m_schema[0].getColumnInfo(j)->getVoltType());
+//		    	break;
+//		    }
+//			}
+//		}
+//
+//		printf("\n");
+//	}
+//}
 
 void PersistentTable::deleteAllTuples(bool freeAllocatedStrings) {
     // nothing interesting

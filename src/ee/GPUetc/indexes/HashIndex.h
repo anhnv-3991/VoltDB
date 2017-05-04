@@ -4,6 +4,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "KeyIndex.h"
+#include "Index.h"
+#include "GPUetc/storage/gtuple.h"
 
 namespace voltdb {
 
@@ -40,11 +42,7 @@ public:
 	__forceinline__ __device__ uint64_t KeyHasher();
 
 private:
-	template<typename signedType, typename unsignedType, int64_t typeMaxValue>
-	__forceinline__ __device__ uint64_t convertSignedToUnsigned(signedType value);
-
-	template<typename keyValueType>
-	__forceinline__ __device__ void insertKey(int *key_offset, int *intra_key_offset, uint8_t key_value);
+	uint64_t *packed_key_;
 };
 
 __forceinline__ __device__ GHashIndexKey::GHashIndexKey(int64_t *tuple, GColumnInfo *schema, int *key_indices, int index_num, uint64_t *packed_key)
@@ -57,34 +55,69 @@ __forceinline__ __device__ GHashIndexKey::GHashIndexKey(int64_t *tuple, GColumnI
 
 	for (int i = 0; i < index_num; i++) {
 		switch (schema[key_indices[i]].data_type) {
-			case VALUE_TYPE_TINYINT: {
-				uint64_t key_value = convertSignedToUnsigned<int8_t, uint8_t, INT8_MAX>(tuple[key_indices[i]]);
-				insertKey<uint8_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+		case VALUE_TYPE_TINYINT: {
+			uint64_t key_value = static_cast<uint8_t>((int8_t)tuple[key_indices[i]] + INT8_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_SMALLINT: {
-				uint64_t key_value = convertSignedToUnsigned<int16_t, uint16_t, INT16_MAX>(tuple[key_indices[i]]);
-				insertKey<uint16_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+			break;
+		}
+		case VALUE_TYPE_SMALLINT: {
+			uint64_t key_value = static_cast<uint16_t>((int16_t)tuple[key_indices[i]] + INT16_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_INTEGER: {
-				uint64_t key_value = convertSignedToUnsigned<int32_t, uint32_t, INT32_MAX>(tuple[key_indices[i]]);
-				insertKey<uint32_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_INTEGER: {
+			uint64_t key_value = static_cast<uint32_t>((int32_t)tuple[key_indices[i]] + INT32_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= ((0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8));
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_BIGINT: {
-				uint64_t key_value = convertSignedToUnsigned<int64_t, uint64_t, INT64_MAX>(tuple[key_indices[i]]);
-				insertKey<uint64_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_BIGINT: {
+			uint64_t key_value = static_cast<uint64_t>((int64_t)tuple[key_indices[i]] + INT64_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			default: {
-				return;
-			}
+
+			break;
+		}
+		default: {
+			return;
+		}
 		}
 	}
 }
 
-__forceinline__ __device__ GHashIndexKey::GHashIndexKey(GTuple tuple, int *key_idx, int size, uint64_t *packed_key)
+__forceinline__ __device__ GHashIndexKey::GHashIndexKey(GTuple tuple, int *key_indices, int size, uint64_t *packed_key)
 {
 	size_ = size;
 	packed_key_ = packed_key;
@@ -93,30 +126,65 @@ __forceinline__ __device__ GHashIndexKey::GHashIndexKey(GTuple tuple, int *key_i
 	int intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
 
 	for (int i = 0; i < size; i++) {
-		switch (tuple.schema_[key_idx[i]].data_type) {
-			case VALUE_TYPE_TINYINT: {
-				uint64_t key_value = convertSignedToUnsigned<int8_t, uint8_t, INT8_MAX>(tuple.tuple_[key_idx[i]]);
-				insertKey<uint8_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+		switch (tuple.schema_[key_indices[i]].data_type) {
+		case VALUE_TYPE_TINYINT: {
+			uint64_t key_value = static_cast<uint8_t>((int8_t)tuple[key_indices[i]] + INT8_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_SMALLINT: {
-				uint64_t key_value = convertSignedToUnsigned<int16_t, uint16_t, INT16_MAX>(tuple.tuple_[key_idx[i]]);
-				insertKey<uint16_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+			break;
+		}
+		case VALUE_TYPE_SMALLINT: {
+			uint64_t key_value = static_cast<uint16_t>((int16_t)tuple[key_indices[i]] + INT16_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_INTEGER: {
-				uint64_t key_value = convertSignedToUnsigned<int32_t, uint32_t, INT32_MAX>(tuple.tuple_[key_idx[i]]);
-				insertKey<uint32_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_INTEGER: {
+			uint64_t key_value = static_cast<uint32_t>((int32_t)tuple[key_indices[i]] + INT32_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= ((0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8));
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_BIGINT: {
-				uint64_t key_value = convertSignedToUnsigned<int64_t, uint64_t, INT64_MAX>(tuple.tuple_[key_idx[i]]);
-				insertKey<uint64_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_BIGINT: {
+			uint64_t key_value = static_cast<uint64_t>((int64_t)tuple[key_indices[i]] + INT64_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			default: {
-				return;
-			}
+
+			break;
+		}
+		default: {
+			return;
+		}
 		}
 	}
 }
@@ -131,29 +199,64 @@ __forceinline__ __device__ GHashIndexKey::GHashIndexKey(int64_t *tuple, GColumnI
 
 	for (int i = 0; i < index_num; i++) {
 		switch (schema[i].data_type) {
-			case VALUE_TYPE_TINYINT: {
-				uint64_t key_value = convertSignedToUnsigned<int8_t, uint8_t, INT8_MAX>(tuple[i]);
-				insertKey<uint8_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+		case VALUE_TYPE_TINYINT: {
+			uint64_t key_value = static_cast<uint8_t>((int8_t)tuple[i] + INT8_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_SMALLINT: {
-				uint64_t key_value = convertSignedToUnsigned<int16_t, uint16_t, INT16_MAX>(tuple[i]);
-				insertKey<uint16_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+			break;
+		}
+		case VALUE_TYPE_SMALLINT: {
+			uint64_t key_value = static_cast<uint16_t>((int16_t)tuple[i] + INT16_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_INTEGER: {
-				uint64_t key_value = convertSignedToUnsigned<int32_t, uint32_t, INT32_MAX>(tuple[i]);
-				insertKey<uint32_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_INTEGER: {
+			uint64_t key_value = static_cast<uint32_t>((int32_t)tuple[i] + INT32_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_BIGINT: {
-				uint64_t key_value = convertSignedToUnsigned<int64_t, uint64_t, INT64_MAX>(tuple[i]);
-				insertKey<int64_t, uint64_t, INT64_MAX>(&key_offset, &intra_key_offset, key_value);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_BIGINT: {
+			uint64_t key_value = static_cast<uint64_t>((int64_t)tuple[i] + INT64_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			default: {
-				return;
-			}
+
+			break;
+		}
+		default: {
+			return;
+		}
 		}
 	}
 }
@@ -168,29 +271,64 @@ __forceinline__ __device__ GHashIndexKey::GHashIndexKey(GTuple tuple, uint64_t *
 
 	for (int i = 0; i < index_num; i++) {
 		switch (tuple.schema_[i].data_type) {
-			case VALUE_TYPE_TINYINT: {
-				uint64_t key_value = convertSignedToUnsigned<int8_t, uint8_t, INT8_MAX>(tuple.tuple_[i]);
-				insertKey<uint8_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+		case VALUE_TYPE_TINYINT: {
+			uint64_t key_value = static_cast<uint8_t>((int8_t)tuple.tuple_[i] + INT8_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint8_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_SMALLINT: {
-				uint64_t key_value = convertSignedToUnsigned<int16_t, uint16_t, INT16_MAX>(tuple.tuple_[i]);
-				insertKey<uint16_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+			break;
+		}
+		case VALUE_TYPE_SMALLINT: {
+			uint64_t key_value = static_cast<uint16_t>((int16_t)tuple.tuple_[i] + INT16_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint16_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_INTEGER: {
-				uint64_t key_value = convertSignedToUnsigned<int32_t, uint32_t, INT32_MAX>(tuple.tuple_[i]);
-				insertKey<uint32_t>(&key_offset, &intra_key_offset, key_value);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_INTEGER: {
+			uint64_t key_value = static_cast<uint32_t>((int32_t)tuple.tuple_[i] + INT32_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint32_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			case VALUE_TYPE_BIGINT: {
-				uint64_t key_value = convertSignedToUnsigned<int64_t, uint64_t, INT64_MAX>(tuple.tuple_[i]);
-				insertKey<int64_t, uint64_t, INT64_MAX>(&key_offset, &intra_key_offset);
-				break;
+
+			break;
+		}
+		case VALUE_TYPE_BIGINT: {
+			uint64_t key_value = static_cast<uint64_t>((int64_t)tuple.tuple_[i] + INT64_MAX + 1);
+
+			for (int j = static_cast<int>(sizeof(uint64_t)) - 1; j >= 0; j--) {
+				packed_key[key_offset] |= (0xFF & (key_value >> (j * 8))) << (intra_key_offset * 8);
+				intra_key_offset--;
+				if (intra_key_offset < 0) {
+					intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
+					key_offset++;
+				}
 			}
-			default: {
-				return;
-			}
+
+			break;
+		}
+		default: {
+			return;
+		}
 		}
 	}
 }
@@ -210,25 +348,6 @@ __forceinline__ __device__ uint64_t GHashIndexKey::KeyHasher()
 	}
 
 	return seed;
-}
-
-template<typename signedType, typename unsignedType, int64_t typeMaxValue>
-__forceinline__ __device__ uint64_t GHashIndexKey::convertSignedToUnsigned(signedType value) {
-	return static_cast<unsignedType>((signedType)value + typeMaxValue + 1);
-}
-
-
-
-template<typename keyValueType>
-__forceinline__ __device__ void GHashIndexKey::insertKey(int *key_offset, int *intra_key_offset, uint8_t key_value) {
-	for (int j = static_cast<int>(sizeof(keyValueType)) - 1; j >= 0; j--) {
-		packed_key_[*key_offset] |= (0xFF & (key_value >> (j * 8))) << (*intra_key_offset * 8);
-		*intra_key_offset--;
-		if (*intra_key_offset < 0) {
-			*intra_key_offset = static_cast<int>(sizeof(uint64_t) - 1);
-			*key_offset++;
-		}
-	}
 }
 
 class GHashIndex: public GIndex {
@@ -260,7 +379,35 @@ public:
 	__forceinline__ __device__ void insertKeyTupleNoSort(GTuple new_key, int location);
 
 	__forceinline__ __device__ int getBucketLocation(int bucket_idx);
+	__forceinline__ __device__ int getColumns() {
+		return key_size_;
+	}
+
+	__forceinline__ __device__ int getRows() {
+		return key_num_;
+	}
+
+	int *getSortedIdx();
+
+	__forceinline__ __device__ int *getKeyIdx() {
+		return key_idx_;
+	}
+
+	__forceinline__ __device__ int getKeySize() {
+		return key_size_;
+	}
+
+	void removeIndex() {
+		checkCudaErrors(cudaFree(sorted_idx));
+		checkCudaErrors(cudaFree(key_idx));
+	}
+
+
 protected:
+	int key_num_;	//Number of key values (equal to the number of rows)
+	int *sorted_idx_;
+	int *key_idx_;	// Index of columns selected as keys
+	int key_size_;	// Number of columns selected as keys
 	uint64_t *packed_key_;
 	int *bucket_locations_;
 	int bucket_num_;

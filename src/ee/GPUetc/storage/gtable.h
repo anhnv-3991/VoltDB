@@ -3,6 +3,8 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include <helper_cuda.h>
+#include <helper_functions.h>
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/common/nodedata.h"
 #include "GPUetc/common/GPUTUPLE.h"
@@ -12,68 +14,6 @@
 
 
 namespace voltdb {
-
-class GTable;
-
-class GTuple {
-	friend class GKeyIndex;
-	friend class GTreeIndexKey;
-	friend class GHashIndexKey;
-	friend class GTreeIndex;
-	friend class GExpression;
-public:
-	__forceinline__ __device__ GTuple();
-	__forceinline__ __device__ GTuple(int64_t *tuple, GColumnInfo *schema_buff, int max_columns);
-	__forceinline__ __device__ GTuple(GTable table, int tuple_idx);
-
-	__forceinline__ __device__ bool attachColumn(GNValue new_value);
-
-
-protected:
-	int64_t *tuple_;
-	GColumnInfo *schema_;
-	int columns_;
-	int max_columns_;
-};
-
-__forceinline__ __device__ GTuple::GTuple()
-{
-	tuple_ = NULL;
-	schema_ = NULL;
-	columns_ = 0;
-	max_columns_ = 0;
-}
-
-
-__forceinline__ __device__ GTuple::GTuple(int64_t *tuple, GColumnInfo *schema_buff, int max_columns)
-{
-	tuple_ = tuple;
-	schema_ = schema_buff;
-	columns_ = 0;
-	max_columns_ = 0;
-}
-
-__forceinline__ __device__ GTuple::GTuple(GTable table, int rows_index)
-{
-	columns_ = 0;
-	max_columns_ = table.block_dev_.columns;
-	schema_ = table.schema_;
-	tuple_ = table.block_dev_.data + columns * rows_index;
-}
-
-
-__forceinline__ __device__ bool GTuple::attachColumn(GNValue new_value)
-{
-	if (columns_ < max_columns_) {
-		tuple_[columns_] = new_value.getValue();
-		schema_[columns_].data_type = new_value.getValueType();
-		columns_++;
-
-		return true;
-	}
-
-	return false;
-}
 
 class GTable {
 	friend class GTuple;
@@ -88,9 +28,21 @@ public:
 		int block_size;
 	} GBlock;
 
+	/* Allocate an empty table */
 	GTable();
 
-	GTable(int database_id, char *name, GColumnInfo *schema, int column_num);
+	/* Allocate a table.
+	 * Also preallocate buffers on the GPU memory
+	 * for the table and the table schema
+	 */
+	GTable(int database_id, char *name, int column_num);
+
+	/* Allocate a table.
+	 * Also preallocate buffers on the GPU memory
+	 * for the table data and the table schema.
+	 * Copy schema from the host memory to the
+	 * schema on the GPU memory.
+	 */
 	GTable(int database_id, char *name, GColumnInfo *schema, int column_num, int rows);
 
 	/********************************
@@ -118,7 +70,7 @@ public:
 	}
 
 	__forceinline__ __device__ int getBlockTupleCount(int blockId) {
-		return block_list_[blockId].rows;
+		return block_list_host_[blockId].rows;
 	}
 
 	/*****************************
@@ -142,8 +94,22 @@ public:
 		}
 	}
 
+	void removeTable() {
+		checkCudaErrors(cudaFree(schema_));
+
+		for (int i = 0; i < block_num_; i++) {
+			checkCudaErrors(cudaFree(block_list_host_[i].data));
+		}
+		if (block_num_ > 0)
+			free(block_list_host_);
+
+		for (int i = 0; i < index_num_; i++) {
+			indexes_[i].removeIndex();
+		}
+	}
+
 	GBlock *getBlock(int blockId) {
-		return block_list_ + blockId;
+		return block_list_host_ + blockId;
 	}
 
 	int getBlockNum() {
@@ -172,7 +138,7 @@ public:
 		return (block_list_host_[block_id].rows >= block_list_host_[block_id].block_size/(columns_ * sizeof(int64_t)));
 	}
 
-	int getCurrentRowNum() {
+	int getCurrentRowNum() const {
 		return block_dev_.rows;
 	}
 
@@ -187,9 +153,18 @@ public:
 	void moveToIndex(int idx) {
 		assert(idx < block_num_);
 		block_dev_ = block_list_host_[idx];
-		index_ = indexes_[0].block_indexes[idx];
+		index_ = indexes_[0];
 	}
 
+	__forceinline__ __device__ GTuple getGTuple(int index) {
+		return GTuple(block_dev_.data + columns_ * index, schema_, columns_);
+	}
+
+protected:
+	GColumnInfo *schema_;
+	GBlock block_dev_;
+	GIndex index_;
+	int columns_;
 
 private:
 	void nextFreeTuple(int *blockId, int *tupleId);
@@ -200,16 +175,10 @@ private:
 	char *name_;
 
 	GBlock *block_list_host_;
-	int columns_;
 	int rows_;
 	int block_num_;
 	GIndex *indexes_;
 	int index_num_;
-
-protected:
-	GColumnInfo *schema_;
-	GBlock block_dev_;
-	GIndex index_;
 };
 }
 

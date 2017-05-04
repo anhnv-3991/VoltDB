@@ -11,8 +11,6 @@ public:
 	__forceinline__ __device__ GKeyIndex();
 private:
 	int size_;
-	uint64_t *packed_key_;
-
 };
 
 __forceinline__ __device__ GKeyIndex::GKeyIndex() {

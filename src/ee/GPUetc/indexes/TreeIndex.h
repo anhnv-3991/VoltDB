@@ -6,11 +6,10 @@
 #include "KeyIndex.h"
 #include "GPUetc/common/nodedata.h"
 #include "GPUetc/common/GPUTUPLE.h"
+#include "Index.h"
+#include "GPUetc/storage/gtuple.h"
 
 namespace voltdb {
-
-class GTreeIndex;
-extern class GTable;
 
 /* Class for index keys.
  * Each index key contains multiple column values.
@@ -48,7 +47,7 @@ public:
 	 */
 	__forceinline__ __device__ GTreeIndexKey(int64_t *keys, GColumnInfo *schema, int key_size);
 
-	/* Extract a key from a tuple */
+	/* Extract a key from a non-index tuple */
 	__forceinline__ __device__ GTreeIndexKey(GTuple tuple);
 
 	/* Comparator for GTreeIndexKey objects.
@@ -66,8 +65,10 @@ public:
 
 	__forceinline__ __device__ void setKey(GTreeIndex key_list, int index);
 
+
 private:
 	GColumnInfo *schema_;
+	int64_t *packed_key_;
 };
 
 __forceinline__ __device__ GTreeIndexKey::GTreeIndexKey()
@@ -206,14 +207,23 @@ public:
 	__forceinline__ __device__ void insertKeyTupleNoSort(GTuple tuple, int location);
 	__forceinline__ __device__ void swap(int left, int right);
 
+
+	void removeIndex() {
+		checkCudaErrors(cudaFree(sorted_idx_));
+		checkCudaErrors(cudaFree(key_idx_));
+	}
 protected:
+	int key_num_;	//Number of key values (equal to the number of rows)
+	int *sorted_idx_;
+	int *key_idx_;	// Index of columns selected as keys
+	int key_size_;	// Number of columns selected as keys
 	int64_t *packed_key_;
 	GColumnInfo *key_schema_;	// Schemas of columns selected as keys
 };
 
 
 __forceinline__ __device__ GColumnInfo *GTreeIndex::getSchema() {
-	return schema_;
+	return key_schema_;
 }
 
 

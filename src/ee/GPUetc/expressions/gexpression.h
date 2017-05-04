@@ -24,7 +24,12 @@ public:
 		}
 	}
 
-	GExpression(GTreeNode *expression, int size) {
+	void freeExpression() {
+		if (size_ > 0)
+			checkCudaErrors(cudaFree(expression_));
+	}
+
+	__forceinline__ __device__ GExpression(GTreeNode *expression, int size) {
 		expression_ = expression;
 		size_ = size;
 	}
@@ -686,8 +691,8 @@ public:
 						stack[top] = outer_tuple->tuple_[tmp->column_idx];
 						gtype[top] = outer_tuple->schema_[tmp->column_idx].data_type;
 					} else if (tmp->tuple_idx == 1) {
-						stack[top] = inner_tuple.tuple_[tmp->column_idx];
-						gtype[top] = inner_schema.schema_[tmp->column_idx].data_type;
+						stack[top] = inner_tuple->tuple_[tmp->column_idx];
+						gtype[top] = inner_tuple->schema_[tmp->column_idx].data_type;
 
 					}
 
@@ -955,6 +960,71 @@ public:
 		return retval;
 	}
 
+	__forceinline__ __device__ GNValue evaluate(int root, GTuple *outer_tuple, GTuple *inner_tuple)
+		{
+			if (root == 0)
+				return GNValue::getTrue();
+
+			if (root >= size_)
+				return GNValue::getNullValue();
+
+			GTreeNode tmp_node = expression_[root];
+
+			if (tmp_node.type == EXPRESSION_TYPE_VALUE_TUPLE) {
+				if (tmp_node.tuple_idx == 0) {
+					return GNValue(outer_tuple->schema_[tmp_node.column_idx].data_type, outer_tuple->tuple_[tmp_node.column_idx]);
+				} else if (tmp_node.tuple_idx == 1) {
+					return GNValue(inner_tuple->schema_[tmp_node.column_idx].data_type, inner_tuple->tuple_[tmp_node.column_idx]);
+				}
+			} else if (tmp_node.type == EXPRESSION_TYPE_VALUE_CONSTANT || tmp_node.type == EXPRESSION_TYPE_VALUE_PARAMETER) {
+				return tmp_node.value;
+			}
+
+
+			GNValue left = evaluate(root * 2, outer_tuple, inner_tuple);
+			GNValue right = evaluate(root * 2 + 1, outer_tuple, inner_tuple);
+
+			switch (tmp_node.type) {
+			case EXPRESSION_TYPE_CONJUNCTION_AND: {
+				return left && right;
+			}
+			case EXPRESSION_TYPE_CONJUNCTION_OR: {
+				return left || right;
+			}
+			case EXPRESSION_TYPE_COMPARE_EQUAL: {
+				return left == right;
+			}
+			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
+				return left != right;
+			}
+			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
+				return left < right;
+			}
+			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
+				return left <= right;
+			}
+			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
+				return left > right;
+			}
+			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
+				return left >= right;
+			}
+			case EXPRESSION_TYPE_OPERATOR_PLUS: {
+				return left + right;
+			}
+			case EXPRESSION_TYPE_OPERATOR_MINUS: {
+				return left - right;
+			}
+			case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
+				return left * right;
+			}
+			case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
+				return left / right;
+			}
+			default:
+				return GNValue::getNullValue();
+			}
+		}
 
 private:
 	GTreeNode *expression_;

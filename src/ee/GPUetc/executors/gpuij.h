@@ -40,7 +40,6 @@ public:
 
 private:
 	GTable outer_table_, inner_table_;
-	GTable outer_chunk_, inner_chunk_;
 	GTable search_table_;
 	RESULT *join_result_;
 	int result_size_;
@@ -62,10 +61,8 @@ private:
 	void profiling();
 
 	uint getPartitionSize() const;
-	bool getTreeNodes(GTree *expression, const TreeExpression tree_expression);
-	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
+	bool getTreeNodes(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);
-	void freeArrays2(GTree expression);
 
 	unsigned long timeDiff(struct timeval start, struct timeval end);
 
@@ -79,17 +76,15 @@ private:
 
 	void IndexFilter(ulong *index_psum, ResBound *res_bound, bool *prejoin_res_dev, cudaStream_t stream);
 
+	/* Expression evaluation without rebalancing */
 	void ExpressionFilter(ulong *index_psum, ulong *exp_psum, RESULT *result, int result_size, ResBound *res_bound, bool *prejoin_res_dev);
 
 	void ExpressionFilter(ulong *index_psum, ulong *exp_psum, RESULT *result, int result_size, ResBound *res_bound, bool *prejoin_res_dev, cudaStream_t stream);
 
+	/* Expression evaluation with rebalancing */
 	void ExpressionFilter(RESULT *in_bound, RESULT *out_bound, ulong *mark_location, int size);
 
 	void ExpressionFilter(RESULT *in_bound, RESULT *out_bound, ulong *mark_location, int size, cudaStream_t stream);
-
-	void ExpressionFilterShared(RESULT *in_bound, RESULT *out_bound, ulong *mark_location, int size);
-
-	void ExpressionFilterShared(RESULT *in_bound, RESULT *out_bound, ulong *mark_location, int size, cudaStream_t stream);
 
 	void Rebalance(ulong *index_count, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);
 	void Rebalance2(ulong *in, ResBound *in_bound, RESULT **out_bound, int in_size, ulong *out_size);

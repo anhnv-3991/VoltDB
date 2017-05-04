@@ -19,12 +19,11 @@ GTable::GTable() {
 	index_num_ = 0;
 }
 
-GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num)
+GTable::GTable(int database_id, char *name, int column_num)
 {
-	database_id_ = database_idx;
+	database_id_ = database_id;
 	name_ = name;
 	block_list_host_ = NULL;
-	schema_ = schema;
 	columns_ = column_num;
 	rows_ = 0;
 	block_num_ = 0;
@@ -33,16 +32,17 @@ GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num)
 
 	block_list_host_ = (GBlock *)malloc(sizeof(GBlock));
 	checkCudaErrors(cudaMalloc(&block_list_host_[0].data, sizeof(int64_t) * MAX_BLOCK_SIZE));
+	checkCudaErrors(cudaMalloc(&schema_, sizeof(GColumnInfo) * column_num));
 	block_list_host_[0].rows = 0;
 	block_list_host_[0].columns = column_num;
 	block_list_host_[0].block_size = MAX_BLOCK_SIZE;
 }
 
-GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num, int rows) {
-	database_id_ = database_idx;
+GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num, int rows)
+{
+	database_id_ = database_id;
 	name_ = name;
 	block_list_host_ = NULL;
-	schema_ = schema;
 	columns_ = column_num;
 	rows_ = rows;
 	block_num_ = 0;
@@ -51,6 +51,8 @@ GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num,
 
 	block_list_host_ = (GBlock *)malloc(sizeof(GBlock));
 	checkCudaErrors(cudaMalloc(&block_list_host_[0].data, sizeof(int64_t) * MAX_BLOCK_SIZE));
+	checkCudaErrors(cudaMalloc(&schema_, sizeof(GColumnInfo) * column_num));
+	checkCudaErrors(cudaMemcpy(schema_, schema, sizeof(GColumnInfo) * column_num, cudaMemcpyHostToDevice));
 	block_list_host_[0].rows = rows;
 	block_list_host_[0].columns = column_num;
 	block_list_host_[0].block_size = MAX_BLOCK_SIZE;

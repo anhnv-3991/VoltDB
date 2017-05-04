@@ -69,7 +69,6 @@
 #include "common/TupleOutputStreamProcessor.h"
 #include "executors/abstractexecutor.h"
 #include "executors/executorutil.h"
-#include "executors/GPU.h" //add part for gpu
 #include "indexes/tableindex.h"
 #include "indexes/tableindexfactory.h"
 #include "plannodes/abstractplannode.h"
@@ -422,7 +421,7 @@ VoltDBEngine::VoltDBEngine(Topend *topend, LogProxy *logProxy)
       m_templateSingleLongTable(NULL),
       m_topend(topend),
       m_executorContext(NULL),
-      m_initgpu(),
+      //m_initgpu(),
       m_tuplesModifiedStack()
 {
 #ifdef LINUX

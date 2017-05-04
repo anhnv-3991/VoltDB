@@ -58,7 +58,6 @@
 #include "stats/StatsAgent.h"
 #include "storage/DRTupleStream.h"
 #include "storage/BinaryLogSink.h"
-#include "executors/GPU.h"
 
 #include "boost/scoped_ptr.hpp"
 #include "boost/unordered_map.hpp"
@@ -574,8 +573,6 @@ class __attribute__((visibility("default"))) VoltDBEngine {
         // This stateless member acts as a counted reference to keep the ThreadLocalPool alive
         // just while this VoltDBEngine is alive. That simplifies valgrind-compliant process shutdown.
         ThreadLocalPool m_tlPool;
-
-        GPU m_initgpu;
 
         /** Counts tuples modified by a plan fragments.  Top of stack is the
          * most deeply nested executing plan fragment.

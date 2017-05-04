@@ -1,8 +1,7 @@
 #ifndef GPUTUPLE_H
 #define GPUTUPLE_H
 
-#include <GPUetc/common/GNValue.h>
-
+#include "GPUetc/common/GNValue.h"
 
 namespace voltdb{
 
@@ -36,22 +35,12 @@ namespace voltdb{
 #define MAX_BUFFER_SIZE (1024 * 1024)
 #define SHARED_MEM 128
 #define SHARED_SIZE_ 49152
-/*
-typedef struct _TUPLE {
-    int key;
-    int val;
-} TUPLE;
-*/
+
 
 typedef struct _RESULT {
     int lkey;
     int rkey;
 } RESULT;
-
-typedef struct _COLUMNDATA{
-    GNValue gn;
-    int num;
-} COLUMNDATA __attribute__((aligned(32)));
 
 typedef struct _RESULT_BOUND {
 	int outer;
@@ -59,11 +48,6 @@ typedef struct _RESULT_BOUND {
 	int right;
 } ResBound;
 
-typedef struct {
-    int64_t m_data;
-    ValueType m_valueType;
-    bool m_sourceInlined;
-} GNValue2 __attribute__((aligned(32)));
 
 }
 

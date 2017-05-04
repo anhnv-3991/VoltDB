@@ -13,6 +13,13 @@
 
 namespace voltdb {
 
+typedef struct _TreeNode {
+	ExpressionType type;	//type of
+	int column_idx;		//Index of column in tuple, -1 if not tuple value
+	int tuple_idx;			//0: left, outer, 1: right, inner
+	GNValue value;		// Value of const, = NULL if not const
+} GTreeNode;
+
 class TreeExpression {
 public:
 	TreeExpression();

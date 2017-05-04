@@ -63,13 +63,6 @@
 #include "plannodes/limitnode.h"
 #include "plannodes/aggregatenode.h"
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "GPUNIJ.h"
-#include "GPUetc/common/GPUTUPLE.h"
-#include "GPUetc/common/GNValue.h"
-#include "GPUetc/expressions/Gcomparisonexpression.h"
-
 
 #ifdef VOLT_DEBUG_ENABLED
 #include <ctime>
@@ -108,147 +101,140 @@ bool NestLoopExecutor::p_init(AbstractPlanNode* abstract_node,
 }
 
 
-void setGNValue(GNValue *column_data, NValue value)
-{
-	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
-//	column_data->setSourceInlined(value.getSourceInlinedForGPU());
-	column_data->setValueType(value.getValueTypeForGPU());
-}
-
 bool NestLoopExecutor::p_execute(const NValueArray &params) {
-    VOLT_DEBUG("executing NestLoop...");
-
-    NestLoopPlanNode* node = dynamic_cast<NestLoopPlanNode*>(m_abstractNode);
-    assert(node);
-    assert(node->getInputTableCount() == 2);
-
-    // output table must be a temp table
-    assert(m_tmpOutputTable);
-
-    Table* outer_table = node->getInputTable();
-    assert(outer_table);
-
-    Table* inner_table = node->getInputTable(1);
-    assert(inner_table);
-
-    VOLT_TRACE ("input table left:\n %s", outer_table->debug().c_str());
-    VOLT_TRACE ("input table right:\n %s", inner_table->debug().c_str());
-
-    //
-    // Pre Join Expression
-    //
-    AbstractExpression *pre_join_predicate = node->getPreJoinPredicate();
-    TreeExpression pre_join_pred(pre_join_predicate);
-    printf("Pre-Join Predicate::");
-    pre_join_pred.debug();
-    if (pre_join_predicate) {
-        VOLT_TRACE ("Pre Join predicate: %s", pre_join_predicate == NULL ?
-                    "NULL" : pre_join_predicate->debug(true).c_str());
-    }
-    //
-    // Join Expression
-    //
-    AbstractExpression *join_predicate = node->getJoinPredicate();
-    TreeExpression join_pred(join_predicate);
-    printf("Join Predicate::");
-    join_pred.debug();
-    if (join_predicate) {
-        VOLT_TRACE ("Join predicate: %s", join_predicate == NULL ?
-                    "NULL" : join_predicate->debug(true).c_str());
-    }
-    //
-    // Where Expression
-    //
-    AbstractExpression *where_predicate = node->getWherePredicate();
-    TreeExpression where_pred(where_predicate);
-    printf("Where Predicate::");
-    where_pred.debug();
-    if (where_predicate) {
-        VOLT_TRACE ("Where predicate: %s", where_predicate == NULL ?
-                    "NULL" : where_predicate->debug(true).c_str());
-    }
-
-    LimitPlanNode* limit_node = dynamic_cast<LimitPlanNode*>(node->getInlinePlanNode(PLAN_NODE_TYPE_LIMIT));
-    int limit = -1;
-//    int tuple_ctr = 0;
-    int offset = -1;
-    if (limit_node) {
-        limit_node->getLimitAndOffsetByReference(params, limit, offset);
-    }
-
-    ProgressMonitorProxy pmp(m_engine, this, inner_table);
-
-    TableTuple join_tuple;
-    if (m_aggExec != NULL) {
-        VOLT_TRACE("Init inline aggregate...");
-        const TupleSchema * aggInputSchema = node->getTupleSchemaPreAgg();
-        join_tuple = m_aggExec->p_execute_init(params, &pmp, aggInputSchema, m_tmpOutputTable);
-    } else {
-        join_tuple = m_tmpOutputTable->tempTuple();
-    }
-
-    /*
-      Recently ,only joinPredicate is implemented 
-     */
-
-    GTable outer, inner;
-
-    outer.block_list = &(outer_table->getGBlockList()[0]);
-    outer.column_num = (int)(outer_table->activeTupleCount());
-    outer.schema = &(outer_table->getGSchema()[0]);
-
-    inner.block_list = &(inner_table->getGBlockList()[0]);
-    inner.column_num = (int)(inner_table->activeTupleCount());
-    inner.schema = &(inner_table->getGSchema()[0]);
-
-    RESULT *join_result = NULL;
-    int result_size = 0;
-    bool ret;
-//    bool earlyReturned = false;
-
-    GPUNIJ gn(outer, inner, pre_join_pred, join_pred, where_pred);
-
-    ret = gn.join();
-    if (!ret) {
-    	printf("Error: join failed\n");
-    } else {
-    	result_size = gn.getResultSize();
-    	join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
-    	gn.getResult(join_result);
-
-    	printf("Result size = %d\n", result_size);
-//		for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
-//			int l = join_result[i].lkey;
-//			int r = join_result[i].rkey;
+//    VOLT_DEBUG("executing NestLoop...");
 //
-//			if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
-//				join_tuple.setNValues(0, tmp_outer_tuple[l], 0, outer_cols);
-//				join_tuple.setNValues(outer_cols, tmp_inner_tuple[r], 0, inner_cols);
-//			}
-
-//			if (m_aggExec != NULL) {
-//				if (m_aggExec->p_execute_tuple(join_tuple)){
-					// Get enough rows for LIMIT
-//					earlyReturned = true;
-//					break;
-//				}
-//			} else {
-//				m_tmpOutputTable->insertTempTuple(join_tuple);
-//				pmp.countdownProgress();
-//			}
-
-//			if (earlyReturned) {
-//				break;
-//			}
-//		}
-    }
-
-    if (m_aggExec != NULL) {
-        m_aggExec->p_execute_finish();
-    }
-
-    cleanupInputTempTable(inner_table);
-    cleanupInputTempTable(outer_table);
+//    NestLoopPlanNode* node = dynamic_cast<NestLoopPlanNode*>(m_abstractNode);
+//    assert(node);
+//    assert(node->getInputTableCount() == 2);
+//
+//    // output table must be a temp table
+//    assert(m_tmpOutputTable);
+//
+//    Table* outer_table = node->getInputTable();
+//    assert(outer_table);
+//
+//    Table* inner_table = node->getInputTable(1);
+//    assert(inner_table);
+//
+//    VOLT_TRACE ("input table left:\n %s", outer_table->debug().c_str());
+//    VOLT_TRACE ("input table right:\n %s", inner_table->debug().c_str());
+//
+//    //
+//    // Pre Join Expression
+//    //
+//    AbstractExpression *pre_join_predicate = node->getPreJoinPredicate();
+//    TreeExpression pre_join_pred(pre_join_predicate);
+//    printf("Pre-Join Predicate::");
+//    pre_join_pred.debug();
+//    if (pre_join_predicate) {
+//        VOLT_TRACE ("Pre Join predicate: %s", pre_join_predicate == NULL ?
+//                    "NULL" : pre_join_predicate->debug(true).c_str());
+//    }
+//    //
+//    // Join Expression
+//    //
+//    AbstractExpression *join_predicate = node->getJoinPredicate();
+//    TreeExpression join_pred(join_predicate);
+//    printf("Join Predicate::");
+//    join_pred.debug();
+//    if (join_predicate) {
+//        VOLT_TRACE ("Join predicate: %s", join_predicate == NULL ?
+//                    "NULL" : join_predicate->debug(true).c_str());
+//    }
+//    //
+//    // Where Expression
+//    //
+//    AbstractExpression *where_predicate = node->getWherePredicate();
+//    TreeExpression where_pred(where_predicate);
+//    printf("Where Predicate::");
+//    where_pred.debug();
+//    if (where_predicate) {
+//        VOLT_TRACE ("Where predicate: %s", where_predicate == NULL ?
+//                    "NULL" : where_predicate->debug(true).c_str());
+//    }
+//
+//    LimitPlanNode* limit_node = dynamic_cast<LimitPlanNode*>(node->getInlinePlanNode(PLAN_NODE_TYPE_LIMIT));
+//    int limit = -1;
+////    int tuple_ctr = 0;
+//    int offset = -1;
+//    if (limit_node) {
+//        limit_node->getLimitAndOffsetByReference(params, limit, offset);
+//    }
+//
+//    ProgressMonitorProxy pmp(m_engine, this, inner_table);
+//
+//    TableTuple join_tuple;
+//    if (m_aggExec != NULL) {
+//        VOLT_TRACE("Init inline aggregate...");
+//        const TupleSchema * aggInputSchema = node->getTupleSchemaPreAgg();
+//        join_tuple = m_aggExec->p_execute_init(params, &pmp, aggInputSchema, m_tmpOutputTable);
+//    } else {
+//        join_tuple = m_tmpOutputTable->tempTuple();
+//    }
+//
+//    /*
+//      Recently ,only joinPredicate is implemented
+//     */
+//
+//    GTable outer, inner;
+//
+//    outer.block_list = &(outer_table->getGBlockList()[0]);
+//    outer.column_num = (int)(outer_table->activeTupleCount());
+//    outer.schema = &(outer_table->getGSchema()[0]);
+//
+//    inner.block_list = &(inner_table->getGBlockList()[0]);
+//    inner.column_num = (int)(inner_table->activeTupleCount());
+//    inner.schema = &(inner_table->getGSchema()[0]);
+//
+//    RESULT *join_result = NULL;
+//    int result_size = 0;
+//    bool ret;
+////    bool earlyReturned = false;
+//
+//    GPUNIJ gn(outer, inner, pre_join_pred, join_pred, where_pred);
+//
+//    ret = gn.join();
+//    if (!ret) {
+//    	printf("Error: join failed\n");
+//    } else {
+//    	result_size = gn.getResultSize();
+//    	join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
+//    	gn.getResult(join_result);
+//
+//    	printf("Result size = %d\n", result_size);
+////		for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
+////			int l = join_result[i].lkey;
+////			int r = join_result[i].rkey;
+////
+////			if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
+////				join_tuple.setNValues(0, tmp_outer_tuple[l], 0, outer_cols);
+////				join_tuple.setNValues(outer_cols, tmp_inner_tuple[r], 0, inner_cols);
+////			}
+//
+////			if (m_aggExec != NULL) {
+////				if (m_aggExec->p_execute_tuple(join_tuple)){
+//					// Get enough rows for LIMIT
+////					earlyReturned = true;
+////					break;
+////				}
+////			} else {
+////				m_tmpOutputTable->insertTempTuple(join_tuple);
+////				pmp.countdownProgress();
+////			}
+//
+////			if (earlyReturned) {
+////				break;
+////			}
+////		}
+//    }
+//
+//    if (m_aggExec != NULL) {
+//        m_aggExec->p_execute_finish();
+//    }
+//
+//    cleanupInputTempTable(inner_table);
+//    cleanupInputTempTable(outer_table);
 
     return (true);
 }

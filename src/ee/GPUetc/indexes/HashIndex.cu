@@ -27,7 +27,6 @@ GHashIndex::GHashIndex(int key_num, int key_size)
 
 	checkCudaErrors(cudaMalloc(&sorted_idx_, sizeof(int) * key_num_));
 	checkCudaErrors(cudaMalloc(&packed_key_, sizeof(uint64_t) * key_num_ * key_size_));
-	checkCudaErrors(cudaGetLastError());
 }
 
 

@@ -8,11 +8,12 @@
 namespace voltdb {
 
 class GNValue {
+	friend class GTuple;
 public:
-	__device__ GNValue();
-	__device__ GNValue(ValueType type);
-	__device__ GNValue(ValueType type, int64_t mdata);
-	__device__ GNValue(ValueType type, const char *input);
+	__forceinline__ __device__ GNValue();
+	__forceinline__ __device__ GNValue(ValueType type);
+	__forceinline__ __device__ GNValue(ValueType type, int64_t mdata);
+	__forceinline__ __device__ GNValue(ValueType type, const char *input);
 
 	__forceinline__ __device__ bool isNull() const;
 	__forceinline__ __device__ bool isTrue() const;
@@ -59,26 +60,26 @@ public:
 	__forceinline__ __device__ GNValue operator-(const GNValue rhs) const;
 	__forceinline__ __device__ GNValue operator/(const GNValue rhs) const;
 
-private:
+protected:
 	int64_t m_data_;
 	ValueType type_;
 };
 
-__device__ GNValue::GNValue()
+__forceinline__ __device__ GNValue::GNValue()
 {
 	m_data_ = 0;
 	type_ = VALUE_TYPE_INVALID;
 }
 
-__device__ GNValue::GNValue(ValueType type)
+__forceinline__ __device__ GNValue::GNValue(ValueType type)
 {
 	m_data_ = 0;
 	type_ = type;
 }
 
-__device__ GNValue::GNValue(ValueType type, int64_t mdata)
+__forceinline__ __device__ GNValue::GNValue(ValueType type, int64_t mdata)
 {
-	m_data_ = 0;
+	m_data_ = mdata;
 	type_ = type;
 }
 
@@ -149,8 +150,8 @@ __forceinline__ __device__ GNValue GNValue::opNegate() const
 
 __forceinline__ __device__ GNValue GNValue::opAnd(const GNValue rhs) const
 {
-	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
-		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.type_ == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.m_data_);
 
 		return (left && right) ? getTrue() : getFalse();
 	}
@@ -160,8 +161,8 @@ __forceinline__ __device__ GNValue GNValue::opAnd(const GNValue rhs) const
 
 __forceinline__ __device__ GNValue GNValue::opOr(const GNValue rhs) const
 {
-	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
-		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.type_ == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.m_data_);
 
 		return (left || right) ? getTrue() : getFalse();
 	}
@@ -172,8 +173,8 @@ __forceinline__ __device__ GNValue GNValue::opOr(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::opEqual(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d == right_d) ? getTrue() : getFalse();
@@ -188,8 +189,8 @@ __forceinline__ __device__ GNValue GNValue::opEqual(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::opNotEqual(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d != right_d) ? getTrue() : getFalse();
@@ -204,8 +205,8 @@ __forceinline__ __device__ GNValue GNValue::opNotEqual(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::opLessThan(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d < right_d) ? getTrue() : getFalse();
@@ -220,8 +221,8 @@ __forceinline__ __device__ GNValue GNValue::opLessThan(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::opLessThanOrEqual(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d <= right_d) ? getTrue() : getFalse();
@@ -236,8 +237,8 @@ __forceinline__ __device__ GNValue GNValue::opLessThanOrEqual(const GNValue rhs)
 __forceinline__ __device__ GNValue GNValue::opGreaterThan(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d > right_d) ? getTrue() : getFalse();
@@ -252,8 +253,8 @@ __forceinline__ __device__ GNValue GNValue::opGreaterThan(const GNValue rhs) con
 __forceinline__ __device__ GNValue GNValue::opGreaterThanOrEqual(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d >= right_d) ? getTrue() : getFalse();
@@ -268,8 +269,8 @@ __forceinline__ __device__ GNValue GNValue::opGreaterThanOrEqual(const GNValue r
 __forceinline__ __device__ GNValue GNValue::opAdd(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 
@@ -292,8 +293,8 @@ __forceinline__ __device__ GNValue GNValue::opAdd(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::opMultiply(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 
@@ -316,8 +317,8 @@ __forceinline__ __device__ GNValue GNValue::opMultiply(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::opSubtract(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 
@@ -340,8 +341,8 @@ __forceinline__ __device__ GNValue GNValue::opSubtract(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::opDivide(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 
@@ -361,22 +362,24 @@ __forceinline__ __device__ GNValue GNValue::opDivide(const GNValue rhs) const
 	return getInvalid();
 }
 
-__forceinline__ __device__ static GNValue GNValue::getTrue()
+__forceinline__ __device__ GNValue GNValue::getTrue()
 {
-	return GNValue(VALUE_TYPE_BOOLEAN, true);
+	bool value = true;
+	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)value);
 }
 
-__forceinline__ __device__ static GNValue GNValue::getFalse()
+__forceinline__ __device__ GNValue GNValue::getFalse()
 {
-	return GNValue(VALUE_TYPE_BOOLEAN, false);
+	bool value = false;
+	return GNValue(VALUE_TYPE_BOOLEAN, (int64_t)value);
 }
 
-__forceinline__ __device__ static GNValue GNValue::getInvalid()
+__forceinline__ __device__ GNValue GNValue::getInvalid()
 {
 	return GNValue(VALUE_TYPE_INVALID);
 }
 
-__forceinline__ __device__ static GNValue GNValue::getNullValue()
+__forceinline__ __device__ GNValue GNValue::getNullValue()
 {
 	return GNValue(VALUE_TYPE_NULL);
 }
@@ -409,24 +412,23 @@ __forceinline__ __device__ void GNValue::debug() const
 		break;
 	}
 	case VALUE_TYPE_TINYINT: {
-		printf("VALUE TYPE TINYINT: %d", (int)getValue());
+		printf("VALUE TYPE TINYINT: %d", (int)m_data_);
 		break;
 	}
 	case VALUE_TYPE_SMALLINT: {
-		printf("VALUE TYPE SMALLINT: %d", (int)getValue());
+		printf("VALUE TYPE SMALLINT: %d", (int)m_data_);
 		break;
 	}
 	case VALUE_TYPE_INTEGER: {
-		printf("VALUE TYPE INTEGER: %d", (int)getValue());
+		printf("VALUE TYPE INTEGER: %d", (int)m_data_);
 		break;
 	}
 	case VALUE_TYPE_BIGINT: {
-		printf("VALUE TYPE BIGINT: %d", (int)getValue());
+		printf("VALUE TYPE BIGINT: %d", (int)m_data_);
 		break;
 	}
 	case VALUE_TYPE_DOUBLE: {
-		int64_t tmp = getValue();
-		printf("VALUE TYPE DOUBLE: %lf", *reinterpret_cast<double *>(&tmp));
+		printf("VALUE TYPE DOUBLE: %lf", *reinterpret_cast<const double *>(&m_data_));
 		break;
 	}
 	case VALUE_TYPE_VARCHAR: {
@@ -475,8 +477,8 @@ __forceinline__ __device__ GNValue GNValue::operator~() const
 
 __forceinline__ __device__ GNValue GNValue::operator&&(const GNValue rhs) const
 {
-	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
-		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.type_ == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.m_data_);
 
 		return (left && right) ? getTrue() : getFalse();
 	}
@@ -486,8 +488,8 @@ __forceinline__ __device__ GNValue GNValue::operator&&(const GNValue rhs) const
 
 __forceinline__ __device__ GNValue GNValue::operator||(const GNValue rhs) const
 {
-	if (type_ == VALUE_TYPE_BOOLEAN && rhs.getValueType() == VALUE_TYPE_BOOLEAN) {
-		bool left = (bool)m_data_, right = (bool)(rhs.getValue());
+	if (type_ == VALUE_TYPE_BOOLEAN && rhs.type_ == VALUE_TYPE_BOOLEAN) {
+		bool left = (bool)m_data_, right = (bool)(rhs.m_data_);
 
 		return (left || right) ? getTrue() : getFalse();
 	}
@@ -498,8 +500,8 @@ __forceinline__ __device__ GNValue GNValue::operator||(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator==(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d == right_d) ? getTrue() : getFalse();
@@ -514,8 +516,8 @@ __forceinline__ __device__ GNValue GNValue::operator==(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator!=(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d != right_d) ? getTrue() : getFalse();
@@ -530,8 +532,8 @@ __forceinline__ __device__ GNValue GNValue::operator!=(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator<(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d < right_d) ? getTrue() : getFalse();
@@ -546,8 +548,8 @@ __forceinline__ __device__ GNValue GNValue::operator<(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator<=(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d <= right_d) ? getTrue() : getFalse();
@@ -562,8 +564,8 @@ __forceinline__ __device__ GNValue GNValue::operator<=(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator>(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d > right_d) ? getTrue() : getFalse();
@@ -578,8 +580,8 @@ __forceinline__ __device__ GNValue GNValue::operator>(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator>=(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 
 		if (type_ == VALUE_TYPE_DOUBLE || rhs.type_ == VALUE_TYPE_DOUBLE) {
 			return (left_d >= right_d) ? getTrue() : getFalse();
@@ -594,8 +596,8 @@ __forceinline__ __device__ GNValue GNValue::operator>=(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator+(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 
@@ -618,8 +620,8 @@ __forceinline__ __device__ GNValue GNValue::operator+(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator*(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 
@@ -642,8 +644,8 @@ __forceinline__ __device__ GNValue GNValue::operator*(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator-(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 
@@ -666,8 +668,8 @@ __forceinline__ __device__ GNValue GNValue::operator-(const GNValue rhs) const
 __forceinline__ __device__ GNValue GNValue::operator/(const GNValue rhs) const
 {
 	if (type_ != VALUE_TYPE_NULL && type_ != VALUE_TYPE_INVALID && rhs.type_ != VALUE_TYPE_NULL && rhs.type_ != VALUE_TYPE_INVALID) {
-		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&m_data_) : static_cast<double>(m_data_);
-		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
+		double left_d = (type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&m_data_) : static_cast<double>(m_data_);
+		double right_d = (rhs.type_ == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<const double*>(&rhs.m_data_) : static_cast<double>(rhs.m_data_);
 		int64_t res_i;
 		double res_d;
 

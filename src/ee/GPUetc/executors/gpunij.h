@@ -6,8 +6,8 @@ GPUで動かすため配列のほうが向いていると思ったので
 配列に変更している
 ********************************/
 
-#ifndef GPUNIJ_H
-#define GPUNIJ_H
+#ifndef GPUNIJ_H_
+#define GPUNIJ_H_
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -15,8 +15,9 @@ GPUで動かすため配列のほうが向いていると思ったので
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/storage/gtable.h"
+#include "GPUetc/expressions/gexpression.h"
 
-using namespace voltdb;
+namespace voltdb {
 
 class GPUNIJ{
 public:
@@ -40,33 +41,23 @@ public:
 
 private:
 	GTable outer_table_, inner_table_;
-	RESULT *join_result_;
+	RESULT *result_;
 	int result_size_;
 
-	GTree pre_join_predicate_;
-	GTree join_predicate_;
-	GTree where_predicate_;
+	GExpression pre_join_predicate_;
+	GExpression join_predicate_;
+	GExpression where_predicate_;
 
+	std::vector<unsigned long> allocation_, count_time_, scan_time_, join_time_, joins_only_;
+	ulong all_time_;
+
+	void profiling();
 	uint getPartitionSize() const;
-	uint divUtility(uint divident, uint divisor) const;
-	bool getTreeNodes(GTreeNode **expression, const TreeExpression tree_expression);
-	bool getTreeNodes2(GTreeNode *expression, const TreeExpression tree_expression);
 	template <typename T> void freeArrays(T *expression);
-	void setNValue(NValue *nvalue, GNValue &gnvalue);
 	void debugGTrees(const GTree tree);
 
-	void GNValueDebug(GNValue &column_data)	{
-		NValue value;
-		long double gtmp = column_data.getMdata();
-		char tmp[16];
-		memcpy(tmp, &gtmp, sizeof(long double));
-		value.setMdataFromGPU(tmp);
-//		value.setSourceInlinedFromGPU(column_data.getSourceInlined());
-		value.setValueTypeFromGPU(column_data.getValueType());
-
-		std::cout << value.debug();
-	}
-
+	void FirstEvaluation(ulong *first_count);
+	void SecondEvaluation(RESULT *join_result, ulong *write_location);
 };
-
+}
 #endif
