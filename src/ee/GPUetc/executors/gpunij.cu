@@ -11,12 +11,12 @@
 #include <helper_functions.h>
 #include "GPUetc/common/GPUTUPLE.h"
 #include "gpunij.h"
-#include "join_gpu.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/gexpression.h"
+#include "utilities.h"
 
 
-using namespace voltdb;
+namespace voltdb {
 
 GPUNIJ::GPUNIJ()
 {
@@ -47,7 +47,7 @@ GPUNIJ::GPUNIJ(GTable outer_table,
 
 GPUNIJ::~GPUNIJ()
 {
-	freeArrays<RESULT>(join_result_);
+	freeArrays<RESULT>(result_);
 	pre_join_predicate_.freeExpression();
 	join_predicate_.freeExpression();
 	where_predicate_.freeExpression();
@@ -101,16 +101,11 @@ bool GPUNIJ::join(){
 			count_time_.push_back(GUtilities::timeDiff(cstart, cend));
 			scan_time_.push_back(GUtilities::timeDiff(pcstart, pcend));
 
-			if (jr_size < 0) {
-				printf("Scanning failed\n");
-				return false;
-			}
 
 			if (jr_size == 0) {
 				gettimeofday(&end_join, NULL);
 				joins_only_.push_back(GUtilities::timeDiff(cstart, end_join));
 				continue;
-				//goto free_count;
 			}
 
 			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
@@ -120,11 +115,11 @@ bool GPUNIJ::join(){
 
 			join_time_.push_back((jend.tv_sec - jstart.tv_sec) * 1000000 + (jend.tv_usec - jstart.tv_usec));
 
-			join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size) * sizeof(RESULT));
+			result_ = (RESULT *)realloc(result_, (result_size_ + jr_size) * sizeof(RESULT));
 
 			gettimeofday(&end_join, NULL);
 
-			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
+			checkCudaErrors(cudaMemcpy(result_ + result_size_, jresult_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
 			result_size_ += jr_size;
 			jr_size = 0;
 
@@ -143,7 +138,7 @@ bool GPUNIJ::join(){
 
 void GPUNIJ::profiling()
 {
-	unsigned long allocation_time = 0, count_t = 0, join_t = 0, ipsum_time = 0, scan_t = 0, joins_only_time = 0;
+	unsigned long allocation_time = 0, count_t = 0, join_t = 0, scan_t = 0, joins_only_time = 0;
 
 	for (int i = 0; i < count_time_.size(); i++) {
 		count_t += count_time_[i];
@@ -217,11 +212,13 @@ extern "C" __global__ void firstEvaluation(GTable outer, GTable inner,
 	int stride = blockDim.x * gridDim.x;
 	bool res;
 	int count = 0;
+	GTuple outer_tuple, inner_tuple;
 
 	for (int i = index; i < outer_rows; i += stride) {
-		GTuple outer_tuple(outer, i);
+		outer_tuple = outer.getGTuple(i);
+
 		for (int j = 0; j < inner_rows; j++) {
-			GTuple inner_tuple(inner, j);
+			inner_tuple = inner.getGTuple(j);
 			res = true;
 			res = (res && pre_join_pred.getSize() > 0 && (pre_join_pred.evaluate(&outer_tuple, &inner_tuple, val_stack + index, type_stack + index, stride)).isTrue()) ? true : false;
 			res = (res && join_pred.getSize() > 0 && (join_pred.evaluate(&outer_tuple, &inner_tuple, val_stack + index, type_stack + index, stride)).isTrue()) ? true : false;
@@ -272,13 +269,16 @@ extern "C" __global__ void secondEvaluation(GTable outer, GTable inner,
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x;
 	bool res;
-	int count = 0;
+	GTuple outer_tuple, inner_tuple;
 
 	for (int i = index; i < outer_rows; i += stride) {
 		int location = write_location[i];
-		GTuple outer_tuple(outer, i);
+
+		outer_tuple = outer.getGTuple(i);
+
 		for (int j = 0; j < inner_rows; j++) {
-			GTuple inner_tuple(inner, j);
+			inner_tuple = inner.getGTuple(j);
+
 			res = true;
 			res = (res && pre_join_pred.getSize() > 0 && (pre_join_pred.evaluate(&outer_tuple, &inner_tuple, val_stack + index, type_stack + index, stride)).isTrue()) ? true : false;
 			res = (res && join_pred.getSize() > 0 && (join_pred.evaluate(&outer_tuple, &inner_tuple, val_stack + index, type_stack + index, stride)).isTrue()) ? true : false;
@@ -325,60 +325,61 @@ template <typename T> void GPUNIJ::freeArrays(T *expression)
 }
 
 
-void GPUNIJ::debug(void)
-{
-//	int outer_size = 0;
+//void GPUNIJ::debug(void)
+//{
+////	int outer_size = 0;
+////
+////	for (int i = 0; i < outer_table_.block_num; i++) {
+////		outer_size += outer_table_.block_list[i].rows;
+////	}
+////
+////	std::cout << "Size of outer table = " << outer_size << std::endl;
+////	if (outer_size != 0) {
+////		std::cout << "Outer table" << std::endl;
+////		for (int i = 0; i < outer_tabler_.block_list->rows; i++) {
+////			for (int j = 0; j < MAX_GNVALUE; j++) {
+////				NValue tmp;
+////				setNValue(&tmp, outer_table_.[i * outer_cols_ + j]);
+////				std::cout << tmp.debug().c_str() << std::endl;
+////			}
+////		}
+////	} else
+////		std::cout << "Empty outer table" << std::endl;
+////
+////	std::cout << "Size of inner table =" << inner_size_ << std::endl;
+////	if (inner_size_ != 0) {
+////		for (int i = 0; i < inner_size_; i++) {
+////			for (int j = 0; j < MAX_GNVALUE; j++) {
+////				NValue tmp;
+////				setNValue(&tmp, inner_table_[i * inner_cols_ + j]);
+////				std::cout << tmp.debug().c_str() << std::endl;
+////			}
+////		}
+////	} else
+////		std::cout << "Empty inner table" << std::endl;
 //
-//	for (int i = 0; i < outer_table_.block_num; i++) {
-//		outer_size += outer_table_.block_list[i].rows;
-//	}
-//
-//	std::cout << "Size of outer table = " << outer_size << std::endl;
-//	if (outer_size != 0) {
-//		std::cout << "Outer table" << std::endl;
-//		for (int i = 0; i < outer_tabler_.block_list->rows; i++) {
-//			for (int j = 0; j < MAX_GNVALUE; j++) {
-//				NValue tmp;
-//				setNValue(&tmp, outer_table_.[i * outer_cols_ + j]);
-//				std::cout << tmp.debug().c_str() << std::endl;
-//			}
-//		}
+//	std::cout << "Size of preJoinPredicate = " << pre_join_predicate_.size << std::endl;
+//	if (pre_join_predicate_.size != 0) {
+//		std::cout << "Content of preJoinPredicate" << std::endl;
+//		debugGTrees(pre_join_predicate_);
 //	} else
-//		std::cout << "Empty outer table" << std::endl;
+//		std::cout << "Empty preJoinPredicate" << std::endl;
 //
-//	std::cout << "Size of inner table =" << inner_size_ << std::endl;
-//	if (inner_size_ != 0) {
-//		for (int i = 0; i < inner_size_; i++) {
-//			for (int j = 0; j < MAX_GNVALUE; j++) {
-//				NValue tmp;
-//				setNValue(&tmp, inner_table_[i * inner_cols_ + j]);
-//				std::cout << tmp.debug().c_str() << std::endl;
-//			}
-//		}
+//	std::cout << "Size of joinPredicate = " << join_predicate_.size << std::endl;
+//	if (join_predicate_.size != 0) {
+//		std::cout << "Content of joinPredicate" << std::endl;
+//		debugGTrees(join_predicate_);
 //	} else
-//		std::cout << "Empty inner table" << std::endl;
+//		std::cout << "Empty joinPredicate" << std::endl;
+//
+//	std::cout << "Size of wherePredicate = " << where_predicate_.size << std::endl;
+//	if (where_predicate_.size != 0) {
+//		std::cout << "Content of wherePredicate" << std::endl;
+//		debugGTrees(where_predicate_);
+//	} else
+//		std::cout << "Empty wherePredicate" << std::endl;
+//}
 
-	std::cout << "Size of preJoinPredicate = " << pre_join_predicate_.size << std::endl;
-	if (pre_join_predicate_.size != 0) {
-		std::cout << "Content of preJoinPredicate" << std::endl;
-		debugGTrees(pre_join_predicate_);
-	} else
-		std::cout << "Empty preJoinPredicate" << std::endl;
-
-	std::cout << "Size of joinPredicate = " << join_predicate_.size << std::endl;
-	if (join_predicate_.size != 0) {
-		std::cout << "Content of joinPredicate" << std::endl;
-		debugGTrees(join_predicate_);
-	} else
-		std::cout << "Empty joinPredicate" << std::endl;
-
-	std::cout << "Size of wherePredicate = " << where_predicate_.size << std::endl;
-	if (where_predicate_.size != 0) {
-		std::cout << "Content of wherePredicate" << std::endl;
-		debugGTrees(where_predicate_);
-	} else
-		std::cout << "Empty wherePredicate" << std::endl;
 }
-
 
 

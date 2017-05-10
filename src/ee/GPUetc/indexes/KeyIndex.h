@@ -9,13 +9,12 @@ namespace voltdb {
 class GKeyIndex {
 public:
 	__forceinline__ __device__ GKeyIndex();
-private:
+protected:
 	int size_;
 };
 
 __forceinline__ __device__ GKeyIndex::GKeyIndex() {
 	size_ = 0;
-	packed_key_ = NULL;
 }
 }
 

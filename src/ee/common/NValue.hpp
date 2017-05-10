@@ -655,7 +655,7 @@ class NValue {
 
    */
 
-  inline const char *getMdataForGPU(){
+  inline const char *getValueForGPU(){
     return m_data;
   }
 

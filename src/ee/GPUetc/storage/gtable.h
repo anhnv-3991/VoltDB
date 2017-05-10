@@ -21,6 +21,11 @@ class GTable {
 	friend class GHashIndex;
 
 public:
+	typedef enum {
+		GTREE_INDEX_,
+		GHASH_INDEX_,
+	} GIndexType;
+
 	typedef struct {
 		int64_t *data;
 		int rows;
@@ -56,7 +61,7 @@ public:
 		return block_dev_;
 	}
 
-	GIndex getIndex() {
+	GIndex *getCurrentIndex() {
 		return index_;
 	}
 
@@ -147,13 +152,13 @@ public:
 	void insertTuple(int64_t *tuple);
 	void insertToAllIndexes(int blockId, int tupleId);
 
-	void addIndex(int *key_idx, int key_size);
+	void addIndex(int *key_idx, int key_size, GIndexType type);
 	void removeIndex();
 
 	void moveToIndex(int idx) {
 		assert(idx < block_num_);
 		block_dev_ = block_list_host_[idx];
-		index_ = indexes_[0];
+		index_ = indexes_;
 	}
 
 	__forceinline__ __device__ GTuple getGTuple(int index) {
@@ -163,12 +168,12 @@ public:
 protected:
 	GColumnInfo *schema_;
 	GBlock block_dev_;
-	GIndex index_;
+	GIndex *index_;
 	int columns_;
 
 private:
 	void nextFreeTuple(int *blockId, int *tupleId);
-	void insertToIndex(int blockId, int tupleId, GIndex *index);
+	void insertToIndex(int block_id, int tuple_id, int index_id);
 
 
 	int database_id_;

@@ -37,7 +37,7 @@ public:
 
 	int getResultSize() const;
 
-	void debug();
+	//void debug();
 
 private:
 	GTable outer_table_, inner_table_;
@@ -54,7 +54,7 @@ private:
 	void profiling();
 	uint getPartitionSize() const;
 	template <typename T> void freeArrays(T *expression);
-	void debugGTrees(const GTree tree);
+	//void debugGTrees(const GTree tree);
 
 	void FirstEvaluation(ulong *first_count);
 	void SecondEvaluation(RESULT *join_result, ulong *write_location);

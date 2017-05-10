@@ -485,9 +485,10 @@ extern "C" __global__ void indexCount(GHashIndex outer_index, GHashIndex inner_i
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x;
 	int outer_rows = outer_index.getKeyRows();
+	GHashIndexKey key;
 
 	for (int i = index; i < outer_rows; i += stride) {
-		GHashIndexKey key(outer_index, i);
+		key = outer_index.getKeyAtIndex(i);
 		int bucket_id = key.KeyHasher();
 
 		out_bound[i].left = inner_index.getBucketLocation(bucket_id);
@@ -509,7 +510,7 @@ void GPUHJ::IndexCount(ulong *index_count, ResBound *out_bound)
 
 	checkCudaErrors(cudaMalloc(&search_schema, sizeof(GColumnInfo) * search_exp_num_));
 	GTable search_table(outer_table_.getDatabaseId(), NULL, search_schema, search_exp_num_, outer_table_.getCurrentRowNum());
-	GHashIndex tmp_index(outer_table_.getCurrentRowNum(), search_exp_num_);
+	GHashIndex tmp_index(outer_table_.getCurrentRowNum(), search_exp_num_, maxNumberOfBuckets_);
 
 	int64_t *val_stack;
 	ValueType *type_stack;
@@ -520,8 +521,7 @@ void GPUHJ::IndexCount(ulong *index_count, ResBound *out_bound)
 													outer_table_.getCurrentRowNum(),
 													search_exp_size_, search_exp_num_,
 													val_stack, type_stack, search_table, tmp_index);
-	GIndex tmp_idx = inner_table_.getIndex();
-	GHashIndex *inner_index = dynamic_cast<GHashIndex*>(&tmp_idx);
+	GHashIndex *inner_index = dynamic_cast<GHashIndex*>(inner_table_.getCurrentIndex());
 	indexCount<<<grid_x, block_x>>>(tmp_index, *inner_index, index_count, out_bound);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
@@ -541,7 +541,7 @@ void GPUHJ::IndexCount(ulong *index_count, ResBound *out_bound, cudaStream_t str
 
 	GTable search_table(outer_table_.getDatabaseId(), NULL, search_exp_num_);
 
-	GHashIndex tmp_index(outer_table_.getCurrentRowNum(), search_exp_num_);
+	GHashIndex tmp_index(outer_table_.getCurrentRowNum(), search_exp_num_, maxNumberOfBuckets_);
 
 	int64_t *val_stack;
 	ValueType *type_stack;
@@ -553,8 +553,7 @@ void GPUHJ::IndexCount(ulong *index_count, ResBound *out_bound, cudaStream_t str
 																outer_table_.getCurrentRowNum(),
 																search_exp_size_, search_exp_num_,
 																val_stack, type_stack, search_table, tmp_index);
-	GIndex tmp_idx = inner_table_.getIndex();
-	GHashIndex *inner_index = dynamic_cast<GHashIndex*>(&tmp_idx);
+	GHashIndex *inner_index = dynamic_cast<GHashIndex*>(inner_table_.getCurrentIndex());
 	indexCount<<<grid_x, block_x, 0, stream>>>(tmp_index, *inner_index, index_count, out_bound);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
@@ -678,8 +677,7 @@ void GPUHJ::decompose(RESULT *output, ResBound *in_bound, ulong *in_location, ul
 	dim3 block_size(block_x, 1, 1);
 	dim3 grid_size(grid_x, 1, 1);
 
-	GIndex tmp_index = inner_table_.getIndex();
-	GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(&tmp_index);
+	GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(inner_table_.getCurrentIndex());
 	int *sorted_idx = inner_idx->getSortedIdx();
 
 	HDecompose<<<grid_size, block_size>>>(output, in_bound, sorted_idx, in_location, local_offset, size);
@@ -697,8 +695,7 @@ void GPUHJ::decompose(RESULT *output, ResBound *in_bound, ulong *in_location, ul
 	dim3 block_size(block_x, 1, 1);
 	dim3 grid_size(grid_x, 1, 1);
 
-	GIndex tmp_index = inner_table_.getIndex();
-	GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(&tmp_index);
+	GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(inner_table_.getCurrentIndex());
 	int *sorted_idx = inner_idx->getSortedIdx();
 
 	HDecompose<<<grid_size, block_size, 0, stream>>>(output, in_bound, sorted_idx, in_location, local_offset, size);

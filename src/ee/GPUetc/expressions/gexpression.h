@@ -8,6 +8,7 @@
 #include "GPUetc/common/GNValue.h"
 
 namespace voltdb {
+typedef
 
 class GExpression {
 public:
@@ -16,12 +17,28 @@ public:
 		size_ = 0;
 	}
 
-	GExpression(TreeExpression expression) {
-		if (expression.getSize() > 0) {
-			checkCudaErrors(cudaMalloc(&expression_, expression.getSize() * sizeof(GTreeNode)));
-			checkCudaErrors(cudaMemcpy(expression_, expression.getNodesArray2(), expression.getSize() * sizeof(GTreeNode), cudaMemcpyHostToDevice));
-			size_ = expression.getSize();
-		}
+	GExpression(ExpressionNode *expression) {
+		int tree_size = 0;
+
+#ifndef TREE_EVAL_
+		tree_size =	getExpressionLength(expression);
+		GExpression *tmp_expression = (GExpression*)malloc(sizeof(GExpression) * tree_size);
+		checkCudaErrors(cudaMalloc(&expression_, sizeof(GExpression) * tree_size));
+
+		int root = 0;
+		tree_ = std::vector<GTreeNode>(tree_size);
+
+		buildPostExpression(tmp_expression, expression, &root);
+#else
+		int tmp_size = 1;
+		tree_size = getTreeSize(expression, tmp_size) + 1;
+		GExpression *tmp_expression = (GExpression*)malloc(sizeof(GExpression) * tree_size);
+		checkCudaErrors(cudaMalloc(&expression_, sizeof(GExpression) * tree_size));
+
+		buildTreeExpression(tmp_expression, expression, 1);
+#endif
+		checkCudaErrors(cudaMemcpy(expression_, tmp_expression, sizeof(GExpression) * tree_size, cudaMemcpyHostToDevice));
+		free(tmp_expression);
 	}
 
 	void freeExpression() {
@@ -1027,6 +1044,68 @@ public:
 		}
 
 private:
+	int getExpressionLength(ExpressionNode *expression) {
+		if (expression == NULL) {
+			return 0;
+		}
+
+		int left, right;
+
+		left = getExpressionLength(expression->left);
+
+		right = getExpressionLength(expression->right);
+
+		return (1 + left + right);
+	}
+
+	int getTreeSize(ExpressionNode *expression, int size) {
+		if (expression == NULL)
+			return size / 2;
+
+		int left, right;
+
+		left = getTreeSize(expression->left, size * 2);
+		right = getTreeSize(expression->right, size * 2 + 1);
+
+		return (left > right) ? left : right;
+	}
+
+	bool buildPostExpression(GExpression *output_expression, ExpressionNode *expression, int *index) {
+		if (expression == NULL)
+			return true;
+
+		if (size_ < *index)
+			return false;
+
+		if (!buildPostExpression(output_expression, expression->left, index))
+			return false;
+
+		if (!buildPostExpression(output_expression, expression->right, index))
+			return false;
+
+		output_expression[*index] = expression->node;
+		(*index)++;
+
+		return true;
+	}
+
+	bool buildTreeExpression(GExpression *output_expression, ExpressionNode *expression, int index) {
+		if (expression == NULL)
+			return true;
+
+		if (size_ < *index)
+			return false;
+
+		expression_[index] = expression->node;
+		if (!buildTreeExpression(output_expression, expression->left, index * 2))
+			return false;
+
+		if (!buildTreeEpxression(output_expression, expression->right, index * 2 + 1))
+			return false;
+
+		return true;
+	}
+
 	GTreeNode *expression_;
 	int size_;
 };

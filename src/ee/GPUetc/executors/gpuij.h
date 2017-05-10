@@ -3,7 +3,6 @@
 
 #include <cuda.h>
 #include "GPUetc/common/GPUTUPLE.h"
-#include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/common/nodedata.h"
 #include "common/types.h"
 #include "GPUetc/common/GNValue.h"
@@ -19,13 +18,14 @@ public:
 
 	GPUIJ(GTable outer_table,
 			GTable inner_table,
-			std::vector<TreeExpression> search_idx,
-			TreeExpression end_expression,
-			TreeExpression post_expression,
-			TreeExpression initial_expression,
-			TreeExpression skipNullExpr,
-			TreeExpression prejoin_expression,
-			TreeExpression where_expression,
+			std::vector<ExpressionNode*> search_idx,
+			std::vector<int> search_exp_size,
+			ExpressionNode *end_expression,
+			ExpressionNode *post_expression,
+			ExpressionNode *initial_expression,
+			ExpressionNode *skipNullExpr,
+			ExpressionNode *prejoin_expression,
+			ExpressionNode *where_expression,
 			IndexLookupType lookup_type);
 
 	~GPUIJ();
@@ -61,7 +61,7 @@ private:
 	void profiling();
 
 	uint getPartitionSize() const;
-	bool getTreeNodes(GTreeNode *expression, const TreeExpression tree_expression);
+	bool getTreeNodes(GTreeNode *expression, ExpressionNode *tree_expression);
 	template <typename T> void freeArrays(T *expression);
 
 	unsigned long timeDiff(struct timeval start, struct timeval end);

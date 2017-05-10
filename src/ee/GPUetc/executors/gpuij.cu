@@ -38,13 +38,14 @@ GPUIJ::GPUIJ()
 
 GPUIJ::GPUIJ(GTable outer_table,
 				GTable inner_table,
-				std::vector<TreeExpression> search_exp,
-				TreeExpression end_expression,
-				TreeExpression post_expression,
-				TreeExpression initial_expression,
-				TreeExpression skipNullExpr,
-				TreeExpression prejoin_expression,
-				TreeExpression where_expression,
+				std::vector<ExpressionNode*> search_exp,
+				std::vector<int> search_exp_size,
+				ExpressionNode *end_expression,
+				ExpressionNode *post_expression,
+				ExpressionNode *initial_expression,
+				ExpressionNode *skipNullExpr,
+				ExpressionNode *prejoin_expression,
+				ExpressionNode *where_expression,
 				IndexLookupType lookup_type)
 {
 	/**** Table data *********/
@@ -61,7 +62,7 @@ GPUIJ::GPUIJ(GTable outer_table,
 	int *search_exp_size_tmp = (int *)malloc(sizeof(int) * search_exp_num_);
 	assert(search_exp_size_tmp != NULL);
 	for (int i = 0; i < search_exp_num_; i++) {
-		search_exp_size_tmp[i] = search_exp[i].getSize();
+		search_exp_size_tmp[i] = search_exp_size[i];
 		tmp_size += search_exp_size_tmp[i];
 	}
 
@@ -305,8 +306,11 @@ uint GPUIJ::getPartitionSize() const
 	return part_size;
 }
 
-bool GPUIJ::getTreeNodes(GTreeNode *expression, const TreeExpression tree_expression)
+bool GPUIJ::getTreeNodes(GTreeNode *expression, const ExpressionNode tree_expression)
 {
+	for () {
+
+	}
 	if (tree_expression.getSize() >= 1)
 		tree_expression.getNodesArray(expression);
 
@@ -485,10 +489,8 @@ unsigned long GPUIJ::timeDiff(struct timeval start, struct timeval end)
 	return GUtilities::timeDiff(start, end);
 }
 
-extern "C" __global__ void PrejoinFilterDev(GTable outer, GExpression prejoin, bool *result,int64_t *val_stack, ValueType *type_stack)
+extern "C" __global__ void PrejoinFilterDev(GTable outer, int outer_rows, GExpression prejoin, bool *result,int64_t *val_stack, ValueType *type_stack)
 {
-	int outer_rows = outer.getBlock(0)->rows;
-
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	int offset = blockDim.x * gridDim.x;
 
@@ -505,7 +507,7 @@ extern "C" __global__ void PrejoinFilterDev(GTable outer, GExpression prejoin, b
 
 void GPUIJ::PrejoinFilter(bool *result)
 {
-	int outer_rows = outer_table_.getBlock().rows;
+	int outer_rows = outer_table_.getCurrentRowNum();
 	int block_x, grid_x;
 
 	block_x = (outer_rows < BLOCK_SIZE_X) ? outer_rows : BLOCK_SIZE_X;
@@ -520,7 +522,7 @@ void GPUIJ::PrejoinFilter(bool *result)
 	dim3 grid_size(grid_x, 1, 1);
 	dim3 block_size(block_x, 1, 1);
 
-	PrejoinFilterDev<<<grid_size, block_size>>>(outer_table_, prejoin_expression_, result,val_stack, type_stack);
+	PrejoinFilterDev<<<grid_size, block_size>>>(outer_table_, outer_rows, prejoin_expression_, result,val_stack, type_stack);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
 
@@ -545,7 +547,7 @@ void GPUIJ::PrejoinFilter(bool *result, cudaStream_t stream)
 	dim3 grid_size(grid_x, 1, 1);
 	dim3 block_size(block_x, 1, 1);
 
-	PrejoinFilterDev<<<grid_size, block_size, 0, stream>>>(outer_table_, prejoin_expression_, result, val_stack, type_stack);
+	PrejoinFilterDev<<<grid_size, block_size, 0, stream>>>(outer_table_, outer_rows, prejoin_expression_, result, val_stack, type_stack);
 	checkCudaErrors(cudaGetLastError());
 
 	checkCudaErrors(cudaFree(val_stack));
@@ -605,6 +607,7 @@ extern "C" __global__ void IndexFilterLowerBound(GTable search_table, GTreeIndex
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int offset = blockDim.x * gridDim.x;
+	GTreeIndexKey outer_key;
 
 	for (int i = index; i < search_rows; i += offset) {
 		res_bound[i].left = -1;
@@ -614,7 +617,7 @@ extern "C" __global__ void IndexFilterLowerBound(GTable search_table, GTreeIndex
 			res_bound[i].outer = i;
 
 			GTuple tuple = search_table.getGTuple(i);
-			GTreeIndexKey outer_key(tuple);
+			outer_key.createKey(tuple);
 
 			switch (lookup_type) {
 			case INDEX_LOOKUP_TYPE_EQ:
@@ -648,6 +651,7 @@ extern "C" __global__ void IndexFilterUpperBound(GTable search_table, GTreeIndex
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int offset = blockDim.x * gridDim.x;
+	GTreeIndexKey outer_key;
 
 	for (int i = index; i < search_rows; i += offset) {
 		index_psum[i] = 0;
@@ -655,7 +659,7 @@ extern "C" __global__ void IndexFilterUpperBound(GTable search_table, GTreeIndex
 
 		if (prejoin_res_dev[i]) {
 			GTuple tuple = search_table.getGTuple(i);
-			GTreeIndexKey outer_key(tuple);
+			outer_key.createKey(tuple);
 
 			switch (lookup_type) {
 			case INDEX_LOOKUP_TYPE_EQ:
@@ -724,8 +728,7 @@ void GPUIJ::IndexFilter(ulong *index_psum, ResBound *res_bound, bool *prejoin_re
 	dim3 grid_size(grid_x, 1, 1);
 	dim3 block_size(block_x, 1, 1);
 	GTable search_table(0, NULL, search_exp_num_);
-	GIndex tmp_inner_idx = inner_table_.getIndex();
-	GTreeIndex *inner_idx = static_cast<GTreeIndex*>(&tmp_inner_idx);
+	GTreeIndex *inner_idx = static_cast<GTreeIndex*>(inner_table_.getCurrentIndex());
 
 	constructSearchTable<<<grid_size, block_size>>>(outer_table_, search_table,
 													outer_rows,
@@ -779,8 +782,7 @@ void GPUIJ::IndexFilter(ulong *index_psum, ResBound *res_bound, bool *prejoin_re
 	dim3 grid_size(grid_x, 1, 1);
 	dim3 block_size(block_x, 1, 1);
 	GTable search_table(0, NULL, search_exp_num_);
-	GIndex tmp_inner_idx = inner_table_.getIndex();
-	GTreeIndex *inner_idx = static_cast<GTreeIndex*>(&tmp_inner_idx);
+	GTreeIndex *inner_idx = static_cast<GTreeIndex*>(inner_table_.getCurrentIndex());
 
 	constructSearchTable<<<grid_size, block_size>>>(outer_table_, search_table,
 													outer_rows,

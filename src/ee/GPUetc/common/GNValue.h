@@ -1,9 +1,11 @@
 #ifndef GNVALUE_H_
 #define GNVALUE_H_
 
+#include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "common/types.h"
+
 
 namespace voltdb {
 
@@ -18,6 +20,9 @@ public:
 	__forceinline__ __device__ bool isNull() const;
 	__forceinline__ __device__ bool isTrue() const;
 	__forceinline__ __device__ bool isFalse() const;
+
+	__forceinline__ __host__ __device__ void setValue(ValueType type, const char *data);
+	__forceinline__ __host__ __device__ void setValueType(ValueType type);
 
 	__forceinline__ __device__ int64_t getValue();
 	__forceinline__ __device__ ValueType getValueType();
@@ -43,7 +48,6 @@ public:
 
 
 	__forceinline__ __device__ void setNull();
-	__forceinline__ __device__ void setValueType(ValueType type);
 	__forceinline__ __device__ void debug() const;
 
 	__forceinline__ __device__ GNValue operator~() const;
@@ -127,6 +131,39 @@ __forceinline__ __device__ bool GNValue::isTrue() const
 __forceinline__ __device__ bool GNValue::isFalse() const
 {
 	return (type_ == VALUE_TYPE_BOOLEAN && !(bool)m_data_);
+}
+
+__forceinline__ __host__ __device__ void GNValue::setValue(ValueType type, const char *input)
+{
+	switch (type) {
+	case VALUE_TYPE_BOOLEAN:
+	case VALUE_TYPE_TINYINT: {
+		m_data_ = *reinterpret_cast<const int8_t *>(input);
+		break;
+	}
+	case VALUE_TYPE_SMALLINT: {
+		m_data_ = *reinterpret_cast<const int16_t *>(input);
+		break;
+	}
+	case VALUE_TYPE_INTEGER: {
+		m_data_ = *reinterpret_cast<const int32_t *>(input);
+		break;
+	}
+	case VALUE_TYPE_BIGINT:
+	case VALUE_TYPE_DOUBLE:
+	case VALUE_TYPE_TIMESTAMP: {
+		m_data_ = *reinterpret_cast<const int64_t *>(input);
+		break;
+	}
+	default: {
+		break;
+	}
+	}
+}
+
+__forceinline__ __host__ __device__ void GNValue::setValueType(ValueType type)
+{
+	type_ = type;
 }
 
 __forceinline__ __device__ int64_t GNValue::getValue()
@@ -389,11 +426,6 @@ __forceinline__ __device__ void GNValue::setNull()
 {
 	m_data_ = 0;
 	type_ = VALUE_TYPE_NULL;
-}
-
-__forceinline__ __device__ void GNValue::setValueType(ValueType type)
-{
-	type_ = type;
 }
 
 __forceinline__ __device__ void GNValue::debug() const
