@@ -28,9 +28,9 @@ GPUNIJ::GPUNIJ()
 
 GPUNIJ::GPUNIJ(GTable outer_table,
 				GTable inner_table,
-				TreeExpression pre_join_predicate,
-				TreeExpression join_predicate,
-				TreeExpression where_predicate)
+				ExpressionNode *pre_join_predicate,
+				ExpressionNode *join_predicate,
+				ExpressionNode *where_predicate)
 {
 	/**** Table data *********/
 	outer_table_ = outer_table;

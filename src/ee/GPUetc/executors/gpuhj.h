@@ -4,12 +4,13 @@
 #include "common/types.h"
 #include <cuda.h>
 #include <sys/time.h>
-#include "GPUetc/expressions/treeexpression.h"
+#include <vector>
 #include "GPUetc/common/nodedata.h"
 #include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/storage/gtable.h"
 #include "GPUetc/expressions/gexpression.h"
+
 
 namespace voltdb {
 
@@ -19,14 +20,13 @@ public:
 
 	GPUHJ(GTable outer_table,
 			GTable inner_table,
-			std::vector<TreeExpression> search_idx,
-			std::vector<int> indices,
-			TreeExpression end_expression,
-			TreeExpression post_expression,
-			TreeExpression initial_expression,
-			TreeExpression skipNullExpr,
-			TreeExpression prejoin_expression,
-			TreeExpression where_expression,
+			std::vector<ExpressionNode*> search_idx,
+			ExpressionNode *end_expression,
+			ExpressionNode *post_expression,
+			ExpressionNode *initial_expression,
+			ExpressionNode *skipNullExpr,
+			ExpressionNode *prejoin_expression,
+			ExpressionNode *where_expression,
 			IndexLookupType lookup_type,
 			int mSizeIndex);
 
@@ -65,8 +65,6 @@ private:
 
 	void profiling();
 	uint getPartitionSize() const;
-	bool getTreeNodes(GTreeNode *expression, const TreeExpression tree_expression);
-	template <typename T> void freeArrays(T *expression);
 
 	void IndexCount(ulong *index_count, ResBound *out_bound);
 	void IndexCount(ulong *index_count, ResBound *out_bound, cudaStream_t stream);

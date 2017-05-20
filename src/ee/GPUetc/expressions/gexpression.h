@@ -3,54 +3,32 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "treeexpression.h"
 #include "GPUetc/common/nodedata.h"
 #include "GPUetc/common/GNValue.h"
+#include "GPUetc/storage/gtuple.h"
 
 namespace voltdb {
-typedef
 
 class GExpression {
 public:
-	GExpression() {
-		expression_ = NULL;
-		size_ = 0;
-	}
+	GExpression();
 
-	GExpression(ExpressionNode *expression) {
-		int tree_size = 0;
+	/* Create a new expression, allocate the GPU memory for
+	 * the expression and convert the input pointer-based
+	 * tree expression to the desired expression form.
+	 */
+	GExpression(ExpressionNode *expression);
 
-#ifndef TREE_EVAL_
-		tree_size =	getExpressionLength(expression);
-		GExpression *tmp_expression = (GExpression*)malloc(sizeof(GExpression) * tree_size);
-		checkCudaErrors(cudaMalloc(&expression_, sizeof(GExpression) * tree_size));
-
-		int root = 0;
-		tree_ = std::vector<GTreeNode>(tree_size);
-
-		buildPostExpression(tmp_expression, expression, &root);
-#else
-		int tmp_size = 1;
-		tree_size = getTreeSize(expression, tmp_size) + 1;
-		GExpression *tmp_expression = (GExpression*)malloc(sizeof(GExpression) * tree_size);
-		checkCudaErrors(cudaMalloc(&expression_, sizeof(GExpression) * tree_size));
-
-		buildTreeExpression(tmp_expression, expression, 1);
-#endif
-		checkCudaErrors(cudaMemcpy(expression_, tmp_expression, sizeof(GExpression) * tree_size, cudaMemcpyHostToDevice));
-		free(tmp_expression);
-	}
-
-	void freeExpression() {
-		if (size_ > 0)
-			checkCudaErrors(cudaFree(expression_));
-	}
-
-	__forceinline__ __device__ GExpression(GTreeNode *expression, int size) {
+	/* Create a new expression from an existing GPU buffer. */
+	__forceinline__ __host__ __device__ GExpression(GTreeNode *expression, int size) {
 		expression_ = expression;
 		size_ = size;
 	}
 
+	/* Create an expression from an input pointer-based tree expression */
+	bool createExpression(ExpressionNode *expression);
+
+	void freeExpression();
 
 	__forceinline__ __device__ int getSize()
 	{
@@ -257,146 +235,170 @@ public:
 
 		switch (tmp_node.type) {
 		case EXPRESSION_TYPE_CONJUNCTION_AND: {
-			assert(left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN);
-			res_i = (int64_t)((bool)left_i && (bool)right_i);
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			if (left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN) {
+				res_i = (int64_t)((bool)left_i && (bool)right_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_CONJUNCTION_OR: {
-			assert(left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN);
-			res_i = (int64_t)((bool)left_i || (bool)right_i);
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			if (left_t == VALUE_TYPE_BOOLEAN && right_t == VALUE_TYPE_BOOLEAN) {
+				res_i = (int64_t)((bool)left_i || (bool)right_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_COMPARE_EQUAL: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-			res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i));
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d == right_d) : (left_i == right_i));
 
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-			res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i));
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d != right_d) : (left_i != right_i));
 
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-			res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i));
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d < right_d) : (left_i < right_i));
 
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-			res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i));
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d <= right_d) : (left_i <= right_i));
 
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-			res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i));
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d > right_d) : (left_i > right_i));
 
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
-			res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				res_i = (int64_t)((left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) ? (left_d >= right_d) : (left_i >= right_i));
 
-			return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+				return GNValue(VALUE_TYPE_BOOLEAN, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_OPERATOR_PLUS: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d, res_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d, res_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
 
-			if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
-				res_d = left_d + right_d;
-				res_i = *reinterpret_cast<int64_t *>(&res_d);
-				res_t = VALUE_TYPE_DOUBLE;
-			} else {
-				res_i = left_i + right_i;
-				res_t = (left_t > right_t) ? left_t : right_t;
-			}
+				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+					res_d = left_d + right_d;
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = VALUE_TYPE_DOUBLE;
+				} else {
+					res_i = left_i + right_i;
+					res_t = (left_t > right_t) ? left_t : right_t;
+				}
 
-			return GNValue(res_t, res_i);
+				return GNValue(res_t, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_OPERATOR_MINUS: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d, res_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d, res_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
 
-			if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
-				res_d = left_d - right_d;
-				res_i = *reinterpret_cast<int64_t *>(&res_d);
-				res_t = VALUE_TYPE_DOUBLE;
-			} else {
-				res_i = left_i - right_i;
-				res_t = (left_t > right_t) ? left_t : right_t;
-			}
+				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+					res_d = left_d - right_d;
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = VALUE_TYPE_DOUBLE;
+				} else {
+					res_i = left_i - right_i;
+					res_t = (left_t > right_t) ? left_t : right_t;
+				}
 
-			return GNValue(res_t, res_i);
+				return GNValue(res_t, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_OPERATOR_MULTIPLY: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d, res_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d, res_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
 
-			if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
-				res_d = left_d * right_d;
-				res_i = *reinterpret_cast<int64_t *>(&res_d);
-				res_t = VALUE_TYPE_DOUBLE;
-			} else {
-				res_i = left_i * right_i;
-				res_t = (left_t > right_t) ? left_t : right_t;
-			}
+				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+					res_d = left_d * right_d;
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = VALUE_TYPE_DOUBLE;
+				} else {
+					res_i = left_i * right_i;
+					res_t = (left_t > right_t) ? left_t : right_t;
+				}
 
-			return GNValue(res_t, res_i);
+				return GNValue(res_t, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		case EXPRESSION_TYPE_OPERATOR_DIVIDE: {
-			assert(left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL);
-			double left_d, right_d, res_d;
+			if (left_t != VALUE_TYPE_INVALID && left_t != VALUE_TYPE_NULL && right_t != VALUE_TYPE_INVALID && right_t != VALUE_TYPE_NULL) {
+				double left_d, right_d, res_d;
 
-			left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
-			right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
+				left_d = (left_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&left_i) : static_cast<double>(left_i);
+				right_d = (right_t == VALUE_TYPE_DOUBLE) ? *reinterpret_cast<double *>(&right_i) : static_cast<double>(right_i);
 
-			if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
-				res_d = (right_d != 0) ? left_d/right_d : 0;
-				res_i = *reinterpret_cast<int64_t *>(&res_d);
-				res_t = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
-			} else {
-				res_i = (right_i != 0) ? left_i/right_i : 0;
-				res_t = (right_d != 0) ? ((left_t > right_t) ? left_t : right_t) : VALUE_TYPE_INVALID;
-			}
+				if (left_t == VALUE_TYPE_DOUBLE || right_t == VALUE_TYPE_DOUBLE) {
+					res_d = (right_d != 0) ? left_d/right_d : 0;
+					res_i = *reinterpret_cast<int64_t *>(&res_d);
+					res_t = (right_d != 0) ? VALUE_TYPE_DOUBLE : VALUE_TYPE_INVALID;
+				} else {
+					res_i = (right_i != 0) ? left_i/right_i : 0;
+					res_t = (right_d != 0) ? ((left_t > right_t) ? left_t : right_t) : VALUE_TYPE_INVALID;
+				}
 
-			return GNValue(res_t, res_i);
+				return GNValue(res_t, res_i);
+			} else
+				return GNValue::getInvalid();
 		}
 		default:
 			return GNValue::getNullValue();
@@ -1043,68 +1045,15 @@ public:
 			}
 		}
 
+	static int getExpressionLength(ExpressionNode *expression);
+
+	static int getTreeSize(ExpressionNode *expression, int size);
 private:
-	int getExpressionLength(ExpressionNode *expression) {
-		if (expression == NULL) {
-			return 0;
-		}
 
-		int left, right;
 
-		left = getExpressionLength(expression->left);
+	bool buildPostExpression(GTreeNode *output_expression, ExpressionNode *expression, int *index);
 
-		right = getExpressionLength(expression->right);
-
-		return (1 + left + right);
-	}
-
-	int getTreeSize(ExpressionNode *expression, int size) {
-		if (expression == NULL)
-			return size / 2;
-
-		int left, right;
-
-		left = getTreeSize(expression->left, size * 2);
-		right = getTreeSize(expression->right, size * 2 + 1);
-
-		return (left > right) ? left : right;
-	}
-
-	bool buildPostExpression(GExpression *output_expression, ExpressionNode *expression, int *index) {
-		if (expression == NULL)
-			return true;
-
-		if (size_ < *index)
-			return false;
-
-		if (!buildPostExpression(output_expression, expression->left, index))
-			return false;
-
-		if (!buildPostExpression(output_expression, expression->right, index))
-			return false;
-
-		output_expression[*index] = expression->node;
-		(*index)++;
-
-		return true;
-	}
-
-	bool buildTreeExpression(GExpression *output_expression, ExpressionNode *expression, int index) {
-		if (expression == NULL)
-			return true;
-
-		if (size_ < *index)
-			return false;
-
-		expression_[index] = expression->node;
-		if (!buildTreeExpression(output_expression, expression->left, index * 2))
-			return false;
-
-		if (!buildTreeEpxression(output_expression, expression->right, index * 2 + 1))
-			return false;
-
-		return true;
-	}
+	bool buildTreeExpression(GTreeNode *output_expression, ExpressionNode *expression, int index);
 
 	GTreeNode *expression_;
 	int size_;

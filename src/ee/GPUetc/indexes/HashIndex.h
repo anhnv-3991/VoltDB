@@ -343,7 +343,7 @@ private:
 	uint64_t *packed_key_;
 };
 
-class GHashIndex: public GIndex {
+class GHashIndex {
 	friend class GHashIndexKey;
 public:
 	GHashIndex();
@@ -387,10 +387,7 @@ public:
 		return key_size_;
 	}
 
-	void removeIndex() {
-		checkCudaErrors(cudaFree(sorted_idx_));
-		checkCudaErrors(cudaFree(key_idx_));
-	}
+	void removeIndex();
 
 
 protected:

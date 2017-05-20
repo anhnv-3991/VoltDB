@@ -19,7 +19,6 @@ public:
 	GPUIJ(GTable outer_table,
 			GTable inner_table,
 			std::vector<ExpressionNode*> search_idx,
-			std::vector<int> search_exp_size,
 			ExpressionNode *end_expression,
 			ExpressionNode *post_expression,
 			ExpressionNode *initial_expression,
@@ -61,8 +60,6 @@ private:
 	void profiling();
 
 	uint getPartitionSize() const;
-	bool getTreeNodes(GTreeNode *expression, ExpressionNode *tree_expression);
-	template <typename T> void freeArrays(T *expression);
 
 	unsigned long timeDiff(struct timeval start, struct timeval end);
 

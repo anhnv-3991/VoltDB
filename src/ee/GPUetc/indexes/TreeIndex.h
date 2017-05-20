@@ -103,11 +103,10 @@ private:
  * Each index contains a list of key values and a sorted index array.
  * A schema array indicate the type of each key value.
  */
-class GTreeIndex: public GIndex {
+class GTreeIndex {
 	friend class GTreeIndexKey;
 public:
 	GTreeIndex();
-	GTreeIndex(const GTreeIndex &cp);
 	GTreeIndex(int key_size, int key_num);
 	GTreeIndex(int *sorted_idx, int *key_idx, int key_size, int64_t *packed_key, GColumnInfo *key_schema, int key_num);
 
@@ -144,16 +143,17 @@ public:
 
 	__forceinline__ __device__ int upperBound(GTreeIndexKey key, int left, int right);
 
+	__forceinline__ __device__ int lowerBound(GTreeIndexKey key, int root, int size, int stride);
+
+	__forceinline__ __device__ int upperBound(GTreeIndexKey key, int root, int size, int stride);
+
 	/* Insert key values of a tuple to the 'location' of the key list 'packed_key_'.
 	 */
 	__forceinline__ __device__ void insertKeyTupleNoSort(GTuple tuple, int location);
 	__forceinline__ __device__ void swap(int left, int right);
 
 
-	void removeIndex() {
-		checkCudaErrors(cudaFree(sorted_idx_));
-		checkCudaErrors(cudaFree(key_idx_));
-	}
+	void removeIndex();
 protected:
 	int key_num_;	//Number of key values (equal to the number of rows)
 	int *sorted_idx_;
@@ -163,6 +163,7 @@ protected:
 	GColumnInfo *key_schema_;	// Schemas of columns selected as keys
 };
 
+extern "C" __global__ void quickSort(GTreeIndex *indexes, int left, int right);
 
 __forceinline__ __device__ GColumnInfo *GTreeIndex::getSchema() {
 	return key_schema_;
@@ -189,7 +190,8 @@ __forceinline__ __device__ int64_t *GTreeIndex::getPackedKey() {
 	return packed_key_;
 }
 
-__forceinline__ __device__ int GTreeIndex::lowerBound(GTreeIndexKey key, int left, int right) {
+__forceinline__ __device__ int GTreeIndex::lowerBound(GTreeIndexKey key, int left, int right)
+{
 	int middle = -1;
 	int result = -1;
 	int compare_res = 0;
@@ -210,9 +212,10 @@ __forceinline__ __device__ int GTreeIndex::lowerBound(GTreeIndexKey key, int lef
 }
 
 
-__forceinline__ __device__ int GTreeIndex::upperBound(GTreeIndexKey key, int left, int right) {
+__forceinline__ __device__ int GTreeIndex::upperBound(GTreeIndexKey key, int left, int right)
+{
 	int middle = -1;
-	int result = key_num_ - 1;
+	int result = right - 1;
 	int compare_res = 0;
 
 	while (left <= right) {
@@ -226,6 +229,50 @@ __forceinline__ __device__ int GTreeIndex::upperBound(GTreeIndexKey key, int lef
 		right = (compare_res < 0) ? (middle - 1) : right;
 		left = (compare_res >= 0) ? (middle + 1) : left;
 		result = (compare_res < 0) ? middle : result;
+	}
+
+	return result;
+}
+
+__forceinline__ __device__ int GTreeIndex::lowerBound(GTreeIndexKey key, int root, int size, int stride)
+{
+	int middle = -1;
+	int result = -1;
+	int compare_res = 0;
+	int ptr = size / 2;
+
+	while (size > 0) {
+		middle = root + ptr * stride;
+
+		GTreeIndexKey middle_key(packed_key_ + middle * key_size_, key_schema_, key_size_);
+
+		compare_res = GTreeIndexKey::KeyComparator(key, middle_key);
+
+		size /= 2;
+		ptr = (compare_res <= 0) ? (ptr - size) : (ptr + size);
+		result = (compare_res <= 0) ? (root + middle * stride) : result;
+	}
+
+	return result;
+}
+
+__forceinline__ __device__ int GTreeIndex::upperBound(GTreeIndexKey key, int root, int size, int stride)
+{
+	int middle = -1;
+	int result = root + (size - 1) * stride;
+	int compare_res = 0;
+	int ptr = size / 2;
+
+	while (size > 0) {
+		middle = root + size / 2 * stride;
+
+		GTreeIndexKey middle_key(packed_key_ + middle * key_size_, key_schema_, key_size_);
+
+		compare_res = GTreeIndexKey::KeyComparator(key, middle_key);
+
+		size /= 2;
+		ptr = (compare_res < 0) ? (ptr - size) : (ptr + size);
+		result = (compare_res < 0) ? (root + middle * stride) : result;
 	}
 
 	return result;

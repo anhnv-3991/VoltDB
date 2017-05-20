@@ -13,7 +13,6 @@ GPUで動かすため配列のほうが向いていると思ったので
 #include <cuda_runtime.h>
 #include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
-#include "GPUetc/expressions/treeexpression.h"
 #include "GPUetc/storage/gtable.h"
 #include "GPUetc/expressions/gexpression.h"
 
@@ -25,9 +24,9 @@ public:
 
 	GPUNIJ(GTable outer_table,
 			GTable inner_table,
-			TreeExpression pre_join_predicate,
-			TreeExpression join_predicate,
-			TreeExpression where_predicate);
+			ExpressionNode *pre_join_predicate,
+			ExpressionNode *join_predicate,
+			ExpressionNode *where_predicate);
 
 	~GPUNIJ();
 

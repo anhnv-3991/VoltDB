@@ -185,8 +185,8 @@ private:
  * value in data and adds an entry to UndoLog. We chose eager update
  * policy because we expect reverting rarely occurs.
  */
-
 class PersistentTable : public Table, public UndoQuantumReleaseInterest,
+
                         public TupleMovementListener {
     friend class PersistentTableSurgeon;
     friend class TableFactory;
@@ -245,6 +245,7 @@ class PersistentTable : public Table, public UndoQuantumReleaseInterest,
     virtual bool deleteTuple(TableTuple &tuple, bool fallible=true);
     // TODO: change meaningless bool return type to void (starting in class Table) and migrate callers.
     virtual bool insertTuple(TableTuple &tuple);
+    virtual bool insertGTuple(TableTuple &tuple);
     // Optimized version of update that only updates specific indexes.
     // The caller knows which indexes MAY need to be updated.
     // Note that inside update tuple the order of sourceTuple and
@@ -485,10 +486,6 @@ class PersistentTable : public Table, public UndoQuantumReleaseInterest,
     }
 
     void nextFreeTuple(TableTuple *tuple);
-    //Added for GPUs
-    void nextFreeGTuple(int *block_idx, int *tuple_idx);
-    bool insertGTuple(TableTuple &tuple);
-    void insertIntoAllGIndexes(TableTuple *tuple);
 
     bool doCompactionWithinSubset(TBBucketMap *bucketMap);
     void doForcedCompaction();

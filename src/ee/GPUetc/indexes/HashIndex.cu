@@ -285,4 +285,8 @@ int GHashIndex::getBucketNum()
 	return bucket_num_;
 }
 
+void GHashIndex::removeIndex() {
+	checkCudaErrors(cudaFree(sorted_idx_));
+	checkCudaErrors(cudaFree(key_idx_));
+}
 }

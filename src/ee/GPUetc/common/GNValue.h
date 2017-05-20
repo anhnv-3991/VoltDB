@@ -87,7 +87,7 @@ __forceinline__ __device__ GNValue::GNValue(ValueType type, int64_t mdata)
 	type_ = type;
 }
 
-__device__ GNValue::GNValue(ValueType type, const char *input)
+__forceinline__ __device__ GNValue::GNValue(ValueType type, const char *input)
 {
 	type_ = type;
 

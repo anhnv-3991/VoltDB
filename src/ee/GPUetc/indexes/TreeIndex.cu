@@ -51,7 +51,8 @@ extern "C" __global__ void setKeySchema(GColumnInfo *key_schema, GColumnInfo *ta
 	}
 }
 
-extern "C" __global__ void initialize(GTreeIndex table_index, int64_t *table, GColumnInfo *schema, int columns, int left, int right) {
+extern "C" __global__ void initialize(GTreeIndex table_index, int64_t *table, GColumnInfo *schema, int columns, int left, int right)
+{
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x;
 
@@ -62,48 +63,31 @@ extern "C" __global__ void initialize(GTreeIndex table_index, int64_t *table, GC
 	}
 }
 
-extern "C" __global__ void quickSort(GTreeIndex *indexes, int left, int right) {
-	if (right <= left)
-		return;
 
-	int pivot = (left + right)/2;
-	GTreeIndexKey pivot_key, left_key, right_key;
-	int left_ptr = left, right_ptr = right;
+extern "C" __global__ void mergeSort(GTreeIndex table_index, int left, int right, int *input, int *output, int chunk_size)
+{
+	int half_size = (right - left)/2 + 1;
 
-	pivot_key = indexes->getKeyAtSortedIndex(pivot);
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x; i < half_size; i += blockDim.x * gridDim.x) {
+		int left_key_ptr = left + i;
+		int right_key_ptr = left_key_ptr + half_size;
+		int left_root = left + (i/chunk_size) * chunk_size;
+		int right_root = left_root + half_size;
+		int left_size = chunk_size;
+		int right_size = (right_root + chunk_size > right) ? right_root + chunk_size : right - right_root + 1;
+		int base_idx = left + (i / chunk_size) * chunk_size * 2;
+		int local_idx = left_key_ptr - left_root;
 
-	while (left_ptr <= right_ptr) {
-		left_key = indexes->getKeyAtSortedIndex(left_ptr);
-		right_key = indexes->getKeyAtSortedIndex(right_ptr);
+		GTreeIndexKey left_key = table_index.getKeyAtSortedIndex(left_key_ptr);
+		GTreeIndexKey right_key = table_index.getKeyAtSortedIndex(right_key_ptr);
+		int new_left_key_ptr = table_index.lowerBound(left_key, right_root, right_root + right_size - 1);
+		int new_right_key_ptr = table_index.upperBound(right_key, left_root, left_root + left_size - 1);
 
-		while (GTreeIndexKey::KeyComparator(left_key, pivot_key) < 0) {
-			left_ptr++;
-			left_key = indexes->getKeyAtSortedIndex(left_ptr);
-		}
+		new_left_key_ptr = (new_left_key_ptr != -1) ? (new_left_key_ptr - left_key_ptr + local_idx) : (-1);
+		new_right_key_ptr = (new_right_key_ptr != -1) ? (new_right_key_ptr - right_key_ptr + local_idx) : (-1);
 
-		while (GTreeIndexKey::KeyComparator(right_key, pivot_key) > 0) {
-			right_ptr--;
-			right_key = indexes->getKeyAtSortedIndex(right_ptr);
-		}
-
-		if (left_ptr <= right_ptr) {
-			indexes->swap(left_ptr, right_ptr);
-		}
-
-	}
-
-	if (left < left_ptr) {
-		cudaStream_t s1;
-		cudaStreamCreateWithFlags(&s1, cudaStreamNonBlocking);
-		quickSort<<<1, 1, 0, s1>>>(indexes, left, right_ptr);
-		cudaStreamDestroy(s1);
-	}
-
-	if (right > right_ptr) {
-		cudaStream_t s2;
-		cudaStreamCreateWithFlags(&s2, cudaStreamNonBlocking);
-		quickSort<<<1, 1, 0, s2>>>(indexes, left_ptr, right);
-		cudaStreamDestroy(s2);
+		output[new_left_key_ptr + base_idx] = input[left_key_ptr];
+		output[new_right_key_ptr + base_idx] = input[right_key_ptr];
 	}
 }
 
@@ -122,12 +106,20 @@ void GTreeIndex::createIndex(int64_t *table, GColumnInfo *schema, int rows, int 
 	grid_x = (key_num_ - 1)/block_x + 1;
 	initialize<<<grid_x, block_x>>>(current_index, table, schema, columns, 0, key_num_ - 1);
 
-	GTreeIndex *dev_current_index;
+	int *tmp_sorted_idx, *tmp;
 
-	checkCudaErrors(cudaMalloc(&dev_current_index, sizeof(GTreeIndex)));
-	checkCudaErrors(cudaMemcpy(dev_current_index, &current_index, sizeof(GTreeIndex), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc(&tmp_sorted_idx, sizeof(int) * key_num_));
 
-	quickSort<<<1, 1>>>(dev_current_index, 0, key_num_ - 1);
+	for (int chunk_size = 1; chunk_size <= key_num_/2; chunk_size <<= 1) {
+		mergeSort<<<grid_x, block_x>>>(*this, 0, key_num_ - 1, sorted_idx_, tmp_sorted_idx, chunk_size);
+		checkCudaErrors(cudaDeviceSynchronize());
+
+		tmp = sorted_idx_;
+		sorted_idx_ = tmp_sorted_idx;
+		tmp_sorted_idx = sorted_idx_;
+	}
+
+	checkCudaErrors(cudaFree(tmp_sorted_idx));
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
 }
@@ -263,5 +255,10 @@ void GTreeIndex::merge(int old_left, int old_right, int new_left, int new_right)
 	checkCudaErrors(cudaDeviceSynchronize());
 	checkCudaErrors(cudaFree(sorted_idx_));
 	sorted_idx_ = new_sorted_idx;
+}
+
+void GTreeIndex::removeIndex() {
+	checkCudaErrors(cudaFree(sorted_idx_));
+	checkCudaErrors(cudaFree(key_idx_));
 }
 }

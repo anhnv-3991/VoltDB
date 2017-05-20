@@ -3,8 +3,6 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <helper_cuda.h>
-#include <helper_functions.h>
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/common/nodedata.h"
 #include "GPUetc/common/GPUTUPLE.h"
@@ -50,6 +48,47 @@ public:
 	 */
 	GTable(int database_id, char *name, GColumnInfo *schema, int column_num, int rows);
 
+	/*****************************
+	 * Host-side functions
+	 *****************************/
+	void addBlock();
+
+	void removeBlock(int block_id);
+
+	void removeTable();
+
+	GBlock *getBlock(int blockId);
+
+	GTreeIndex *getCurrentIndex();
+
+	int getBlockNum();
+
+	int getIndexCount();
+
+	char *getTableName();
+
+	int getDatabaseId();
+
+	int getBlockTuple(int block_id);
+
+	bool isBlockFull(int block_id);
+
+	int getCurrentRowNum() const;
+
+	void deleteAllTuples();
+
+	void deleteTuple(int blockId, int tupleId);
+
+	void insertTuple(int64_t *tuple);
+
+	void insertToAllIndexes(int blockId, int tupleId);
+
+	void addIndex(int *key_idx, int key_size, GIndexType type);
+
+	void removeIndex();
+
+	void moveToIndex(int idx);
+
 	/********************************
 	 * Device-side functions
 	 *******************************/
@@ -60,11 +99,6 @@ public:
 	__forceinline__ __device__ GBlock getBlock() {
 		return block_dev_;
 	}
-
-	GIndex *getCurrentIndex() {
-		return index_;
-	}
-
 
 	__forceinline__ __host__ __device__ int getColumnCount() {
 		return columns_;
@@ -78,89 +112,6 @@ public:
 		return block_list_host_[blockId].rows;
 	}
 
-	/*****************************
-	 * Host-side functions
-	 *****************************/
-	void addBlock() {
-		block_list_host_ = (GBlock*)realloc(block_list_host_, block_num_ + 1);
-
-		checkCudaErrors(cudaMalloc(&block_list_host_[block_num_].data, MAX_BLOCK_SIZE));
-		block_list_host_[block_num_].columns = columns_;
-		block_list_host_[block_num_].rows = 0;
-		block_list_host_[block_num_].block_size = MAX_BLOCK_SIZE;
-		block_num_++;
-	}
-
-	void removeBlock(int block_id) {
-		if (block_id < block_num_) {
-			checkCudaErrors(cudaFree(block_list_host_[block_id].data));
-			memcpy(block_list_host_ + block_id, block_list_host_ + block_id + 1, sizeof(GBlock) * (block_num_ - block_id));
-			free(block_list_host_ + block_num_ - 1);
-		}
-	}
-
-	void removeTable() {
-		checkCudaErrors(cudaFree(schema_));
-
-		for (int i = 0; i < block_num_; i++) {
-			checkCudaErrors(cudaFree(block_list_host_[i].data));
-		}
-		if (block_num_ > 0)
-			free(block_list_host_);
-
-		for (int i = 0; i < index_num_; i++) {
-			indexes_[i].removeIndex();
-		}
-	}
-
-	GBlock *getBlock(int blockId) {
-		return block_list_host_ + blockId;
-	}
-
-	int getBlockNum() {
-		return block_num_;
-	}
-
-	int getIndexCount() {
-		return index_num_;
-	}
-
-	char *getTableName() {
-		return name_;
-	}
-
-	int getDatabaseId() {
-		return database_id_;
-	}
-
-	int getBlockTuple(int block_id) {
-		assert(block_id < block_num_);
-
-		return block_list_host_[block_id].rows;
-	}
-
-	bool isBlockFull(int block_id) {
-		return (block_list_host_[block_id].rows >= block_list_host_[block_id].block_size/(columns_ * sizeof(int64_t)));
-	}
-
-	int getCurrentRowNum() const {
-		return block_dev_.rows;
-	}
-
-	void deleteAllTuples();
-	void deleteTuple(int blockId, int tupleId);
-	void insertTuple(int64_t *tuple);
-	void insertToAllIndexes(int blockId, int tupleId);
-
-	void addIndex(int *key_idx, int key_size, GIndexType type);
-	void removeIndex();
-
-	void moveToIndex(int idx) {
-		assert(idx < block_num_);
-		block_dev_ = block_list_host_[idx];
-		index_ = indexes_;
-	}
-
 	__forceinline__ __device__ GTuple getGTuple(int index) {
 		return GTuple(block_dev_.data + columns_ * index, schema_, columns_);
 	}
@@ -168,7 +119,7 @@ public:
 protected:
 	GColumnInfo *schema_;
 	GBlock block_dev_;
-	GIndex *index_;
+	GTreeIndex *index_;
 	int columns_;
 
 private:
@@ -182,7 +133,7 @@ private:
 	GBlock *block_list_host_;
 	int rows_;
 	int block_num_;
-	GIndex *indexes_;
+	GTreeIndex *indexes_;
 	int index_num_;
 };
 }

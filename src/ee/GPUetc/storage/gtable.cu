@@ -17,6 +17,7 @@ GTable::GTable() {
 	block_num_ = 0;
 	indexes_ = NULL;
 	index_num_ = 0;
+	index_ = NULL;
 }
 
 GTable::GTable(int database_id, char *name, int column_num)
@@ -29,6 +30,7 @@ GTable::GTable(int database_id, char *name, int column_num)
 	block_num_ = 0;
 	indexes_ = NULL;
 	index_num_ = 0;
+	index_ = NULL;
 
 	block_list_host_ = (GBlock *)malloc(sizeof(GBlock));
 	checkCudaErrors(cudaMalloc(&block_list_host_[0].data, sizeof(int64_t) * MAX_BLOCK_SIZE));
@@ -48,6 +50,7 @@ GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num,
 	block_num_ = 0;
 	indexes_ = NULL;
 	index_num_ = 0;
+	index_ = NULL;
 
 	block_list_host_ = (GBlock *)malloc(sizeof(GBlock));
 	checkCudaErrors(cudaMalloc(&block_list_host_[0].data, sizeof(int64_t) * MAX_BLOCK_SIZE));
@@ -56,6 +59,76 @@ GTable::GTable(int database_id, char *name, GColumnInfo *schema, int column_num,
 	block_list_host_[0].rows = rows;
 	block_list_host_[0].columns = column_num;
 	block_list_host_[0].block_size = MAX_BLOCK_SIZE;
+}
+
+void GTable::addBlock() {
+	block_list_host_ = (GBlock*)realloc(block_list_host_, block_num_ + 1);
+
+	checkCudaErrors(cudaMalloc(&block_list_host_[block_num_].data, MAX_BLOCK_SIZE));
+	block_list_host_[block_num_].columns = columns_;
+	block_list_host_[block_num_].rows = 0;
+	block_list_host_[block_num_].block_size = MAX_BLOCK_SIZE;
+	block_num_++;
+}
+
+void GTable::removeTable() {
+	checkCudaErrors(cudaFree(schema_));
+
+	for (int i = 0; i < block_num_; i++) {
+		checkCudaErrors(cudaFree(block_list_host_[i].data));
+	}
+	if (block_num_ > 0)
+		free(block_list_host_);
+
+	for (int i = 0; i < index_num_; i++) {
+		indexes_[i].removeIndex();
+	}
+}
+
+void GTable::removeBlock(int block_id) {
+	if (block_id < block_num_) {
+		checkCudaErrors(cudaFree(block_list_host_[block_id].data));
+		memcpy(block_list_host_ + block_id, block_list_host_ + block_id + 1, sizeof(GBlock) * (block_num_ - block_id));
+		free(block_list_host_ + block_num_ - 1);
+	}
+}
+
+GTable::GBlock* GTable::getBlock(int blockId) {
+	return block_list_host_ + blockId;
+}
+
+GTreeIndex *GTable::getCurrentIndex() {
+	return index_;
+}
+
+int GTable::getBlockNum() {
+	return block_num_;
+}
+
+int GTable::getIndexCount() {
+	return index_num_;
+}
+
+char *GTable::getTableName() {
+	return name_;
+}
+
+int GTable::getDatabaseId() {
+	return database_id_;
+}
+
+int GTable::getBlockTuple(int block_id) {
+	assert(block_id < block_num_);
+
+	return block_list_host_[block_id].rows;
+}
+
+bool GTable::isBlockFull(int block_id) {
+	return (block_list_host_[block_id].rows >= block_list_host_[block_id].block_size/(columns_ * sizeof(int64_t)));
+}
+
+int GTable::getCurrentRowNum() const {
+	return block_dev_.rows;
 }
 
 void GTable::deleteAllTuples()
@@ -110,14 +183,21 @@ void GTable::insertToIndex(int block_id, int tuple_id, int index_id)
 /* INCOMPLETED */
 void GTable::addIndex(int *key_idx, int key_size, GIndexType type)
 {
-	indexes_ = (GIndex*)realloc(indexes_, sizeof(GIndex) * (index_num_ + 1));
-	index_num_++;
+	printf("Error: unsupported operation\n");
+//	indexes_ = (GIndex*)realloc(indexes_, sizeof(GIndex) * (index_num_ + 1));
+//	index_num_++;
 }
 
 void GTable::removeIndex()
 {
 	printf("Error: unsupported operation\n");
 	exit(1);
+}
+
+void GTable::moveToIndex(int idx) {
+	assert(idx < block_num_);
+	block_dev_ = block_list_host_[idx];
+	index_ = indexes_;
 }
 
 void GTable::nextFreeTuple(int *block_id, int *tuple_id)

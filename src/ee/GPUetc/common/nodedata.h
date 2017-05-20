@@ -28,10 +28,13 @@ typedef struct _TreeNode {
 	GNValue value;		// Value of const, = NULL if not const
 } GTreeNode;
 
-typedef struct _ExpressionNode {
+typedef struct _ExpressionNode ExpressionNode;
+
+struct _ExpressionNode {
 	ExpressionNode *left, *right;
 	GTreeNode node;
-} ExpressionNode;
+};
+
 
 }
 

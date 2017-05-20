@@ -39,7 +39,6 @@ GPUIJ::GPUIJ()
 GPUIJ::GPUIJ(GTable outer_table,
 				GTable inner_table,
 				std::vector<ExpressionNode*> search_exp,
-				std::vector<int> search_exp_size,
 				ExpressionNode *end_expression,
 				ExpressionNode *post_expression,
 				ExpressionNode *initial_expression,
@@ -62,24 +61,26 @@ GPUIJ::GPUIJ(GTable outer_table,
 	int *search_exp_size_tmp = (int *)malloc(sizeof(int) * search_exp_num_);
 	assert(search_exp_size_tmp != NULL);
 	for (int i = 0; i < search_exp_num_; i++) {
-		search_exp_size_tmp[i] = search_exp_size[i];
+		search_exp_size_tmp[i] = GExpression::getExpressionLength(search_exp[i]);
 		tmp_size += search_exp_size_tmp[i];
 	}
 
-	GTreeNode *search_exp_tmp = (GTreeNode *)malloc(sizeof(GTreeNode) * tmp_size);
-	assert(search_exp_tmp != NULL);
-	GTreeNode *exp_ptr = search_exp_tmp;
-	for (int i = 0; i < search_exp_num_; i++) {
-		getTreeNodes(exp_ptr, search_exp[i]);
-		exp_ptr += search_exp_size_tmp[i];
+	checkCudaErrors(cudaMalloc(&search_exp_, sizeof(GTreeNode) * tmp_size));
+
+	for (int i = 0, exp_ptr = 0; i < search_exp_num_; exp_ptr += search_exp_size_tmp[i], i++) {
+		GExpression current_search_exp(search_exp_ + exp_ptr, search_exp_size_tmp[i]);
+
+		if (!current_search_exp.createExpression(search_exp[i])) {
+			printf("Error: failed to create GPU search expression\n");
+			exit(1);
+		}
 	}
 
 	/******* Allocate GPU buffer for search keys and index keys *****/
-	checkCudaErrors(cudaMalloc(&search_exp_, sizeof(GTreeNode) * tmp_size));
-	checkCudaErrors(cudaMalloc(&search_exp_size_, sizeof(int) * search_exp_num_));
 
-	checkCudaErrors(cudaMemcpy(search_exp_, search_exp_tmp, sizeof(GTreeNode) * tmp_size, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc(&search_exp_size_, sizeof(int) * search_exp_num_));
 	checkCudaErrors(cudaMemcpy(search_exp_size_, search_exp_size_tmp, sizeof(int) * search_exp_num_, cudaMemcpyHostToDevice));
+	free(search_exp_size_tmp);
 
 	/**** Expression data ****/
 
@@ -98,9 +99,9 @@ GPUIJ::GPUIJ(GTable outer_table,
 
 GPUIJ::~GPUIJ()
 {
-	freeArrays<RESULT>(join_result_);
-	freeArrays<GTreeNode>(search_exp_);
-	freeArrays<int>(search_exp_size_);
+	free(join_result_);
+	cudaFree(search_exp_);
+	cudaFree(search_exp_size_);
 	end_expression_.freeExpression();
 	post_expression_.freeExpression();
 	initial_expression_.freeExpression();
@@ -306,23 +307,6 @@ uint GPUIJ::getPartitionSize() const
 	return part_size;
 }
 
-bool GPUIJ::getTreeNodes(GTreeNode *expression, const ExpressionNode tree_expression)
-{
-	for () {
-
-	}
-	if (tree_expression.getSize() >= 1)
-		tree_expression.getNodesArray(expression);
-
-	return true;
-}
-
-template <typename T> void GPUIJ::freeArrays(T *expression)
-{
-	if (expression != NULL) {
-		free(expression);
-	}
-}
 
 void GPUIJ::debug(void)
 {

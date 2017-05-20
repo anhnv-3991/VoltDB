@@ -68,6 +68,7 @@ GPUHJ::GPUHJ()
 		search_exp_size_ = NULL;
 		search_exp_num_ = 0;
 		maxNumberOfBuckets_ = 0;
+		total_ = 0;
 
 		search_exp_ = NULL;
 		m_sizeIndex_ = 0;
@@ -76,14 +77,13 @@ GPUHJ::GPUHJ()
 
 GPUHJ::GPUHJ(GTable outer_table,
 				GTable inner_table,
-				std::vector<TreeExpression> search_exp,
-				std::vector<int> indices,
-				TreeExpression end_expression,
-				TreeExpression post_expression,
-				TreeExpression initial_expression,
-				TreeExpression skipNullExpr,
-				TreeExpression prejoin_expression,
-				TreeExpression where_expression,
+				std::vector<ExpressionNode*> search_exp,
+				ExpressionNode *end_expression,
+				ExpressionNode *post_expression,
+				ExpressionNode *initial_expression,
+				ExpressionNode *skipNullExpr,
+				ExpressionNode *prejoin_expression,
+				ExpressionNode *where_expression,
 				IndexLookupType lookup_type,
 				int mSizeIndex)
 {
@@ -95,6 +95,7 @@ GPUHJ::GPUHJ(GTable outer_table,
 	search_exp_num_ = search_exp.size();
 	lookup_type_ = lookup_type;
 	m_sizeIndex_ = mSizeIndex;
+	total_ = 0;
 
 	//Fix the size of bucket at 16
 	maxNumberOfBuckets_ = MAX_BUCKETS[m_sizeIndex_];
@@ -106,26 +107,27 @@ GPUHJ::GPUHJ(GTable outer_table,
 	int *search_exp_size_tmp = (int *)malloc(sizeof(int) * search_exp_num_);
 	assert(search_exp_size_tmp != NULL);
 	for (int i = 0; i < search_exp_num_; i++) {
-		search_exp_size_tmp[i] = search_exp[i].getSize();
+		search_exp_size_tmp[i] = GExpression::getExpressionLength(search_exp[i]);
 		tmp_size += search_exp_size_tmp[i];
 	}
 
-	GTreeNode *search_exp_tmp = (GTreeNode *)malloc(sizeof(GTreeNode) * tmp_size);
-	assert(search_exp_tmp != NULL);
-	GTreeNode *exp_ptr = search_exp_tmp;
-	for (int i = 0; i < search_exp_num_; i++) {
-		getTreeNodes(exp_ptr, search_exp[i]);
-		exp_ptr += search_exp_size_tmp[i];
+	checkCudaErrors(cudaMalloc(&search_exp_, sizeof(GTreeNode) * tmp_size));
+
+	for (int i = 0, exp_ptr = 0; i < search_exp_num_; exp_ptr += search_exp_size_tmp[i], i++) {
+		GExpression current_search_exp(search_exp_ + exp_ptr, search_exp_size_tmp[i]);
+
+		if (!current_search_exp.createExpression(search_exp[i])) {
+			printf("Error: failed to create GPU search expression\n");
+			exit(1);
+		}
 	}
 
-	checkCudaErrors(cudaMalloc(&search_exp_, tmp_size * sizeof(GTreeNode)));
-	checkCudaErrors(cudaMalloc(&search_exp_size_, search_exp_num_ * sizeof(int)));
+	/******* Allocate GPU buffer for search keys and index keys *****/
 
-	checkCudaErrors(cudaMemcpy(search_exp_, search_exp_tmp, tmp_size * sizeof(GTreeNode), cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(search_exp_size_, search_exp_size_tmp, search_exp_num_ * sizeof(int), cudaMemcpyHostToDevice));
-
+	checkCudaErrors(cudaMalloc(&search_exp_size_, sizeof(int) * search_exp_num_));
+	checkCudaErrors(cudaMemcpy(search_exp_size_, search_exp_size_tmp, sizeof(int) * search_exp_num_, cudaMemcpyHostToDevice));
 	free(search_exp_size_tmp);
-	free(search_exp_tmp);
+
 
 	/**** Expression data ****/
 
@@ -139,9 +141,9 @@ GPUHJ::GPUHJ(GTable outer_table,
 
 GPUHJ::~GPUHJ()
 {
-	freeArrays<RESULT>(join_result_);
-	freeArrays<GTreeNode>(search_exp_);
-	freeArrays<int>(search_exp_size_);
+	free(join_result_);
+	cudaFree(search_exp_);
+	cudaFree(search_exp_size_);
 	end_expression_.freeExpression();
 	post_expression_.freeExpression();
 	initial_expression_.freeExpression();
@@ -150,12 +152,6 @@ GPUHJ::~GPUHJ()
 	where_expression_.freeExpression();
 }
 
-template <typename T> void GPUHJ::freeArrays(T *expression)
-{
-	if (expression != NULL) {
-		free(expression);
-	}
-}
 
 void GPUHJ::getResult(RESULT *output) const
 {
@@ -167,13 +163,6 @@ int GPUHJ::getResultSize() const
 	return result_size_;
 }
 
-bool GPUHJ::getTreeNodes(GTreeNode *expression, const TreeExpression tree_expression)
-{
-	if (tree_expression.getSize() >= 1)
-		tree_expression.getNodesArray(expression);
-
-	return true;
-}
 
 void GPUHJ::debug(void)
 {
@@ -521,7 +510,8 @@ void GPUHJ::IndexCount(ulong *index_count, ResBound *out_bound)
 													outer_table_.getCurrentRowNum(),
 													search_exp_size_, search_exp_num_,
 													val_stack, type_stack, search_table, tmp_index);
-	GHashIndex *inner_index = dynamic_cast<GHashIndex*>(inner_table_.getCurrentIndex());
+	//GHashIndex *inner_index = dynamic_cast<GHashIndex*>(inner_table_.getCurrentIndex());
+	GHashIndex *inner_index;
 	indexCount<<<grid_x, block_x>>>(tmp_index, *inner_index, index_count, out_bound);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
@@ -553,7 +543,8 @@ void GPUHJ::IndexCount(ulong *index_count, ResBound *out_bound, cudaStream_t str
 																outer_table_.getCurrentRowNum(),
 																search_exp_size_, search_exp_num_,
 																val_stack, type_stack, search_table, tmp_index);
-	GHashIndex *inner_index = dynamic_cast<GHashIndex*>(inner_table_.getCurrentIndex());
+	//GHashIndex *inner_index = dynamic_cast<GHashIndex*>(inner_table_.getCurrentIndex());
+	GHashIndex *inner_index;
 	indexCount<<<grid_x, block_x, 0, stream>>>(tmp_index, *inner_index, index_count, out_bound);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
@@ -677,7 +668,8 @@ void GPUHJ::decompose(RESULT *output, ResBound *in_bound, ulong *in_location, ul
 	dim3 block_size(block_x, 1, 1);
 	dim3 grid_size(grid_x, 1, 1);
 
-	GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(inner_table_.getCurrentIndex());
+	//GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(inner_table_.getCurrentIndex());
+	GHashIndex *inner_idx;
 	int *sorted_idx = inner_idx->getSortedIdx();
 
 	HDecompose<<<grid_size, block_size>>>(output, in_bound, sorted_idx, in_location, local_offset, size);
@@ -695,7 +687,8 @@ void GPUHJ::decompose(RESULT *output, ResBound *in_bound, ulong *in_location, ul
 	dim3 block_size(block_x, 1, 1);
 	dim3 grid_size(grid_x, 1, 1);
 
-	GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(inner_table_.getCurrentIndex());
+	//GHashIndex *inner_idx = dynamic_cast<GHashIndex *>(inner_table_.getCurrentIndex());
+	GHashIndex *inner_idx;
 	int *sorted_idx = inner_idx->getSortedIdx();
 
 	HDecompose<<<grid_size, block_size, 0, stream>>>(output, in_bound, sorted_idx, in_location, local_offset, size);

@@ -69,7 +69,7 @@
 //#include "GPUetc/common/GNValue.h"
 //#include "GPUetc/common/nodedata.h"
 //#include "GPUetc/indexes/TreeIndex.h"
-//#include "GPUetc/storage/gtable.h"
+#include "GPUetc/storage/gtable.h"
 
 namespace voltdb {
 
@@ -451,9 +451,7 @@ protected:
     TableIndex *m_pkeyIndex;
 
     // Added for GPUs
-//    std::vector<GBlock> m_gdata;
-//    GColumnInfo *m_gschema;
-//    std::vector<GTreeIndex*> m_gIndexes;
+    GTable m_gtable;
 
   private:
     int32_t m_refcount;

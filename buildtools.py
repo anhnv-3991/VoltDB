@@ -154,10 +154,14 @@ def buildMakefile(CTX):
     if "A GPU which is capable of using CUDA is not detected..." in ComCap:
         return False
 
-    GPUFLAGS = "-lcuda -lstdc++ -lcudart -L/usr/local/cuda/lib64 -I/usr/local/cuda/include -I/usr/local/cuda/include -I../../src/ee/executors/ -I../../src/ee/ -I/usr/local/cuda/samples/6_Advanced/ -I/usr/local/cuda/samples/common/inc"
+    NVCC = "nvcc -ccbin g++"    
+    GPUFLAGS = "-L/usr/local/cuda/lib64 -lcuda -lstdc++ -lcudart -I/usr/local/cuda/include -I/usr/local/cuda/include -I../../src/ee/executors/ -I../../src/ee/ -I/usr/local/cuda/samples/6_Advanced/ -I/usr/local/cuda/samples/common/inc"
     INCLUDE = "-isystem ../../third_party/cpp/ -lm"
     GPUARCHFLAGS = "-arch sm_%s "%ComCap
     LOCALCPPFLAGS += " %s %s" % (GPUFLAGS,INCLUDE)
+    ALL_CCFLAGS = "-Xcompiler '-fPIC'"
+    ALL_LDFLAGS = "-Xcompiler '-fPIC' -Xlinker '--dynamic-linker=/lib/ld-linux-armhf.so.3'"
+
 #add part end
 
     # create directories for output if they don't exist
@@ -193,9 +197,12 @@ def buildMakefile(CTX):
     makefile.write("CC = %s\n" % CTX.CC)
     makefile.write("CXX = %s\n" % CTX.CXX)
     makefile.write("CPPFLAGS += %s\n" % (MAKECPPFLAGS))
+    makefile.write("NVCC += %s\n" % (NVCC))
     makefile.write("GPUFLAGS += %s\n" % (GPUFLAGS))     #add part
     makefile.write("INCLUDE += %s\n" % (INCLUDE))       #add part
     makefile.write("GPUARCHFLAGS += %s\n" % (GPUARCHFLAGS))       #add part
+    makefile.write("ALL_CCFLAGS += %s\n" % (ALL_CCFLAGS))
+    makefile.write("ALL_LDFLAGS += %s\n"% (ALL_LDFLAGS))
     makefile.write("LDFLAGS += %s\n" % (CTX.LDFLAGS))
     makefile.write("JNILIBFLAGS += %s\n" % (JNILIBFLAGS))
     makefile.write("JNIBINFLAGS += %s\n" % (JNIBINFLAGS))
@@ -279,35 +286,42 @@ def buildMakefile(CTX):
 
 #add part
     GPUPATH = "../../src/ee/GPUetc/"
-    GPUINC = " ../../src/ee/GPUetc/executors/gpunij.h ../../src/ee/GPUetc/executors/gpuij.h ../../src/ee/GPUetc/executors/gpuhj.h ../../src/ee/GPUetc/common/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/gexpression.h ../../src/ee/GPUetc/expressions/treeexpression.h ../../src/ee/GPUetc/common/nodedata.h ../../src/ee/GPUetc/executors/utilities.h ../../src/ee/GPUetc/storage/gtable.h ../../src/ee/GPUetc/indexes/TreeIndex.h ../../src/ee/GPUetc/indexes/KeyIndex.h ../../src/ee/GPUetc/indexes/HashIndex.h ../../src/ee/GPUetc/executors/gpuhj.h ../../src/ee/GPUetc/executors/gpuij.h ../../src/ee/GPUetc/executors/gpunij.h ../../src/ee/GPUetc/storage/gtuple.h"
-    
+    GPUINC = " ../../src/ee/GPUetc/executors/gpunij.h ../../src/ee/GPUetc/executors/gpuij.h ../../src/ee/GPUetc/executors/gpuhj.h ../../src/ee/GPUetc/common/GPUTUPLE.h ../../src/ee/GPUetc/common/GNValue.h ../../src/ee/GPUetc/expressions/gexpression.h ../../src/ee/GPUetc/common/nodedata.h ../../src/ee/GPUetc/executors/utilities.h ../../src/ee/GPUetc/storage/gtable.h ../../src/ee/GPUetc/indexes/Index.h ../../src/ee/GPUetc/indexes/TreeIndex.h ../../src/ee/GPUetc/indexes/KeyIndex.h ../../src/ee/GPUetc/indexes/HashIndex.h ../../src/ee/GPUetc/executors/gpuhj.h ../../src/ee/GPUetc/executors/gpuij.h ../../src/ee/GPUetc/executors/gpunij.h ../../src/ee/GPUetc/storage/gtuple.h"
+ 
+
 #scan.cu ,join_gpu.cu ,hjoin_gpu.cu ,partitioning.cu, index_join_gpu.cu
 #build library objects TreeIndex.co, gcommon.co, gtable.co
-    makefile.write("objects/GPUetc/indexes/TreeIndex.o:../../src/ee/GPUetc/indexes/TreeIndex.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v  -o objects/GPUetc/indexes/TreeIndex.o -dc ../../src/ee/GPUetc/indexes/TreeIndex.cu\n")
-    makefile.write("objects/GPUetc/indexes/TreeIndex.co: objects/GPUetc/indexes/TreeIndex.o %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v -o objects/GPUetc/indexes/TreeIndex.co --device-link objects/GPUetc/indexes/TreeIndex.o\n")
+#    makefile.write("objects/GPUetc/indexes/quickSort.o:../../src/ee/GPUetc/indexes/quickSort.cu %s\n"%GPUINC)
+#    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v  -o objects/GPUetc/indexes/quickSort.o -dc ../../src/ee/GPUetc/indexes/quickSort.cu -lcudadevrt\n")
+#    makefile.write("objects/GPUetc/indexes/TreeIndex.o: ../../src/ee/GPUetc/indexes/TreeIndex.cu %s\n"%GPUINC)
+#    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) --ptxas-options=-v -o objects/GPUetc/indexes/TreeIndex.o -dc ../../src/ee/GPUetc/indexes/TreeIndex.cu\n")
+#   makefile.write("objects/GPUetc/indexes/TreeIndex.co: objects/GPUetc/indexes/TreeIndex.o objects/GPUetc/indexes/quickSort.o %s\n"%GPUINC)
+#    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' -o objects/GPUetc/indexes/TreeIndex.co objects/GPUetc/indexes/TreeIndex.o objects/GPUetc/indexes/quickSort.o -L/usr/local/cuda/lib64 -lcudart -lcudadevrt\n")
+#    makefile.write("\tg++ $(INCLUDE) $(GPUFLAGS) -fPIC objects/GPUetc/indexes/TreeIndex.co objects/GPUetc/indexes/TreeIndex.o objects/GPUetc/indexes/quickSort.o -L/usr/local/cuda/lib64 -lcudart -lcudadevrt\n")
 
-    makefile.write("objects/GPUetc/storage/gtable.co: ../../src/ee/GPUetc/storage/gtable.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/storage/gtable.co -c ../../src/ee/GPUetc/storage/gtable.cu\n")
+    makefile.write("objects/GPUetc/indexes/TreeIndex.co: ../../src/ee/GPUetc/indexes/TreeIndex.cu\n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
 
-    makefile.write("objects/GPUetc/indexes/HashIndex.co: ../../src/ee/GPUetc/indexes/HashIndex.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/indexes/HashIndex.co -c ../../src/ee/GPUetc/indexes/HashIndex.cu\n")
+    makefile.write("objects/GPUetc/storage/gtable.co: ../../src/ee/GPUetc/storage/gtable.cu \n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
 
-    makefile.write("objects/GPUetc/executors/utilities.co: ../../src/ee/GPUetc/executors/utilities.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/utilities.co -c ../../src/ee/GPUetc/executors/utilities.cu\n")
+    makefile.write("objects/GPUetc/indexes/HashIndex.co: ../../src/ee/GPUetc/indexes/HashIndex.cu\n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
 
-    makefile.write("objects/GPUetc/executors/gpunij.co: ../../src/ee/GPUetc/executors/gpunij.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/gpunij.co -c ../../src/ee/GPUetc/executors/gpunij.cu\n")
+    makefile.write("objects/GPUetc/executors/utilities.co: ../../src/ee/GPUetc/executors/utilities.cu\n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
 
-    makefile.write("objects/GPUetc/executors/gpuij.co: ../../src/ee/GPUetc/executors/gpuij.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/gpuij.co -c ../../src/ee/GPUetc/executors/gpuij.cu\n")
+    makefile.write("objects/GPUetc/executors/gpunij.co: ../../src/ee/GPUetc/executors/gpunij.cu\n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
 
-    makefile.write("objects/GPUetc/executors/gpuhj.co: ../../src/ee/GPUetc/executors/gpuhj.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/executors/gpuhj.co -c ../../src/ee/GPUetc/executors/gpuhj.cu\n")
+    makefile.write("objects/GPUetc/executors/gpuij.co: ../../src/ee/GPUetc/executors/gpuij.cu\n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
 
-    makefile.write("objects/GPUetc/expressions/gexpression.co: ../../src/ee/GPUetc/expressions/gexpression.cu %s\n"%GPUINC)
-    makefile.write("\tnvcc $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) -Xcompiler '-fPIC' --ptxas-options=-v  -o objects/GPUetc/expressions/gexpression.co -c ../../src/ee/GPUetc/expressions/gexpression.cu\n")
+    makefile.write("objects/GPUetc/executors/gpuhj.co: ../../src/ee/GPUetc/executors/gpuhj.cu\n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
+
+    makefile.write("objects/GPUetc/expressions/gexpression.co: ../../src/ee/GPUetc/expressions/gexpression.cu\n")
+    makefile.write("\t$(NVCC) $(INCLUDE) $(GPUFLAGS) $(GPUARCHFLAGS) $(ALL_CCFLAGS) --ptxas-options=-v -c $^ -o $@\n")
 
 
 #add part end
