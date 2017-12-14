@@ -465,7 +465,7 @@ bool GPUIJ::join(){
 #ifdef ASYNC_
 			RemoveEmptyResultAsyncWrapper(write_dev[stream_idx], jresult_dev[stream_idx], index_psum[stream_idx], exp_psum[stream_idx], jr_size, stream[stream_idx]);
 #else
-			RemoveEmptyResultWrapper(write_dev, jresult_dev, index_psum, exp_psum, jr_size);
+			RemoveEmptyResultWrapper(write_dev, jresult_dev, index_psum, exp_psum, gpu_size - 1);
 #endif
 			gettimeofday(&wend, NULL);
 #elif defined(DECOMPOSED1_)
