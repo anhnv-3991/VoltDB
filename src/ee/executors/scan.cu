@@ -15,7 +15,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <helper_functions.h>
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "scan_common.h"
 
 

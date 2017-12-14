@@ -9,18 +9,14 @@
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 #include <helper_functions.h>
-#include "GPUTUPLE.h"
-#include "GPUIJ.h"
-#include "scan_common.h"
-#include "common/types.h"
-#include "GPUetc/common/GNValue.h"
-#include "GPUetc/expressions/Gcomparisonexpression.h"
-#include <sys/time.h>
 #include <cuda_profiler_api.h>
 #include <cudaProfiler.h>
+#include "GPUIJ.h"
+#include "scan_common.h"
+#include "index_join_gpu.h"
+#include "gcommon/gpu_common.h"
 
-
-using namespace voltdb;
+namespace voltdb {
 
 GPUIJ::GPUIJ()
 {
@@ -63,7 +59,8 @@ GPUIJ::GPUIJ(GNValue *outer_table,
 				TreeExpression initial_expression,
 				TreeExpression skipNullExpr,
 				TreeExpression prejoin_expression,
-				TreeExpression where_expression)
+				TreeExpression where_expression,
+				IndexLookupType lookup_type)
 {
 	/**** Table data *********/
 	outer_table_ = outer_table;
@@ -82,6 +79,7 @@ GPUIJ::GPUIJ(GNValue *outer_table,
 	where_size_ = where_expression.getSize();
 	search_exp_num_ = search_exp.size();
 	indices_size_ = indices.size();
+	lookup_type_ = lookup_type;
 
 
 	bool ret = true;
@@ -128,6 +126,7 @@ GPUIJ::GPUIJ(GNValue *outer_table,
 	ret = getTreeNodes(&where_expression_, where_expression);
 	assert(ret == true);
 }
+
 GPUIJ::~GPUIJ()
 {
 	freeArrays<RESULT>(join_result_);
@@ -141,91 +140,44 @@ GPUIJ::~GPUIJ()
 	freeArrays<GTreeNode>(where_expression_);
 }
 
-int compareTime(const void *a, const void *b)
-{
-	long int x = *((long int*)a);
-	long int y = *((long int*)b);
-
-	return (x > y) ? 1 : ((x < y) ? -1 : 0);
-}
-
 bool GPUIJ::join(){
 	int loop_count = 0, loop_count2 = 0;
-	CUresult res;
-	CUdevice dev;
-	CUcontext ctx;
-	CUfunction index_filter, expression_filter, write_out;
-	CUmodule module, c_module;
-	char fname[256];
-	char *vd;
-	char path[256];
+	cudaError_t res;
 
 	struct timeval all_start, all_end;
 	gettimeofday(&all_start, NULL);
-	if (outer_size_ == 0 || inner_size_ == 0) {
-		return true;
-	}
-
-
-	/****************** Initialize GPU ********************/
-	if ((vd = getenv("VOLT_HOME")) != NULL) {
-		snprintf(path, 256, "%s/voltdb", vd);
-	} else if ((vd = getenv("HOME")) != NULL) {
-		snprintf(path, 256, "%s/voltdb", vd);
-	} else
-		return false;
-
-	res = cuInit(0);
-	if (res != CUDA_SUCCESS) {
-		printf("cuInit failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuDeviceGet(&dev, 0);
-	if (res != CUDA_SUCCESS) {
-		printf("cuDeviceGet failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuCtxCreate(&ctx, 0, dev);
-	if (res != CUDA_SUCCESS) {
-		printf("cuCtxCreate failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	sprintf(fname, "%s/index_join_gpu.cubin", path);
-	res = cuModuleLoad(&module, fname);
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleLoad(join) failed: res = %lu\n file name = %s\n", (unsigned long)res, fname);
-		return false;
-	}
-
-	res = cuModuleGetFunction(&index_filter, module, "index_filter");
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleGetFunction(index_filter) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuModuleGetFunction(&expression_filter, module, "expression_filter");
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleGetFunction(expression_filter) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
-
-	res = cuModuleGetFunction(&write_out, module, "write_out");
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleGetFunction(write_out) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
 
 	/******** Calculate size of blocks, grids, and GPU buffers *********/
 	uint gpu_size = 0, part_size = 0;
-	ulong jr_size = 0, jr_size2 = 0;
-	CUdeviceptr outer_dev, inner_dev, jresult_dev, write_dev, index_psum, exp_psum, presum_dev, end_ex_dev, post_ex_dev, search_exp_dev, indices_dev, res_bound, search_exp_size;
+	//ulong jr_size = 0, jr_size2 = 0;
+	ulong jr_size, jr_size2;
+	int *indices_dev, *search_exp_size;
+	GTreeNode *initial_dev, *skipNull_dev, *prejoin_dev, *where_dev, *end_dev, *post_dev, *search_exp_dev;
+
+#ifdef ASYNC_
+	GNValue *outer_dev[2], *inner_dev[2];
+	RESULT *jresult_dev[2], *write_dev[2];
+	jresult_dev[0] = jresult_dev[1] = NULL;
+	write_dev[0] = write_dev[1] = NULL;
+	ulong *index_psum[2], *exp_psum[2];
+	index_psum[0] = index_psum[1] = NULL;
+	exp_psum[0] = exp_psum[1] = NULL;
+	ResBound *res_bound[2];
+	bool *prejoin_res_dev[2];
+#else
+	GNValue *outer_dev, *inner_dev;
+	RESULT *jresult_dev, *write_dev;
+	jresult_dev = write_dev = NULL;
+	ulong *index_psum, *exp_psum;
+	ResBound *res_bound;
+	bool *prejoin_res_dev;
+#endif
+
 	uint block_x = 0, block_y = 0, grid_x = 0, grid_y = 0;
-	std::vector<unsigned long> allocation, index, expression, ipsum, epsum, wtime, joins_only;
+	std::vector<unsigned long> allocation, prejoin, index, expression, ipsum, epsum, wtime, joins_only, rebalance;
 
 	part_size = getPartitionSize();
+	printf("Part size = %u\n", part_size);
 	block_x = BLOCK_SIZE_X;
 	block_y = BLOCK_SIZE_Y;
 	grid_x = divUtility(part_size, block_x);
@@ -242,68 +194,71 @@ bool GPUIJ::join(){
 	}
 
 	/******** Allocate GPU buffer for table data and counting data *****/
-	//res = cuMemAlloc(&outer_dev, part_size * sizeof(IndexData));
-	res = cuMemAlloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(outer_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
 
-	res = cuMemAlloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(inner_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+#ifdef ASYNC_
+	checkCudaErrors(cudaMalloc(&prejoin_res_dev[0], part_size * sizeof(bool)));
+	checkCudaErrors(cudaMalloc(&prejoin_res_dev[1], part_size * sizeof(bool)));
+	checkCudaErrors(cudaMalloc(&outer_dev[0], part_size * outer_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&outer_dev[1], part_size * outer_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&inner_dev[0], part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&inner_dev[1], part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&index_psum[0], gpu_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&index_psum[1], gpu_size * sizeof(ulong)));
 
-	printf("Original GPU SIZE = %d\n", gpu_size);
+#ifndef DECOMPOSED1_
+	checkCudaErrors(cudaMalloc(&exp_psum[0], gpu_size * sizeof(ulong)));
+	checkCudaErrors(cudaMalloc(&exp_psum[1], gpu_size * sizeof(ulong)));
+#endif
+	checkCudaErrors(cudaMalloc(&res_bound[0], gpu_size * sizeof(ResBound)));
+	checkCudaErrors(cudaMalloc(&res_bound[1], gpu_size * sizeof(ResBound)));
 
-	res = cuMemAlloc(&index_psum, gpu_size * sizeof(ulong));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(index_psum) failed: res = %lu\n gpu_size = %u\n", (unsigned long)res, gpu_size);
-		return false;
-	}
+#else
+	//checkCudaErrors(cudaMalloc(&outer_dev, part_size * outer_cols_ * sizeof(GNValue)));
+	//checkCudaErrors(cudaMalloc(&inner_dev, part_size * inner_cols_ * sizeof(GNValue)));
+	checkCudaErrors(cudaMalloc(&outer_dev, sizeof(GNValue) * outer_cols_ * outer_rows_));
+	checkCudaErrors(cudaMalloc(&inner_dev, sizeof(GNValue) * inner_cols_ * inner_rows_));
+	checkCudaErrors(cudaMalloc(&prejoin_res_dev, part_size * sizeof(bool)));
+	checkCudaErrors(cudaMalloc(&index_psum, gpu_size * sizeof(ulong)));
 
-	res = cuMemAlloc(&exp_psum, gpu_size * sizeof(ulong));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(exp_psum) failed: res = %lu\n gpu_size = %u\n", (unsigned long)res, gpu_size);
-		return false;
-	}
+#ifndef DECOMPOSED1_
+	checkCudaErrors(cudaMalloc(&exp_psum, gpu_size * sizeof(ulong)));
+#endif
+	checkCudaErrors(cudaMalloc(&res_bound, gpu_size * sizeof(ResBound)));
+#endif
 
-	res = cuMemAlloc(&res_bound, gpu_size * sizeof(ResBound));
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(res_bound) failed: res = %lu\n gpu_size = %u\n", (unsigned long)res, gpu_size);
-		return false;
-	}
 
-	//cudaMemset(&count_dev, 0, gpu_size * sizeof(ulong));
+
 
 	/******* Allocate GPU buffer for join condition *********/
-	if (end_size_ >= 1) {
-		res = cuMemAlloc(&end_ex_dev, end_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemAlloc(end_ex_dev) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
 
-		res = cuMemcpyHtoD(end_ex_dev, end_expression_, end_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(end_ex_dev, end_expression) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
+	if (prejoin_size_ > 0) {
+		checkCudaErrors(cudaMalloc(&prejoin_dev, prejoin_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(prejoin_dev, prejoin_expression_, prejoin_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
-	if (post_size_ >= 1) {
-		res = cuMemAlloc(&post_ex_dev, post_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemAlloc(post_ex_dev) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
+	if (initial_size_ > 0) {
+		checkCudaErrors(cudaMalloc(&initial_dev, initial_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(initial_dev, initial_expression_, initial_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
+	}
 
-		res = cuMemcpyHtoD(post_ex_dev, post_expression_, post_size_ * sizeof(GTreeNode));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(post_ex_dev, post_expression) failed: res = %lu\n", (unsigned long)res);
-			return false;
-		}
+	if (skipNull_size_ > 0) {
+		checkCudaErrors(cudaMalloc(&skipNull_dev, skipNull_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(skipNull_dev, skipNullExpr_, skipNull_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
+	}
+
+	if (end_size_ > 0) {
+		checkCudaErrors(cudaMalloc(&end_dev, end_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(end_dev, end_expression_, end_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
+	}
+
+	if (post_size_ > 0) {
+		checkCudaErrors(cudaMalloc(&post_dev, post_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(post_dev, post_expression_, post_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
+	}
+
+	if (where_size_ > 0) {
+		checkCudaErrors(cudaMalloc(&where_dev, where_size_ * sizeof(GTreeNode)));
+		checkCudaErrors(cudaMemcpy(where_dev, where_expression_, where_size_ * sizeof(GTreeNode), cudaMemcpyHostToDevice));
 	}
 
 	/******* Allocate GPU buffer for search keys and index keys *****/
@@ -311,119 +266,132 @@ bool GPUIJ::join(){
 	for (int i = 0; i < search_exp_num_; i++) {
 		tmp_size += search_exp_size_[i];
 	}
-	res = cuMemAlloc(&search_exp_dev, sizeof(GTreeNode) * tmp_size);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(search_exp_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
 
-	res = cuMemAlloc(&search_exp_size, sizeof(int) * search_exp_num_);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(search_exp_size) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	checkCudaErrors(cudaMalloc(&search_exp_dev, sizeof(GTreeNode) * tmp_size));
+	checkCudaErrors(cudaMalloc(&search_exp_size, sizeof(int) * search_exp_num_));
 
-	res = cuMemcpyHtoD(search_exp_dev, search_exp_, sizeof(GTreeNode) * tmp_size);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemcpyHtoD(search_exp_dev, search_exp_) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	checkCudaErrors(cudaMemcpy(search_exp_dev, search_exp_, sizeof(GTreeNode) * tmp_size, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(search_exp_size, search_exp_size_, sizeof(int) * search_exp_num_, cudaMemcpyHostToDevice));
 
-	res = cuMemcpyHtoD(search_exp_size, search_exp_size_, sizeof(int) * search_exp_num_);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemcpyHtoD(search_exp_size, search_exp_size_) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	checkCudaErrors(cudaMalloc(&indices_dev, sizeof(int) * indices_size_));
+	checkCudaErrors(cudaMemcpy(indices_dev, indices_, sizeof(int) * indices_size_, cudaMemcpyHostToDevice));
 
-	res = cuMemAlloc(&indices_dev, sizeof(int) * indices_size_);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemAlloc(indices_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	printf("Block_x = %d, block_y = %d, grid_x = %d, grid_y = %d\n", block_x, block_y, grid_x, grid_y);
 
-	res = cuMemcpyHtoD(indices_dev, indices_, sizeof(int) * indices_size_);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemcpyHtoD(indices_dev, indices_) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	int stream_idx = 0;
+	struct timeval pre_start, pre_end, istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join, balance_start, balance_end;
 
-	struct timeval istart, iend, pistart, piend, estart, eend, pestart, peend, wstart, wend, end_join;
+	int init_outer_size = (part_size < outer_size_) ? part_size : outer_size_;
+	int init_inner_size = (part_size < inner_size_) ? part_size : inner_size_;
+
+#ifdef ASYNC_
+	cudaStream_t stream[2];
+
+	checkCudaErrors(cudaStreamCreate(&stream[0]));
+	checkCudaErrors(cudaStreamCreate(&stream[1]));
+#endif
+
+	uint outer_part_size = 0, inner_part_size = 0;
+	uint outer_idx, inner_idx;
+	uint outer_dev_idx, inner_dev_idx;
+	int old_result_size = 0;
+	RESULT *old_result = NULL;
+	GNValue *old_outer = NULL, *old_inner = NULL;
+
+#ifdef ASYNC_
+	checkCudaErrors(cudaHostRegister(outer_table_, sizeof(GNValue) * outer_cols_ * outer_rows_, cudaHostRegisterDefault));
+	checkCudaErrors(cudaHostRegister(inner_table_, sizeof(GNValue) * inner_cols_ * inner_rows_, cudaHostRegisterDefault));
+#endif
+
+	//checkCudaErrors(cudaMemcpy(outer_dev, outer_table_, sizeof(GNValue) * outer_cols_ * outer_rows_, cudaMemcpyHostToDevice));
+	//checkCudaErrors(cudaMemcpy(inner_dev, inner_table_, sizeof(GNValue) * inner_cols_ * inner_rows_, cudaMemcpyHostToDevice));
+
 	/*** Loop over outer tuples and inner tuples to copy table data to GPU buffer **/
-	for (uint outer_idx = 0; outer_idx < outer_size_; outer_idx += part_size) {
+	for (outer_idx = 0, outer_dev_idx = 0, stream_idx = 0; outer_idx < outer_size_; outer_idx += part_size, stream_idx = 1 - stream_idx, outer_dev_idx = 1 - outer_dev_idx) {
 		//Size of outer small table
-		uint outer_part_size = (outer_idx + part_size < outer_size_) ? part_size : (outer_size_ - outer_idx);
+		uint old_outer_size = outer_part_size;
+		outer_part_size = (outer_idx + part_size < outer_size_) ? part_size : (outer_size_ - outer_idx);
+#ifdef ASYNC_
+//		if (old_outer != NULL) {
+//			checkCudaErrors(cudaHostUnregister(old_outer));
+//			old_outer = NULL;
+//		}
+//		checkCudaErrors(cudaHostRegister(outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaHostRegisterDefault));
+//		old_outer = outer_table_ + outer_idx * outer_cols_;
+		checkCudaErrors(cudaMemcpyAsync(outer_dev[outer_dev_idx], outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice, stream[stream_idx]));
+#else
+		checkCudaErrors(cudaMemcpy(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
+#endif
 
-		block_x = (outer_part_size < BLOCK_SIZE_X) ? outer_part_size : BLOCK_SIZE_X;
-		grid_x = divUtility(outer_part_size, block_x);
+		/* Evaluate prejoin predicate */
+		gettimeofday(&pre_start, NULL);
+#ifdef ASYNC_
+		PrejoinFilterAsyncWrapper(outer_dev[outer_dev_idx], outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev[outer_dev_idx], stream[stream_idx]);
+#else
+		//PrejoinFilterWrapper(outer_dev, outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev);
+		PrejoinFilterWrapper(outer_dev + outer_idx * outer_cols_, outer_part_size, outer_cols_, prejoin_dev, prejoin_size_, prejoin_res_dev);
+#endif
+		gettimeofday(&pre_end, NULL);
+		prejoin.push_back(timeDiff(pre_start, pre_end));
 
-		res = cuMemcpyHtoD(outer_dev, outer_table_ + outer_idx * outer_cols_, outer_part_size * outer_cols_ * sizeof(GNValue));
-		if (res != CUDA_SUCCESS) {
-			printf("cuMemcpyHtoD(outer_dev, outer_table_ + %u) failed: res = %lu\n", outer_idx, (unsigned long)res);
-			return false;
-		}
-		loop_count++;
-		for (uint inner_idx = 0; inner_idx < inner_size_; inner_idx += part_size) {
+		joins_only.push_back(timeDiff(pre_start, pre_end));
+
+		for (inner_idx = 0, inner_dev_idx = 0; inner_idx < inner_size_; inner_idx += part_size, inner_dev_idx = 1 - inner_dev_idx) {
 			//Size of inner small table
-			uint inner_part_size = (inner_idx + part_size < inner_size_) ? part_size : (inner_size_ - inner_idx);
+			uint old_inner_size = inner_part_size;
 
-			block_y = (inner_part_size < BLOCK_SIZE_Y) ? inner_part_size : BLOCK_SIZE_Y;
-			grid_y = divUtility(inner_part_size, block_y);
-			block_y = 1;
-			gpu_size = block_x * block_y * grid_x * grid_y + 1;
+			inner_part_size = (inner_idx + part_size < inner_size_) ? part_size : (inner_size_ - inner_idx);
 
-			loop_count2++;
+			gpu_size = outer_part_size + 1;
 			/**** Copy IndexData to GPU memory ****/
-			res = cuMemcpyHtoD(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemcpyHtoD(inner_dev, inner_table_ + %u) failed: res = %lu\n", inner_idx, (unsigned long)res);
-				return false;
-			}
+#ifdef ASYNC_
+//			if (old_inner != NULL) {
+//				checkCudaErrors(cudaHostUnregister(old_inner));
+//				old_inner = NULL;
+//			}
+//			checkCudaErrors(cudaHostRegister(inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaHostRegisterDefault));
+//			old_inner = inner_table_ + inner_idx * inner_cols_;
+			checkCudaErrors(cudaMemcpyAsync(inner_dev[inner_dev_idx], inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice, stream[stream_idx]));
+#else
+			checkCudaErrors(cudaMemcpy(inner_dev, inner_table_ + inner_idx * inner_cols_, inner_part_size * inner_cols_ * sizeof(GNValue), cudaMemcpyHostToDevice));
+#endif
 
-			void *index_filter_arg[] = {
-										(void *)&outer_dev,
-										(void *)&inner_dev,
-										(void *)&index_psum,
-										(void *)&res_bound,
-										(void *)&outer_part_size,
-										(void *)&outer_cols_,
-										(void *)&inner_part_size,
-										(void *)&inner_cols_,
-										(void *)&search_exp_dev,
-										(void *)&search_exp_size,
-										(void *)&search_exp_num_,
-										(void *)&indices_dev,
-										(void *)&indices_size_
-										};
-
+			/* Binary search for index */
 			gettimeofday(&istart, NULL);
-			res = cuLaunchKernel(index_filter, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, index_filter_arg, NULL);
-			if (res != CUDA_SUCCESS) {
-				printf("cuLaunchKernel(index_filter) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
+#ifdef ASYNC_
+			IndexFilterAsyncWrapper(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+									index_psum[stream_idx], res_bound[stream_idx],
+									outer_part_size, outer_cols_,
+									inner_part_size, inner_cols_,
+									search_exp_dev, search_exp_size, search_exp_num_,
+									indices_dev, indices_size_,
+									lookup_type_, prejoin_res_dev[outer_dev_idx], stream[stream_idx]);
+#else
+			//IndexFilterWrapper(outer_dev + outer_idx * outer_cols_, inner_dev + inner_idx * inner_cols_,
+			IndexFilterWrapper(outer_dev, inner_dev,
+								index_psum, res_bound,
+								outer_part_size, outer_cols_,
+								inner_part_size, inner_cols_,
+								search_exp_dev, search_exp_size, search_exp_num_,
+								indices_dev, indices_size_,
+								lookup_type_, prejoin_res_dev);
+#endif
 
-			res = cuCtxSynchronize();
-			if (res != CUDA_SUCCESS) {
-				printf("cuCtxSynchronize(index_filter) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
 			gettimeofday(&iend, NULL);
+			index.push_back(timeDiff(istart, iend));
 
+#if !defined(DECOMPOSED1_) && !defined(DECOMPOSED2_)
+			/* Prefix sum on the result */
 			gettimeofday(&pistart, NULL);
-			if (!((new GPUSCAN<ulong, ulong4>)->presum(&index_psum, gpu_size))) {
-				printf("Prefix(&index_filter_dev, gpu_size) sum error.\n");
-				return false;
-			}
-
-			if (!((new GPUSCAN<ulong, ulong4>)->getValue(index_psum, gpu_size, &jr_size))) {
-				printf("getValue(index_filter_dev, gpu_size, &jr_size) error");
-				return false;
-			}
-
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(index_psum[stream_idx], gpu_size, &jr_size, stream[stream_idx]);
+#else
+			ExclusiveScanWrapper(index_psum, gpu_size, &jr_size);
+#endif
 			gettimeofday(&piend, NULL);
 
-			index.push_back((iend.tv_sec - istart.tv_sec) * 1000000 + (iend.tv_usec - istart.tv_usec));
-			ipsum.push_back((piend.tv_sec - pistart.tv_sec) * 1000000 + (piend.tv_usec - pistart.tv_usec));
+
+			ipsum.push_back(timeDiff(pistart, piend));
 
 			if (jr_size < 0) {
 				printf("Scanning failed\n");
@@ -432,181 +400,374 @@ bool GPUIJ::join(){
 
 			if (jr_size == 0) {
 				gettimeofday(&end_join, NULL);
-				joins_only.push_back((end_join.tv_sec - istart.tv_sec) * 1000000 + (end_join.tv_usec - istart.tv_usec));
+				joins_only.push_back(timeDiff(istart, end_join));
 				continue;
-				//goto free_count;
 			}
 
-			res = cuMemAlloc(&jresult_dev, jr_size * sizeof(RESULT));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemAlloc(jresult_dev) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-
-			void *exp_filter_arg[] = {
-											(void *)&outer_dev,
-											(void *)&inner_dev,
-											(void *)&jresult_dev,
-											(void *)&index_psum,
-											(void *)&exp_psum,
-											(void *)&outer_part_size,
-											(void *)&outer_cols_,
-											(void *)&inner_cols_,
-											(void *)&jr_size,
-											(void *)&post_ex_dev,
-											(void *)&post_size_,
-											(void *)&res_bound,
-											(void *)&outer_idx,
-											(void *)&inner_idx
-											};
+#ifdef ASYNC_
+			checkCudaErrors(cudaMalloc(&jresult_dev[stream_idx], jr_size * sizeof(RESULT)));
+#else
+			checkCudaErrors(cudaMalloc(&jresult_dev, jr_size * sizeof(RESULT)));
+#endif
 
 			gettimeofday(&estart, NULL);
-
-			res = cuLaunchKernel(expression_filter, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, exp_filter_arg, NULL);
-			if (res != CUDA_SUCCESS) {
-				printf("cuLaunchKernel(expression_filter) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-
-			res = cuCtxSynchronize();
-			if (res != CUDA_SUCCESS) {
-				printf("cuCtxSynchronize(expression_filter) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
+#ifdef ASYNC_
+			ExpressionFilterAsyncWrapper(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+											jresult_dev[stream_idx], index_psum[stream_idx], exp_psum[stream_idx],
+											outer_part_size,
+											outer_cols_, inner_cols_,
+											jr_size,
+											end_dev, end_size_,
+											post_dev, post_size_,
+											where_dev, where_size_,
+											res_bound[stream_idx],
+											outer_idx, inner_idx,
+											prejoin_res_dev, stream[stream_idx]);
+#else
+			ExpressionFilterWrapper(outer_dev, inner_dev,
+									jresult_dev, index_psum, exp_psum,
+									outer_part_size,
+									outer_cols_, inner_cols_,
+									jr_size,
+									end_dev, end_size_,
+									post_dev, post_size_,
+									where_dev, where_size_,
+									res_bound,
+									outer_idx, inner_idx,
+									prejoin_res_dev);
+#endif
 			gettimeofday(&eend, NULL);
 
-			gettimeofday(&pestart, NULL);
-			if (!((new GPUSCAN<ulong, ulong4>)->presum(&exp_psum, gpu_size))) {
-				printf("Prefix(&exp_sum, gpu_size) sum error.\n");
-				return false;
-			}
 
-			if (!((new GPUSCAN<ulong, ulong4>)->getValue(exp_psum, gpu_size, &jr_size2))) {
-				printf("getValue(exp_sum, gpu_size, &jr_size) error");
-				return false;
-			}
+			gettimeofday(&pestart, NULL);
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(exp_psum[stream_idx], gpu_size, &jr_size2, stream[stream_idx]);
+#else
+			ExclusiveScanWrapper(exp_psum, gpu_size, &jr_size2);
+#endif
 			gettimeofday(&peend, NULL);
 
-			expression.push_back((eend.tv_sec - estart.tv_sec) * 1000000 + (eend.tv_usec - estart.tv_usec));
-			epsum.push_back((peend.tv_sec - pestart.tv_sec) * 1000000 + (peend.tv_usec - pestart.tv_usec));
+			expression.push_back(timeDiff(estart, eend));
+			epsum.push_back(timeDiff(pestart, peend));
+
+			if (jr_size2 == 0) {
+				checkCudaErrors(cudaFree(jresult_dev));
+				continue;
+			}
+
+#ifdef ASYNC_
+			checkCudaErrors(cudaMalloc(&write_dev[stream_idx], jr_size2 * sizeof(RESULT)));
+#else
+			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
+#endif
+
 			gettimeofday(&wstart, NULL);
+#ifdef ASYNC_
+			RemoveEmptyResultAsyncWrapper(write_dev[stream_idx], jresult_dev[stream_idx], index_psum[stream_idx], exp_psum[stream_idx], jr_size, stream[stream_idx]);
+#else
+			RemoveEmptyResultWrapper(write_dev, jresult_dev, index_psum, exp_psum, jr_size);
+#endif
+			gettimeofday(&wend, NULL);
+#elif defined(DECOMPOSED1_)
+			RESULT *tmp_result;
+			ulong tmp_size = 0;
 
-			res = cuMemAlloc(&write_dev, jr_size2 * sizeof(RESULT));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemAlloc(write_dev) failed: res = %lu\n", (unsigned long)res);
-				return false;
+			gettimeofday(&balance_start, NULL);
+#ifdef ASYNC_
+			RebalanceAsync3(index_psum[stream_idx], res_bound[stream_idx], &tmp_result, gpu_size, &tmp_size, stream[stream_idx]);
+#else
+			Rebalance3(index_psum, res_bound, &tmp_result, gpu_size, &tmp_size);
+#endif
+			gettimeofday(&balance_end, NULL);
+
+			rebalance.push_back(timeDiff(balance_start, balance_end));
+
+			if (tmp_size == 0) {
+				gettimeofday(&end_join, NULL);
+				joins_only.push_back(timeDiff(istart, end_join));
+				continue;
 			}
 
-			void *write_back_arg[] = {
-										(void *)&write_dev,
-										(void *)&jresult_dev,
-										(void *)&index_psum,
-										(void *)&exp_psum,
-										(void *)&outer_part_size,
-										(void *)&jr_size2,
-										(void *)&jr_size
-									};
+#ifdef ASYNC_
+			if (jresult_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(jresult_dev[1 - stream_idx]));
+				jresult_dev[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&jresult_dev[stream_idx], tmp_size * sizeof(RESULT)));
 
-			res = cuLaunchKernel(write_out, grid_x, grid_y, 1, block_x, block_y, 1, 0, NULL, write_back_arg, NULL);
-			if (res != CUDA_SUCCESS) {
-				printf("cuLaunchKernel(write_out) failed: res = %lu\n", (unsigned long)res);
-				return false;
+			if (exp_psum[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(exp_psum[1 - stream_idx]));
+				exp_psum[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&exp_psum[stream_idx], (tmp_size + 1) * sizeof(ulong)));
+#else
+			checkCudaErrors(cudaMalloc(&jresult_dev, tmp_size * sizeof(RESULT)));
+			checkCudaErrors(cudaMalloc(&exp_psum, (tmp_size + 1) * sizeof(ulong)));
+#endif
+
+			gettimeofday(&estart, NULL);
+#ifdef ASYNC_
+			ExpressionFilterAsyncWrapper2(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+											tmp_result, jresult_dev[stream_idx],
+											exp_psum[stream_idx], tmp_size,
+											outer_cols_, inner_cols_,
+											end_dev, end_size_,
+											post_dev, post_size_,
+											where_dev, where_size_,
+											outer_idx, inner_idx, stream[stream_idx]);
+#else
+			//ExpressionFilterWrapper2(outer_dev + outer_idx * outer_cols_, inner_dev + inner_idx * inner_cols_,
+			ExpressionFilterWrapper2(outer_dev, inner_dev,
+										tmp_result, jresult_dev,
+										exp_psum, tmp_size,
+										outer_cols_, inner_cols_,
+										end_dev, end_size_,
+										post_dev, post_size_,
+										where_dev, where_size_,
+										outer_idx, inner_idx);
+#endif
+			gettimeofday(&eend, NULL);
+
+			expression.push_back(timeDiff(estart, eend));
+
+			gettimeofday(&pestart, NULL);
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(exp_psum[stream_idx], tmp_size + 1, &jr_size2, stream[stream_idx]);
+#else
+			ExclusiveScanWrapper(exp_psum, tmp_size + 1, &jr_size2);
+#endif
+			gettimeofday(&peend, NULL);
+
+			epsum.push_back(timeDiff(pestart, peend));
+
+			checkCudaErrors(cudaFree(tmp_result));
+
+			if (jr_size2 == 0) {
+				continue;
+			}
+#ifdef ASYNC_
+			if (write_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(write_dev[1 - stream_idx]));
+				write_dev[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&write_dev[stream_idx], jr_size2 * sizeof(RESULT)));
+#else
+			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
+#endif
+
+			gettimeofday(&wstart, NULL);
+#ifdef ASYNC_
+			RemoveEmptyResultAsyncWrapper2(write_dev[stream_idx], jresult_dev[stream_idx], exp_psum[stream_idx], tmp_size, stream[stream_idx]);
+#else
+			RemoveEmptyResultWrapper2(write_dev, jresult_dev, exp_psum, tmp_size);
+#endif
+			gettimeofday(&wend, NULL);
+#elif defined(DECOMPOSED2_)
+			RESULT *tmp_result;
+			ulong tmp_size = 0;
+
+			gettimeofday(&balance_start, NULL);
+#ifdef ASYNC_
+			RebalanceAsync2(index_psum[stream_idx], res_bound[stream_idx], &tmp_result, gpu_size, &tmp_size, stream[stream_idx]);
+#else
+			Rebalance2(index_psum, res_bound, &tmp_result, gpu_size, &tmp_size);
+#endif
+			gettimeofday(&balance_end, NULL);
+
+			rebalance.push_back(timeDiff(balance_start, balance_end));
+
+			if (tmp_size == 0) {
+				gettimeofday(&end_join, NULL);
+				joins_only.push_back(timeDiff(istart, end_join));
+				continue;
 			}
 
-			res = cuCtxSynchronize();
-			if (res != CUDA_SUCCESS) {
-				printf("cuCtxSynchronize(write_out) failed: res = %lu\n", (unsigned long)res);
-				return false;
+#ifdef ASYNC_
+			if (jresult_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(jresult_dev[1 - stream_idx]));
+				jresult_dev[1 - stream_idx] = NULL;
 			}
+			checkCudaErrors(cudaMalloc(&jresult_dev[stream_idx], tmp_size * sizeof(RESULT)));
+
+			if (exp_psum[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(exp_psum[1 - stream_idx]));
+				exp_psum[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&exp_psum[stream_idx], (tmp_size + 1) * sizeof(ulong)));
+#else
+			checkCudaErrors(cudaMalloc(&jresult_dev, tmp_size * sizeof(RESULT)));
+			checkCudaErrors(cudaMalloc(&exp_psum, (tmp_size + 1) * sizeof(ulong)));
+#endif
+
+
+			gettimeofday(&estart, NULL);
+#ifdef ASYNC_
+			ExpressionFilterAsyncWrapper2(outer_dev[outer_dev_idx], inner_dev[inner_dev_idx],
+											tmp_result, jresult_dev[stream_idx],
+											exp_psum[stream_idx], tmp_size,
+											outer_cols_, inner_cols_,
+											end_dev, end_size_,
+											post_dev, post_size_,
+											where_dev, where_size_,
+											outer_idx, inner_idx, stream[stream_idx]);
+
+#else
+			ExpressionFilterWrapper2(outer_dev, inner_dev,
+										tmp_result, jresult_dev,
+										exp_psum, tmp_size,
+										outer_cols_, inner_cols_,
+										end_dev, end_size_,
+										post_dev, post_size_,
+										where_dev, where_size_,
+										outer_idx, inner_idx);
+#endif
+			gettimeofday(&eend, NULL);
+
+			expression.push_back(timeDiff(estart, eend));
+
+			gettimeofday(&pestart, NULL);
+#ifdef ASYNC_
+			ExclusiveScanAsyncWrapper(exp_psum[stream_idx], tmp_size + 1, &jr_size2, stream[stream_idx]);
+#else
+			ExclusiveScanWrapper(exp_psum, tmp_size + 1, &jr_size2);
+#endif
+			gettimeofday(&peend, NULL);
+
+			epsum.push_back(timeDiff(pestart, peend));
+
+			checkCudaErrors(cudaFree(tmp_result));
+
+			if (jr_size2 == 0)
+				continue;
+#ifdef ASYNC_
+			if (write_dev[1 - stream_idx] != NULL) {
+				checkCudaErrors(cudaFree(write_dev[1 - stream_idx]));
+				write_dev[1 - stream_idx] = NULL;
+			}
+			checkCudaErrors(cudaMalloc(&write_dev[stream_idx], jr_size2 * sizeof(RESULT)));
+#else
+			checkCudaErrors(cudaMalloc(&write_dev, jr_size2 * sizeof(RESULT)));
+#endif
+
+			gettimeofday(&wstart, NULL);
+#ifdef ASYNC_
+			RemoveEmptyResultAsyncWrapper2(write_dev[stream_idx], jresult_dev[stream_idx], exp_psum[stream_idx], tmp_size, stream[stream_idx]);
+#else
+			RemoveEmptyResultWrapper2(write_dev, jresult_dev, exp_psum, tmp_size);
+#endif
+			gettimeofday(&wend, NULL);
+#endif
+
+			wtime.push_back(timeDiff(wstart, wend));
 
 			join_result_ = (RESULT *)realloc(join_result_, (result_size_ + jr_size2) * sizeof(RESULT));
 
 			gettimeofday(&end_join, NULL);
 
-			res = cuMemcpyDtoH(join_result_ + result_size_, write_dev, jr_size2 * sizeof(RESULT));
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemcpyDtoH(join_result_[%u], jresult_dev) failed: res = %lu\n", result_size_, (unsigned long)res);
-				return false;
+			//checkCudaErrors(cudaHostRegister(join_result_ + result_size_, jr_size2 * sizeof(RESULT), cudaHostRegisterDefault));
+#ifdef ASYNC_
+			if (old_result != NULL) {
+				checkCudaErrors(cudaHostUnregister(old_result));
+				old_result = NULL;
 			}
-
-			res = cuMemFree(jresult_dev);
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemFree(jresult_dev) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
-			res = cuMemFree(write_dev);
-			if (res != CUDA_SUCCESS) {
-				printf("cuMemFree(write_dev) failed: res = %lu\n", (unsigned long)res);
-				return false;
-			}
+			checkCudaErrors(cudaHostRegister(join_result_ + result_size_, jr_size2 * sizeof(RESULT), cudaHostRegisterDefault));
+			old_result = join_result_ + result_size_;
+			checkCudaErrors(cudaMemcpyAsync(join_result_ + result_size_, write_dev[stream_idx], jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost, stream[stream_idx]));
+#else
+			checkCudaErrors(cudaMemcpy(join_result_ + result_size_, write_dev, jr_size2 * sizeof(RESULT), cudaMemcpyDeviceToHost));
+#endif
+			//checkCudaErrors(cudaHostUnregister(join_result_ + result_size_));
 
 			result_size_ += jr_size2;
 			jr_size = 0;
-			gettimeofday(&wend, NULL);
-			wtime.push_back((wend.tv_sec - wstart.tv_sec) * 1000000 + (wend.tv_usec - wstart.tv_usec));
+			jr_size2 = 0;
 
-			joins_only.push_back((end_join.tv_sec - istart.tv_sec) * 1000000 + (end_join.tv_usec - istart.tv_usec));
+
+			joins_only.push_back(timeDiff(istart, end_join));
+
+#ifndef ASYNC_
+			checkCudaErrors(cudaFree(exp_psum));
+			checkCudaErrors(cudaFree(jresult_dev));
+			checkCudaErrors(cudaFree(write_dev));
+#endif
 		}
 	}
 
 
+	checkCudaErrors(cudaDeviceSynchronize());
 	/******** Free GPU memory, unload module, end session **************/
-	res = cuMemFree(outer_dev);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(outer_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
 
-	res = cuMemFree(inner_dev);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(inner_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+#ifdef ASYNC_
+	checkCudaErrors(cudaFree(outer_dev[0]));
+	checkCudaErrors(cudaFree(outer_dev[1]));
+	checkCudaErrors(cudaFree(inner_dev[0]));
+	checkCudaErrors(cudaFree(inner_dev[1]));
+	checkCudaErrors(cudaFree(index_psum[0]));
+	checkCudaErrors(cudaFree(index_psum[1]));
+	checkCudaErrors(cudaFree(res_bound[0]));
+	checkCudaErrors(cudaFree(res_bound[1]));
+	checkCudaErrors(cudaFree(prejoin_res_dev[0]));
+	checkCudaErrors(cudaFree(prejoin_res_dev[1]));
 
-	res = cuMemFree(search_exp_dev);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(search_exp_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+#ifndef DECOMPOSED1_
+	checkCudaErrors(cudaFree(exp_psum[0]));
+	checkCudaErrors(cudaFree(exp_psum[1]));
+#else
+	checkCudaErrors(cudaFree(exp_psum[stream_idx]));
+	checkCudaErrors(cudaFree(write_dev[stream_idx]));
+	checkCudaErrors(cudaFree(jresult_dev[stream_idx]));
 
-	res = cuMemFree(search_exp_size);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(search_exp_size) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	checkCudaErrors(cudaStreamDestroy(stream[0]));
+	checkCudaErrors(cudaStreamDestroy(stream[1]));
 
-	res = cuMemFree(index_psum);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(count_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+//	if (old_outer != NULL)
+//		checkCudaErrors(cudaHostUnregister(old_outer));
+//	if (old_inner != NULL)
+//		checkCudaErrors(cudaHostUnregister(old_inner));
+	if (old_result != NULL)
+		checkCudaErrors(cudaHostUnregister(old_result));
+	checkCudaErrors(cudaHostUnregister(outer_table_));
+	checkCudaErrors(cudaHostUnregister(inner_table_));
+#endif
+#else
+	checkCudaErrors(cudaFree(outer_dev));
+	checkCudaErrors(cudaFree(inner_dev));
+	checkCudaErrors(cudaFree(index_psum));
+#ifndef DECOMPOSED1_
+	checkCudaErrors(cudaFree(exp_psum));
+#endif
+	checkCudaErrors(cudaFree(res_bound));
+	checkCudaErrors(cudaFree(prejoin_res_dev));
+#endif
 
-	res = cuMemFree(exp_psum);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(count_dev) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	checkCudaErrors(cudaFree(search_exp_dev));
+	checkCudaErrors(cudaFree(search_exp_size));
+	checkCudaErrors(cudaFree(indices_dev));
+	if (initial_size_ > 0)
+		checkCudaErrors(cudaFree(initial_dev));
 
-	res = cuMemFree(res_bound);
-	if (res != CUDA_SUCCESS) {
-		printf("cuMemFree(res_bound) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	if (skipNull_size_ > 0)
+		checkCudaErrors(cudaFree(skipNull_dev));
 
-	res = cuModuleUnload(module);
-	if (res != CUDA_SUCCESS) {
-		printf("cuModuleUnload(module) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	if (prejoin_size_ > 0)
+		checkCudaErrors(cudaFree(prejoin_dev));
 
-	res = cuCtxDestroy(ctx);
-	if (res != CUDA_SUCCESS) {
-		printf("cuCtxDestroy(ctx) failed: res = %lu\n", (unsigned long)res);
-		return false;
-	}
+	if (where_size_ > 0)
+		checkCudaErrors(cudaFree(where_dev));
+
+	if (end_size_ > 0)
+		checkCudaErrors(cudaFree(end_dev));
+
+	if (post_size_ > 0)
+		checkCudaErrors(cudaFree(post_dev));
+
 	gettimeofday(&all_end, NULL);
 
-	unsigned long allocation_time = 0, index_time = 0, expression_time = 0, ipsum_time = 0, epsum_time = 0, wtime_time = 0, joins_only_time = 0, all_time = 0;
+	unsigned long allocation_time = 0, prejoin_time = 0, index_time = 0, expression_time = 0, ipsum_time = 0, epsum_time = 0, wtime_time = 0, joins_only_time = 0, all_time = 0;
+	for (int i = 0; i < prejoin.size(); i++) {
+		prejoin_time += prejoin[i];
+	}
+
 	for (int i = 0; i < index.size(); i++) {
 		index_time += index[i];
 	}
@@ -627,6 +788,14 @@ bool GPUIJ::join(){
 		wtime_time += wtime[i];
 	}
 
+#if (defined(DECOMPOSED1_) || defined(DECOMPOSED2_))
+	unsigned long rebalance_cost = 0;
+	for (int i = 0; i < rebalance.size(); i++) {
+		rebalance_cost += rebalance[i];
+	}
+#endif
+
+
 	for (int i = 0; i < joins_only.size(); i++) {
 		joins_only_time += joins_only[i];
 	}
@@ -636,16 +805,28 @@ bool GPUIJ::join(){
 	allocation_time = all_time - joins_only_time;
 	printf("**********************************\n"
 			"Allocation & data movement time: %lu\n"
+			"Prejoin filter Time: %lu\n"
 			"Index Search Time: %lu\n"
+#if !defined(DECOMPOSED1_) && !defined(DECOMPOSED2_)
 			"Index Prefix Sum Time: %lu\n"
+#else
+			"Rebalance Cost: %lu\n"
+#endif
 			"Expression filter Time: %lu\n"
 			"Expression Prefix Sum Time: %lu\n"
 			"Write back time Time: %lu\n"
 			"Joins Only Time: %lu\n"
 			"Total join time: %lu\n"
 			"*******************************\n",
-			allocation_time, index_time, ipsum_time, expression_time, epsum_time, wtime_time, joins_only_time, all_time);
-	printf("End of join\n");
+			allocation_time, prejoin_time, index_time,
+#if !defined(DECOMPOSED1_) && !defined(DECOMPOSED2_)
+			ipsum_time,
+#else
+			rebalance_cost,
+#endif
+			expression_time, epsum_time, wtime_time, joins_only_time, all_time);
+
+	//exit(0);
 	return true;
 }
 
@@ -811,79 +992,4 @@ void GPUIJ::debug(void)
 	} else
 		std::cout << "Empty indices array" << std::endl;
 }
-
-void GPUIJ::setNValue(NValue *nvalue, GNValue &gnvalue)
-{
-	nvalue->setMdataFromGPU(gnvalue.getMdata());
-	nvalue->setSourceInlinedFromGPU(gnvalue.getSourceInlined());
-	nvalue->setValueTypeFromGPU(gnvalue.getValueType());
-}
-
-void GPUIJ::debugGTrees(const GTreeNode *expression, int size)
-{
-	std::cout << "DEBUGGING INFORMATION..." << std::endl;
-	for (int index = 0; index < size; index++) {
-		switch (expression[index].type) {
-			case EXPRESSION_TYPE_CONJUNCTION_AND: {
-				std::cout << "[" << index << "] CONJUNCTION AND" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_CONJUNCTION_OR: {
-				std::cout << "[" << index << "] CONJUNCTION OR" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_EQUAL: {
-				std::cout << "[" << index << "] COMPARE EQUAL" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_NOTEQUAL: {
-				std::cout << "[" << index << "] COMPARE NOTEQUAL" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHAN: {
-				std::cout << "[" << index << "] COMPARE LESS THAN" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHAN: {
-				std::cout << "[" << index << "] COMPARE GREATER THAN" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LESSTHANOREQUALTO: {
-				std::cout << "[" << index << "] COMPARE LESS THAN OR EQUAL TO" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_GREATERTHANOREQUALTO: {
-				std::cout << "[" << index << "] COMPARE GREATER THAN OR EQUAL TO" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_LIKE: {
-				std::cout << "[" << index << "] COMPARE LIKE" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_COMPARE_IN: {
-				std::cout << "[" << index << "] COMPARE IN" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_TUPLE: {
-				std::cout << "[" << index << "] TUPLE(";
-				std::cout << expression[index].column_idx << "," << expression[index].tuple_idx;
-				std::cout << ")" << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_CONSTANT: {
-				NValue tmp;
-				GNValue tmp_gnvalue = expression[index].value;
-
-				setNValue(&tmp, tmp_gnvalue);
-				std::cout << "[" << index << "] VALUE TUPLE = " << tmp.debug().c_str()  << std::endl;
-				break;
-			}
-			case EXPRESSION_TYPE_VALUE_NULL:
-			case EXPRESSION_TYPE_INVALID:
-			default: {
-				std::cout << "NULL value" << std::endl;
-				break;
-			}
-		}
-	}
 }

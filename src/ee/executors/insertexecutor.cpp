@@ -64,8 +64,15 @@
 #include <vector>
 #include <set>
 
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include "GPUetc/common/GPUTUPLE.h"
+#include "GPUetc/common/GNValue.h"
+
 using namespace std;
 using namespace voltdb;
+
+//int testVal = 0;
 
 bool InsertExecutor::p_init(AbstractPlanNode* abstractNode,
                             TempTableLimits* limits)
@@ -87,6 +94,7 @@ bool InsertExecutor::p_init(AbstractPlanNode* abstractNode,
 
     // Target table can be StreamedTable or PersistentTable and must not be NULL
     PersistentTable *persistentTarget = dynamic_cast<PersistentTable*>(targetTable);
+
     m_partitionColumn = -1;
     m_isStreamed = (persistentTarget == NULL);
 
@@ -161,7 +169,7 @@ bool InsertExecutor::executePurgeFragmentIfNeeded(PersistentTable** ptrToTable) 
 }
 
 bool InsertExecutor::p_execute(const NValueArray &params) {
-	//std::cout << "Insert Executor p execute" << std::endl;
+	//printf("PEXECUTE*******************\n");
     assert(m_node == dynamic_cast<InsertPlanNode*>(m_abstractNode));
     assert(m_node);
     assert(m_inputTable == dynamic_cast<TempTable*>(m_node->getInputTable()));
@@ -170,6 +178,9 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
     // Target table can be StreamedTable or PersistentTable and must not be NULL
     // Update target table reference from table delegate
     Table* targetTable = m_node->getTargetTable();
+
+    //printf("TestVal = %d\n", testVal);
+    //testVal++;
     assert(targetTable);
     assert((targetTable == dynamic_cast<PersistentTable*>(targetTable)) ||
             (targetTable == dynamic_cast<StreamedTable*>(targetTable)));
@@ -205,6 +216,8 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
     TableTuple inputTuple(m_inputTable->schema());
     assert (inputTuple.sizeInValues() == m_inputTable->columnCount());
     TableIterator iterator = m_inputTable->iterator();
+
+
     while (iterator.next(inputTuple)) {
 
         for (int i = 0; i < m_node->getFieldMap().size(); ++i) {
@@ -261,6 +274,7 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
         if (! m_isUpsert) {
             // try to put the tuple into the target table
 
+        	printf("THIS WAY\n");
             if (m_hasPurgeFragment) {
                 if (!executePurgeFragmentIfNeeded(&persistentTable))
                     return false;
@@ -270,6 +284,18 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
                 targetTable = persistentTable;
             }
 
+            //printf("Address of the target table %p\n", (void*)targetTable);
+            //Added for GPUs
+            printf("Column = %d\n", targetTable->columnCount());
+            if (!targetTable->insertGTuple(templateTuple)) {
+            	printf("FAILED TO INSERT TO GPU\n");
+            }
+
+            if (targetTable->tupleCount() == 7) {
+            	PersistentTable *test = dynamic_cast<PersistentTable*>(targetTable);
+
+            	test->testGPU();
+            }
             if (!targetTable->insertTuple(templateTuple)) {
                 VOLT_ERROR("Failed to insert tuple from input table '%s' into"
                            " target table '%s'",
@@ -279,6 +305,7 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
             }
 
         } else {
+        	printf("IOTHER WAY\n");
             // upsert execution logic
             assert(persistentTable->primaryKeyIndex() != NULL);
             TableTuple existsTuple = persistentTable->lookupTuple(templateTuple);
@@ -330,5 +357,7 @@ bool InsertExecutor::p_execute(const NValueArray &params) {
     // add to the planfragments count of modified tuples
     m_engine->addToTuplesModified(modifiedTuples);
     VOLT_DEBUG("Finished inserting %d tuples", modifiedTuples);
+
+
     return true;
 }

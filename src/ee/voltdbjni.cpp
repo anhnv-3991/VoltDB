@@ -120,6 +120,7 @@
 
 #include "logging/LogDefs.h"
 #include "logging/Logger.h"
+#include <pthread.h>
 
 // Defines a function as a JNIEXPORT for a shared library
 #define SHAREDLIB_JNIEXPORT __attribute__((visibility("default"))) JNIEXPORT
@@ -553,7 +554,7 @@ SHAREDLIB_JNIEXPORT jint JNICALL Java_org_voltdb_jni_ExecutionEngine_nativeExecu
         jlong undoToken)
 {
     //VOLT_DEBUG("nativeExecutePlanFragments() start");
-
+	//std::cout << "nativeExecutePlanFragments " << pthread_self() << std::endl;
     // setup
     VoltDBEngine *engine = castToEngine(engine_ptr);
     assert(engine);

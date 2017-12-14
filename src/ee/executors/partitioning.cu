@@ -7,7 +7,7 @@ count the number of match tuple in each partition and each thread
 #include <stdint.h>
 #include <cuda.h>
 #include <sys/time.h>
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 
 using namespace voltdb;
@@ -52,7 +52,7 @@ void rcount_partitioning(
     for(uint i=0; i<RIGHT_PER_TH&&(DEF+threadIdx.x*RIGHT_PER_TH+i)<rows_n; i++){
       //caution : success for some reason. Not t[hoge].gn.getHashValue
       tt = t[DEF+threadIdx.x*RIGHT_PER_TH+i];
-      hash = tt.gn.getHashValue( loop*RADIX , p_n);
+      //hash = tt.gn.getHashValue( loop*RADIX , p_n);
       if(hash == -1) return;
       part[hash*Dim + threadIdx.x]++;
       
@@ -104,7 +104,7 @@ void rpartitioning(
     for(uint i=0; i<RIGHT_PER_TH&&(DEF+threadIdx.x*RIGHT_PER_TH+i)<rows_n; i++){
       //caution : success for some reason
       tt = t[DEF+threadIdx.x*RIGHT_PER_TH+i];
-      hash = tt.gn.getHashValue( loop*RADIX , p_n);
+      //hash = tt.gn.getHashValue( loop*RADIX , p_n);
       temp = part[hash*Dim + threadIdx.x]++;
       pt[temp] = tt;
     } 
@@ -127,8 +127,8 @@ void countPartition(
     //caution : success for some reason. Not t[hoge].gn.getHashValue
     GNValue tt;
     tt = t[x].gn;
-    int p; 
-    p=tt.getHashValue( 0 , p_num);
+    int p = 0;
+   // p=tt.getHashValue( 0 , p_num);
     atomicAdd(&(startpos[p]),1);
   }
 

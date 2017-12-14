@@ -75,29 +75,70 @@ AbstractExecutor* getNewExecutor(VoltDBEngine *engine,
                                  AbstractPlanNode* abstract_node) {
     PlanNodeType type = abstract_node->getPlanNodeType();
     switch (type) {
-    case PLAN_NODE_TYPE_AGGREGATE: return new AggregateSerialExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_DELETE: return new DeleteExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_HASHAGGREGATE: return new AggregateHashExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_PARTIALAGGREGATE: return new AggregatePartialExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_INDEXSCAN: return new IndexScanExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_INDEXCOUNT: return new IndexCountExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_INSERT: return new InsertExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_AGGREGATE:
+    	std::cout << "Aggregate node" << std::endl;
+    	return new AggregateSerialExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_DELETE:
+    	std::cout << "Delete node" << std::endl;
+    	return new DeleteExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_HASHAGGREGATE:
+    	std::cout << "HashAggregate node" << std::endl;
+    	return new AggregateHashExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_PARTIALAGGREGATE:
+    	std::cout << "PartialAggregate node" << std::endl;
+    	return new AggregatePartialExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_INDEXSCAN:
+    	std::cout << "Index Scan node" << std::endl;
+    	return new IndexScanExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_INDEXCOUNT:
+    	std::cout << "Index Count node" << std::endl;
+    	return new IndexCountExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_INSERT:
+    	std::cout << "Insert node" << std::endl;
+    	return new InsertExecutor(engine, abstract_node);
     case PLAN_NODE_TYPE_INVALID:
+    	std::cout << "Invalid node" << std::endl;
         VOLT_ERROR( "INVALID plan node type %d", (int) type);
         return NULL;
-    case PLAN_NODE_TYPE_LIMIT: return new LimitExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_MATERIALIZE: return new MaterializeExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_MATERIALIZEDSCAN: return new MaterializedScanExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_NESTLOOP: return new NestLoopExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_NESTLOOPINDEX: return new NestLoopIndexExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_ORDERBY: return new OrderByExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_PROJECTION: return new ProjectionExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_RECEIVE: return new ReceiveExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_SEND: return new SendExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_SEQSCAN: return new SeqScanExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_TABLECOUNT: return new TableCountExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_UNION: return new UnionExecutor(engine, abstract_node);
-    case PLAN_NODE_TYPE_UPDATE: return new UpdateExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_LIMIT:
+    	std::cout << "Limit node" << std::endl;
+    	return new LimitExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_MATERIALIZE:
+    	std::cout << "Materialize node" << std::endl;
+    	return new MaterializeExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_MATERIALIZEDSCAN:
+    	std::cout << "Materialize Scan node" << std::endl;
+    	return new MaterializedScanExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_NESTLOOP:
+    	std::cout << "Nest Loop node" << std::endl;
+    	return new NestLoopExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_NESTLOOPINDEX:
+    	std::cout << "Nest Loop Index node" << std::endl;
+    	return new NestLoopIndexExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_ORDERBY:
+    	std::cout << "Order by node" << std::endl;
+    	return new OrderByExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_PROJECTION:
+    	std::cout << "Projection node" << std::endl;
+    	return new ProjectionExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_RECEIVE:
+    	std::cout << "Receive node" << std::endl;
+    	return new ReceiveExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_SEND:
+    	std::cout << "Send node" << std::endl;
+    	return new SendExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_SEQSCAN:
+    	std::cout << "SEQScan node" << std::endl;
+    	return new SeqScanExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_TABLECOUNT:
+    	std::cout << "Table count node" << std::endl;
+    	return new TableCountExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_UNION:
+    	std::cout << "Union node" << std::endl;
+    	return new UnionExecutor(engine, abstract_node);
+    case PLAN_NODE_TYPE_UPDATE:
+    	std::cout << "Update node" << std::endl;
+    	return new UpdateExecutor(engine, abstract_node);
     // default: Don't provide a default, let the compiler enforce complete coverage.
     }
     VOLT_ERROR( "Undefined plan node type %d", (int) type);

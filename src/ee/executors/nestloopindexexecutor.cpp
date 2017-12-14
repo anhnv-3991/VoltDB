@@ -70,10 +70,8 @@
 #include "indexes/tableindex.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "GPUNIJ.h"
-#include "GPUSHJ.h"
 #include "GPUIJ.h"
-#include "GPUTUPLE.h"
+#include "GPUetc/common/GPUTUPLE.h"
 #include "GPUetc/common/GNValue.h"
 #include "GPUetc/expressions/Gcomparisonexpression.h"
 #include "expressions/comparisonexpression.h"
@@ -163,8 +161,8 @@ bool NestLoopIndexExecutor::p_init(AbstractPlanNode* abstractNode,
 
 void setGNValue(GNValue *column_data, NValue &value)
 {
-	column_data->setMdata(value.getMdataForGPU());
-	column_data->setSourceInlined(value.getSourceInlinedForGPU());
+	column_data->setMdata(value.getValueTypeForGPU(), value.getMdataForGPU());
+	//column_data->setSourceInlined(value.getSourceInlinedForGPU());
 	column_data->setValueType(value.getValueTypeForGPU());
 }
 
@@ -172,16 +170,26 @@ void setGNValue(GNValue *column_data, NValue &value)
 void GNValueDebug(GNValue &column_data)
 {
 	NValue value;
-	value.setMdataFromGPU(column_data.getMdata());
-	value.setSourceInlinedFromGPU(column_data.getSourceInlined());
+	long double gtmp = column_data.getMdata();
+	char tmp[16];
+	memcpy(tmp, &gtmp, sizeof(long double));
+	value.setMdataFromGPU(tmp);
+	//value.setSourceInlinedFromGPU(column_data.getSourceInlined());
 	value.setValueTypeFromGPU(column_data.getValueType());
 
 	std::cout << value.debug();
 }
 
+unsigned long timeDiff(struct timeval start, struct timeval end)
+{
+	return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
+}
+
 
 bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 {
+	std::cout << "NestLoopIndexExecutor execute" << std::endl;
+	printf("Size of GTreeNode = %d, size of GNValue = %d\n", (int)sizeof(GTreeNode), (int)sizeof(GNValue));
 	struct timeval start, finish;
 
 	gettimeofday(&start, NULL);
@@ -196,6 +204,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     assert(inner_table);
 
     TableIndex* index = inner_table->index(m_indexNode->getTargetIndexName());
+    std::cout << "Target Index Name = " << m_indexNode->getTargetIndexName() << std::endl;
     assert(index);
     IndexCursor indexCursor(index->getTupleSchema());
 
@@ -218,15 +227,6 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
     // will include TupleValueExpression even after this substitution
     //
     int num_of_searchkeys = (int)m_indexNode->getSearchKeyExpressions().size();
-//    for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
-//        VOLT_TRACE("Search Key[%d]:\n%s",
-//                   ctr, m_indexNode->getSearchKeyExpressions()[ctr]->debug(true).c_str());
-//    }
-//    std::cout << "************************* START *************************" << std::endl;
-//    for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
-//    	std::cout << "Search key " << m_indexNode->getSearchKeyExpressions()[ctr]->debug(true).c_str() << std::endl;
-//    }
-//    std::cout << "************************** END *************************" << std::endl;
 
     // end expression
     // where table1.field = table2.field
@@ -301,33 +301,53 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
         join_tuple = m_tmpOutputTable->tempTuple();
     }
 
-    bool earlyReturned = false;
+    //bool earlyReturned = false;
 
 
 	/************ Build Expression Tree *****************************/
+    struct timeval tree_start, tree_end;
+    gettimeofday(&tree_start, NULL);
 	TreeExpression end_ex_tree(end_expression);
-	printf("End ex tree:::");
-	end_ex_tree.debug();
+	gettimeofday(&tree_end, NULL);
+	//printf("End ex tree:::");
+	//end_ex_tree.debug();
+	printf("Timediff of end_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
+
+	gettimeofday(&tree_start, NULL);
 	TreeExpression post_ex_tree(post_expression);
-	printf("Post ex tree:::");
-	post_ex_tree.debug();
+	gettimeofday(&tree_end, NULL);
+	//printf("Post ex tree:::");
+	//post_ex_tree.debug();
+	printf("Timediff of post_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
+	gettimeofday(&tree_start, NULL);
 	TreeExpression initial_ex_tree(initial_expression);
-	printf("Initial ex tree:::");
-	initial_ex_tree.debug();
+	gettimeofday(&tree_end, NULL);
+	//printf("Initial ex tree:::");
+	//initial_ex_tree.debug();
+	printf("Timediff of initial_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
+	gettimeofday(&tree_start, NULL);
 	TreeExpression skipNull_ex_tree(skipNullExpr);
-	printf("skipNull ex tree:::");
-	skipNull_ex_tree.debug();
+	gettimeofday(&tree_end, NULL);
+	//printf("skipNull ex tree:::");
+	//skipNull_ex_tree.debug();
+	printf("Timediff of skipNull_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
+	gettimeofday(&tree_start, NULL);
 	TreeExpression prejoin_ex_tree(prejoin_expression);
-	printf("Prejoin ex tree:::");
-	prejoin_ex_tree.debug();
+	gettimeofday(&tree_end, NULL);
+	//printf("Prejoin ex tree:::");
+	//prejoin_ex_tree.debug();
+	printf("Timediff of prejoin_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
+	gettimeofday(&tree_start, NULL);
 	TreeExpression where_ex_tree(where_expression);
-	printf("Where ex tree:::");
-	where_ex_tree.debug();
+	gettimeofday(&tree_end, NULL);
+	//printf("Where ex tree:::");
+	//where_ex_tree.debug();
+	printf("Timediff of where_ex_tree = %lu\n", timeDiff(tree_start, tree_end));
 
 	/******************** Add for GPU join **************************/
 
@@ -339,9 +359,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	/********** Get column data for end_expression (search keys) & post_expression from outer table ***************/
 	TableIterator search_it_out = outer_table->iterator(), search_it_in = inner_table->iterator();
-	//IndexData *index_data_out = (IndexData *)malloc(sizeof(IndexData) * outer_size);
 	GNValue *index_data_out = (GNValue *)malloc(sizeof(GNValue) * outer_size * outer_tuple.sizeInValues());
-	//IndexData *index_data_in = (IndexData *)malloc(sizeof(IndexData) * inner_size);
 	GNValue *index_data_in = (GNValue *)malloc(sizeof(GNValue) * inner_size * inner_tuple.sizeInValues());
 	TableTuple *tmp_outer_tuple = (TableTuple *)malloc(sizeof(TableTuple) * outer_size);
 	TableTuple *tmp_inner_tuple = (TableTuple *)malloc(sizeof(TableTuple) * inner_size);
@@ -355,6 +373,8 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	for (int ctr = 0; ctr < num_of_searchkeys; ctr++) {
 		TreeExpression tmp(m_indexNode->getSearchKeyExpressions()[ctr]);
 		gsearchKeyExpressions.push_back(tmp);
+		tmp.debug();
+		std::cout << std::endl;
 	}
 
 	for (int ctr = 0; ctr < inner_indices.size(); ctr++) {
@@ -363,59 +383,89 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 	idx = 0;
 
 	int col_outer = outer_tuple.sizeInValues();
+	printf("Number of outer_columns: %d and %d\n", col_outer, num_of_outer_cols);
 
 	while (search_it_out.next(outer_tuple)) {
 		tmp_outer_tuple[idx] = outer_tuple;
 		for (int i = 0; i < col_outer; i++) {
 			NValue tmp_value = outer_tuple.getNValue(i);
-
 			setGNValue(&index_data_out[idx * col_outer + i], tmp_value);
 		}
 		idx++;
 	}
 
-	/********** Get column data for end_expression (index keys) & post_expression from inner table ********************************/
+//	printf("Number of inner column\n");
+//	/* Get column data of inner table
+//	 * for HJ
+//	 */
+//	idx = 0;
+//	int col_inner = inner_tuple.sizeInValues();
+//	while (search_it_in.next(inner_tuple)) {
+//		tmp_inner_tuple[idx] = inner_tuple;
+//		for (int i = 0; i < col_inner; i++) {
+//			NValue tmp_value = inner_tuple.getNValue(i);
+//			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
+//		}
+//		idx++;
+//	}
+//
+//	int m_sizeIndex = index->getMSizeIndex() - 2;
+//	printf("m_sizeIndex = %d\n", m_sizeIndex);
+
+	/* Get column data of inner table
+	 * for INLJ
+	 */
 	IndexCursor index_cursor2(index->getTupleSchema());
 
-	/* Move to smallest key */
 	bool begin = true;
-	TableTuple tmp_tuple(inner_table->schema());
 
 	index->moveToEnd(begin, index_cursor2);
 
+
 	idx = 0;
 	int col_inner = inner_tuple.sizeInValues();
-
 	while (!(inner_tuple = index->nextValue(index_cursor2)).isNullTuple()) {
 		tmp_inner_tuple[idx] = inner_tuple;
 		for (int i = 0; i < col_inner; i++) {
 			NValue tmp_value = inner_tuple.getNValue(i);
-
-			//std::cout << tmp_value.debug() << ":::::";
 			setGNValue(&index_data_in[idx * col_inner + i], tmp_value);
-			if (index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_INVALID || index_data_in[idx * col_inner + i].getValueType() == VALUE_TYPE_NULL)
-				printf("PROBLEM!\n");
 		}
-		//cout << std::endl;
 		idx++;
 	}
 
 	bool ret = true;
 	RESULT *join_result = NULL;
 	int result_size = 0;
+	IndexLookupType lookup_type = m_lookupType;
     /* Copy data to GPU memory */
-
-	//int last_r;
-
+	int real_result_size = 0;
 	if (outer_size != 0 && inner_size != 0) {
 
 		gettimeofday(&join_start, NULL);
 		GPUIJ gn(index_data_out, index_data_in, outer_size, col_outer, inner_size, col_inner, gsearchKeyExpressions, inner_indices, end_ex_tree,
-					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree);
+					post_ex_tree, initial_ex_tree, skipNull_ex_tree, prejoin_ex_tree, where_ex_tree, lookup_type);
+//		GPUHJ gn(index_data_out,
+//					index_data_in,
+//					outer_size,
+//					col_outer,
+//					inner_size,
+//					col_inner,
+//					gsearchKeyExpressions,
+//					inner_indices,
+//					end_ex_tree,
+//					post_ex_tree,
+//					initial_ex_tree,
+//					skipNull_ex_tree,
+//					prejoin_ex_tree,
+//					where_ex_tree,
+//					lookup_type,
+//					m_sizeIndex
+//					);
 
-
+		printf("Start joining\n");
 		ret = gn.join();
 		gettimeofday(&join_end, NULL);
+
 
 		if (ret != true) {
 			std::cout << "Error: gpu join failed." << std::endl;
@@ -426,26 +476,29 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 			join_result = (RESULT *)malloc(sizeof(RESULT) * result_size);
 			gn.getResult(join_result);
 
-
 			printf("Size of result: %d\n", result_size);
 			gettimeofday(&write_start, NULL);
 			for (int i = 0; i < result_size && (limit == -1 || tuple_ctr < limit); i++, tuple_ctr++) {
 				int l = join_result[i].lkey;
 				int r = join_result[i].rkey;
 
+
 				if (l >= 0 && r >= 0 && l < outer_size && r < inner_size) {
+					real_result_size++;
+					//printf("Index of output outer = %d and inner = %d\n", l, r);
 					join_tuple.setNValues(0, tmp_outer_tuple[l], 0, num_of_outer_cols);
 
 					for (int col_ctr = num_of_outer_cols; col_ctr < join_tuple.sizeInValues(); ++col_ctr) {
 						//std::cout << m_outputExpressions[col_ctr]->debug() << std::endl;;
-						join_tuple.setNValue(col_ctr,
-								  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
+						//join_tuple.setNValue(col_ctr,
+						//		  m_outputExpressions[col_ctr]->eval(&tmp_outer_tuple[l], &tmp_inner_tuple[r]));
 					}
 				}
 
 //                if (m_aggExec != NULL) {
 //                    if (m_aggExec->p_execute_tuple(join_tuple)) {
 //                    	// Get enough rows for LIMIT
+//
 //                        earlyReturned = true;
 //                        break;
 //                    }
@@ -453,10 +506,10 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 //                    m_tmpOutputTable->insertTempTuple(join_tuple);
 //                    pmp.countdownProgress();
 //                }
-
-				if (earlyReturned) {
-					break;
-				}
+//
+//				if (earlyReturned) {
+//					break;
+//				}
 			}
 			gettimeofday(&write_end, NULL);
 		}
@@ -464,6 +517,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
 	printf("Elapsed time for joining: %ld\n", (join_end.tv_sec - join_start.tv_sec) * 1000000 + (join_end.tv_usec - join_start.tv_usec));
 	printf("Elapsed time for writing result: %ld\n", (write_end.tv_sec - write_start.tv_sec) * 1000000 + (write_end.tv_usec - write_start.tv_usec));
+	printf("Real result size = %d\n", real_result_size);
 
     /******************* End of adding GPU join ********************/
 
@@ -495,6 +549,7 @@ bool NestLoopIndexExecutor::p_execute(const NValueArray &params)
 
     printf("Elapsed time: %lu microseconds\n", ((finish.tv_sec - start.tv_sec) * 1000000 + finish.tv_usec - start.tv_usec));
 
+    //exit(0); //2016.08.26 - Added to force quit for visual profiling
     return (true);
 }
 

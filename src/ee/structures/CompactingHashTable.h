@@ -178,6 +178,9 @@ namespace voltdb {
         /** verification for debugging and testing */
         bool verify();
 
+        //For hash join on GPU
+        int getMSizeIndex() const { return m_sizeIndex; }
+
     protected:
         /** find, given a bucket/key */
         HashNode *find(const HashNode *bucket, const Key &key) const;
